@@ -11,18 +11,16 @@
     <!-- Fullscreen Hydra canvas -->
     <div class="preview-container" id="hydra-canvas"></div>
     
-    <!-- Draggable editor modal -->
+    <!-- Draggable editor modal with integrated controls -->
     <div class="editor-container" id="editor-container">
       <div class="editor-handle" id="editor-handle">
         <div class="editor-handle-title">HYDRACTRL</div>
       </div>
       <div class="editor-content" id="editor-content"></div>
-    </div>
-    
-    <!-- Floating controls -->
-    <div class="controls">
-      <button id="run-btn">Run</button>
-      <button id="save-btn">Save</button>
+      <div class="editor-footer">
+        <button id="run-btn" title="Run (Ctrl+Enter)">Run</button>
+        <button id="save-btn" title="Save (Ctrl+S)">Save</button>
+      </div>
     </div>
   </div>
   <script src="/assets/index.js" type="module"></script>

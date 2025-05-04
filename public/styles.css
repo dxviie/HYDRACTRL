@@ -43,28 +43,14 @@ body {
   z-index: 100;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(5px);
-  cursor: move;
   resize: both;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Make textarea fully transparent background but visible text */
 .editor-container textarea {
   background-color: transparent !important;
-}
-
-/* Controls floating at the bottom */
-.controls {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-  padding: 10px 20px;
-  background-color: rgba(20, 20, 20, 0.7);
-  backdrop-filter: blur(10px);
-  border-radius: 30px;
-  z-index: 100;
 }
 
 button {
@@ -75,15 +61,36 @@ button {
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
 button:hover {
   background-color: #3d3d3d;
+  transform: translateY(-1px);
 }
 
 button:active {
   background-color: #4d4d4d;
+  transform: translateY(1px);
+}
+
+/* Saved notification */
+.saved-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: rgba(60, 180, 100, 0.8);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  transition: opacity 0.5s;
+}
+
+.saved-notification.fade-out {
+  opacity: 0;
 }
 
 /* Editor handle for drag indicator */
@@ -95,6 +102,7 @@ button:active {
   align-items: center;
   padding: 0 10px;
   cursor: move;
+  flex-shrink: 0;
 }
 
 .editor-handle-title {
@@ -103,6 +111,24 @@ button:active {
 }
 
 .editor-content {
-  height: calc(100% - 30px);
+  flex-grow: 1;
   overflow: auto;
+}
+
+/* Editor footer with buttons */
+.editor-footer {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 0 10px;
+  background-color: rgba(50, 50, 50, 0.7);
+  flex-shrink: 0;
+}
+
+.editor-footer button {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 3px;
 }

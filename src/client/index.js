@@ -29,8 +29,13 @@ function initEditor() {
   
   editorContent.appendChild(textarea);
   
-  // Make the editor draggable
+  // Make the editor draggable by the handle
   makeDraggable(document.getElementById('editor-container'), document.getElementById('editor-handle'));
+  
+  // Prevent the editor textarea from triggering drag when clicking in it
+  textarea.addEventListener('mousedown', e => {
+    e.stopPropagation();
+  });
   
   // Create a simple editor object that mimics the CodeMirror API
   return {
@@ -44,6 +49,10 @@ function initEditor() {
         // For loadCode functionality
         textarea.value = changes.insert;
       }
+    },
+    // Add a focus method for better UX
+    focus: () => {
+      textarea.focus();
     }
   };
 }
@@ -217,10 +226,28 @@ async function init() {
     const hydra = await initHydra();
     
     // Set up event listeners
-    document.getElementById('run-btn').addEventListener('click', () => runCode(editor, hydra));
+    document.getElementById('run-btn').addEventListener('click', () => {
+      runCode(editor, hydra);
+      editor.focus(); // Return focus to editor after clicking run
+    });
+    
     document.getElementById('save-btn').addEventListener('click', () => {
       saveCode(editor);
-      alert('Code saved!');
+      
+      // Show temporary "Saved!" notification
+      const savedNotification = document.createElement('div');
+      savedNotification.className = 'saved-notification';
+      savedNotification.textContent = 'Saved!';
+      document.body.appendChild(savedNotification);
+      
+      setTimeout(() => {
+        savedNotification.classList.add('fade-out');
+        setTimeout(() => {
+          document.body.removeChild(savedNotification);
+        }, 500);
+      }, 1500);
+      
+      editor.focus(); // Return focus to editor after saving
     });
     
     // Add keyboard shortcuts
@@ -232,10 +259,9 @@ async function init() {
       }
       
       // Ctrl+S or Cmd+S to save code
-      if ((e.ctrlKey || e.metaKey) && e.key === 'S') {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         saveCode(editor);
-        alert('Code saved!');
       }
       
       // ESC to toggle editor visibility
@@ -249,6 +275,10 @@ async function init() {
     
     // Run initial code
     runCode(editor, hydra);
+    
+    // Focus the editor initially
+    editor.focus();
+    
   } catch (error) {
     console.error("Error initializing application:", error);
   }
