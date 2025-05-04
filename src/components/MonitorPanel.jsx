@@ -41,44 +41,76 @@ export class MonitorPanel extends Component {
   makeDraggable(element, handle) {
     let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     
-    if (handle) {
-      // If handle is specified, use it for dragging
-      handle.onmousedown = dragMouseDown;
-    } else {
-      // Otherwise, use the entire element
-      element.onmousedown = dragMouseDown;
+    // Ensure the element has position:absolute and initial coordinates
+    element.style.position = 'absolute';
+    
+    // Set initial position if not already positioned
+    if (!element.style.top || !element.style.left) {
+      element.style.top = '20px';
+      element.style.right = '20px';
     }
-
+    
+    // Make sure the handle has cursor:move
+    if (handle) {
+      handle.style.cursor = 'move';
+    }
+    
+    // Need to bind this to maintain scope
     const that = this;
     
+    // Define the drag event handlers
     function dragMouseDown(e) {
       e = e || window.event;
       e.preventDefault();
+      
       // Get the mouse cursor position at startup
       pos3 = e.clientX;
       pos4 = e.clientY;
-      document.onmouseup = closeDragElement;
-      // Call function whenever the cursor moves
-      document.onmousemove = elementDrag;
+      
+      // Set up document-level event handlers (for dragging outside the element)
+      document.addEventListener('mouseup', closeDragElement);
+      document.addEventListener('mousemove', elementDrag);
+      
+      // Add active dragging class
+      element.classList.add('monitor-dragging');
     }
 
     function elementDrag(e) {
       e = e || window.event;
       e.preventDefault();
+      
       // Calculate new cursor position
       pos1 = pos3 - e.clientX;
       pos2 = pos4 - e.clientY;
       pos3 = e.clientX;
       pos4 = e.clientY;
-      // Set the element's new position
-      element.style.top = (element.offsetTop - pos2) + "px";
-      element.style.left = (element.offsetLeft - pos1) + "px";
+      
+      // Calculate new position ensuring element stays in viewport
+      const newTop = Math.max(0, Math.min(window.innerHeight - element.offsetHeight, element.offsetTop - pos2));
+      const newLeft = Math.max(0, Math.min(window.innerWidth - element.offsetWidth, element.offsetLeft - pos1));
+      
+      // Update element position
+      element.style.top = newTop + "px";
+      element.style.left = newLeft + "px";
+      
+      // Remove any right positioning that might interfere
+      element.style.removeProperty('right');
     }
 
     function closeDragElement() {
       // Stop moving when mouse button is released
-      document.onmouseup = null;
-      document.onmousemove = null;
+      document.removeEventListener('mouseup', closeDragElement);
+      document.removeEventListener('mousemove', elementDrag);
+      
+      // Remove active dragging class
+      element.classList.remove('monitor-dragging');
+    }
+    
+    // Attach the mousedown event to the handle
+    if (handle) {
+      handle.addEventListener('mousedown', dragMouseDown);
+    } else {
+      element.addEventListener('mousedown', dragMouseDown);
     }
   }
   

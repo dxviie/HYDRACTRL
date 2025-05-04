@@ -202,7 +202,31 @@ function runCode(editor, hydra) {
 function toggleEditor() {
   const editorContainer = document.getElementById('editor-container');
   const isVisible = editorContainer.style.display !== 'none';
-  editorContainer.style.display = isVisible ? 'none' : 'block';
+  
+  if (isVisible) {
+    // Hide the editor
+    editorContainer.style.display = 'none';
+  } else {
+    // Show the editor
+    editorContainer.style.display = 'flex'; // Use flex to maintain the flex layout
+    
+    // Force a resize event after a small delay to ensure the textarea adjusts properly
+    setTimeout(() => {
+      // Get the textarea and force a resize
+      const textarea = editorContainer.querySelector('textarea');
+      if (textarea) {
+        // Temporarily shrink and restore to force a redraw
+        const originalHeight = textarea.style.height;
+        textarea.style.height = '1px';
+        setTimeout(() => {
+          textarea.style.height = originalHeight || '100%';
+        }, 0);
+      }
+      
+      // Force layout recalculation
+      window.dispatchEvent(new Event('resize'));
+    }, 10);
+  }
 }
 
 // Save code to local storage
