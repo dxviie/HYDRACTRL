@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-HYDRACTRL is a tool built around hydra-synth/hydra designed for live performances. It uses Bun for optimal performance and distribution capabilities.
+HYDRACTRL is a tool built around hydra-synth/hydra designed for live performances. It uses Bun for optimal performance and distribution, CodeMirror for code editing, and Elysia for serving the web application.
 
 ## Build Commands
 - Setup: `bun install`
@@ -23,3 +23,5 @@ HYDRACTRL is a tool built around hydra-synth/hydra designed for live performance
 - **Naming**: camelCase for variables/functions, PascalCase for classes
 - **Error Handling**: Use typed errors and provide useful error messages
 - **Performance**: Prioritize low-latency operations for live performances
+- **UI Components**: Organize UI code in separate files in src/client directory
+- **CodeMirror**: Use the CodeMirror 6 API for editor functionality

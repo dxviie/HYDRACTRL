@@ -3,18 +3,21 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "bun --watch src/index.ts",
-    "build": "bun build src/index.ts --outdir ./dist",
-    "build:exe": "bun build src/index.ts --compile --outfile hydractrl",
+    "dev": "bun run build:client && bun --watch src/index.ts",
+    "build": "bun run build:client && bun build src/index.ts --outdir ./dist",
+    "build:client": "bun build src/client/index.js --outdir ./public/assets --minify --target browser",
+    "build:exe": "bun run build:client && bun build src/index.ts --compile --outfile hydractrl",
     "lint": "biome check src/",
     "format": "biome format --write src/",
     "test": "bun test"
   },
   "dependencies": {
+    "elysia": "^0.8.17",
     "hydra-synth": "^1.3.25"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
+    "@types/web": "^0.0.137",
     "bun-types": "latest"
   }
 }

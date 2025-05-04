@@ -21,6 +21,7 @@ bun-debug.log*
 dist/
 build/
 .cache/
+public/assets/
 
 # IDEs and editors
 .vscode/
@@ -35,3 +36,4 @@ build/
 # Misc
 .DS_Store
 Thumbs.db
+**/.claude/settings.local.json
