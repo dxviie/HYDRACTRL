@@ -1,4 +1,5 @@
 import { Component } from './Component.jsx';
+import { DraggableWrapper } from './DraggableWrapper.jsx';
 
 /**
  * Performance Monitor Panel component
@@ -21,7 +22,7 @@ export class MonitorPanel extends Component {
     // Bind methods
     this.toggleExpand = this.toggleExpand.bind(this);
     this.update = this.update.bind(this);
-    this.makeDraggable = this.makeDraggable.bind(this);
+    this.makeElementDraggable = this.makeElementDraggable.bind(this);
   }
   
   /**
@@ -33,86 +34,7 @@ export class MonitorPanel extends Component {
     });
   }
   
-  /**
-   * Make the panel draggable
-   * @param {HTMLElement} element - Element to make draggable
-   * @param {HTMLElement} handle - Drag handle element
-   */
-  makeDraggable(element, handle) {
-    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    
-    // Ensure the element has position:absolute and initial coordinates
-    element.style.position = 'absolute';
-    
-    // Set initial position if not already positioned
-    if (!element.style.top || !element.style.left) {
-      element.style.top = '20px';
-      element.style.right = '20px';
-    }
-    
-    // Make sure the handle has cursor:move
-    if (handle) {
-      handle.style.cursor = 'move';
-    }
-    
-    // Need to bind this to maintain scope
-    const that = this;
-    
-    // Define the drag event handlers
-    function dragMouseDown(e) {
-      e = e || window.event;
-      e.preventDefault();
-      
-      // Get the mouse cursor position at startup
-      pos3 = e.clientX;
-      pos4 = e.clientY;
-      
-      // Set up document-level event handlers (for dragging outside the element)
-      document.addEventListener('mouseup', closeDragElement);
-      document.addEventListener('mousemove', elementDrag);
-      
-      // Add active dragging class
-      element.classList.add('monitor-dragging');
-    }
-
-    function elementDrag(e) {
-      e = e || window.event;
-      e.preventDefault();
-      
-      // Calculate new cursor position
-      pos1 = pos3 - e.clientX;
-      pos2 = pos4 - e.clientY;
-      pos3 = e.clientX;
-      pos4 = e.clientY;
-      
-      // Calculate new position ensuring element stays in viewport
-      const newTop = Math.max(0, Math.min(window.innerHeight - element.offsetHeight, element.offsetTop - pos2));
-      const newLeft = Math.max(0, Math.min(window.innerWidth - element.offsetWidth, element.offsetLeft - pos1));
-      
-      // Update element position
-      element.style.top = newTop + "px";
-      element.style.left = newLeft + "px";
-      
-      // Remove any right positioning that might interfere
-      element.style.removeProperty('right');
-    }
-
-    function closeDragElement() {
-      // Stop moving when mouse button is released
-      document.removeEventListener('mouseup', closeDragElement);
-      document.removeEventListener('mousemove', elementDrag);
-      
-      // Remove active dragging class
-      element.classList.remove('monitor-dragging');
-    }
-    
-    // Attach the mousedown event to the handle
-    if (handle) {
-      handle.addEventListener('mousedown', dragMouseDown);
-    } else {
-      element.addEventListener('mousedown', dragMouseDown);
-    }
-  }
+  // Removed old makeDraggable method - using DraggableWrapper now
   
   /**
    * Update performance metrics
@@ -151,16 +73,136 @@ export class MonitorPanel extends Component {
    * Start update loop when component mounts
    */
   componentDidMount() {
-    // Make panel draggable
+    // Initialize the panel
     const panel = this.element;
-    const handle = panel.querySelector('.monitor-handle');
-    this.makeDraggable(panel, handle);
+    
+    console.log('MonitorPanel mounted, element:', panel);
+    
+    // Use direct method instead of wrapper component for now
+    this.makeElementDraggable(panel);
     
     // Set lastFrameTime to current time to begin accurate FPS tracking
     this.state.lastFrameTime = performance.now();
     
     // Start performance monitoring loop
     this._frameId = requestAnimationFrame(this.update);
+  }
+  
+  /**
+   * Simple direct draggable implementation
+   */
+  makeElementDraggable(element) {
+    // Find the handle
+    const handle = element.querySelector('.monitor-handle');
+    if (!handle) {
+      console.error('No drag handle found');
+      return;
+    }
+    
+    console.log('Setting up draggable panel with handle:', handle);
+    
+    // Set cursor style
+    handle.style.cursor = 'move';
+    
+    // Set position
+    element.style.position = 'absolute';
+    element.style.top = '20px';
+    element.style.right = '20px';
+    
+    // Force left position calculation based on right position
+    setTimeout(() => {
+      // Get the initial rect
+      const rect = element.getBoundingClientRect();
+      console.log('Initial rect:', rect);
+      
+      // Calculate and set left position
+      const leftPos = window.innerWidth - rect.width - 20;
+      element.style.left = leftPos + 'px';
+      console.log('Set initial left position:', leftPos);
+    }, 100);
+    
+    // Variables to track position
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    
+    // Mouse down handler
+    const mouseDownHandler = (e) => {
+      console.log('Mouse down on handle!', e);
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Remove right positioning
+      if (element.style.right) {
+        console.log('Removing right property');
+        element.style.right = '';
+      }
+      
+      // Get initial mouse position
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      
+      // Add document listeners
+      document.addEventListener('mousemove', mouseMoveHandler);
+      document.addEventListener('mouseup', mouseUpHandler);
+      
+      // Add dragging class
+      element.classList.add('monitor-dragging');
+    };
+    
+    // Mouse move handler
+    const mouseMoveHandler = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Calculate position change
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      
+      // Set new position
+      const newTop = element.offsetTop - pos2;
+      const newLeft = element.offsetLeft - pos1;
+      
+      element.style.top = newTop + 'px';
+      element.style.left = newLeft + 'px';
+      
+      // Debug position
+      if (pos1 !== 0 || pos2 !== 0) {
+        console.log('Moving panel to:', newLeft, newTop);
+      }
+    };
+    
+    // Mouse up handler
+    const mouseUpHandler = (e) => {
+      console.log('Mouse up - drag complete');
+      
+      // Remove document listeners
+      document.removeEventListener('mousemove', mouseMoveHandler);
+      document.removeEventListener('mouseup', mouseUpHandler);
+      
+      // Remove dragging class
+      element.classList.remove('monitor-dragging');
+    };
+    
+    console.log('Adding mousedown listener to handle');
+    
+    // Add initial event listener using direct DOM method
+    handle.onmousedown = mouseDownHandler;
+    
+    // Also add using addEventListener for good measure
+    handle.addEventListener('mousedown', mouseDownHandler);
+    
+    // Store handlers for cleanup
+    this._dragHandlers = {
+      mouseDown: mouseDownHandler,
+      handle
+    };
+    
+    // Try touching the DOM to ensure events are attached
+    handle.style.cursor = 'move';
+    handle.style.cursor = 'grab';
+    
+    console.log('Draggable setup complete');
   }
   
   /**
@@ -171,6 +213,16 @@ export class MonitorPanel extends Component {
     // Cancel animation frame to prevent memory leaks
     if (this._frameId) {
       cancelAnimationFrame(this._frameId);
+    }
+    
+    // Clean up drag handlers
+    if (this._dragHandlers) {
+      const { handle, mouseDown } = this._dragHandlers;
+      if (handle && mouseDown) {
+        // Remove both event listeners
+        handle.removeEventListener('mousedown', mouseDown);
+        handle.onmousedown = null;
+      }
     }
   }
   

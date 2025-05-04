@@ -62,7 +62,8 @@ body {
 .editor-content {
   display: flex;
   flex: 1 1 auto;
-  min-height: 0; /* Important for Firefox */
+  min-height: 0;
+  /* Important for Firefox */
   overflow: hidden;
 }
 
@@ -110,6 +111,7 @@ button:active {
 .monitor-panel {
   position: absolute;
   top: 20px;
+  left: auto;
   right: 20px;
   width: auto;
   min-width: 120px;
@@ -127,7 +129,8 @@ button:active {
 .monitor-panel.monitor-dragging {
   opacity: 0.9;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-  transition: none; /* Disable transitions while dragging for performance */
+  transition: none;
+  /* Disable transitions while dragging for performance */
 }
 
 .monitor-handle {
@@ -139,6 +142,11 @@ button:active {
   padding: 0 8px;
   cursor: move;
   flex-shrink: 0;
+  /* Ensure the handle is clickable */
+  z-index: 10;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
 }
 
 .monitor-title {

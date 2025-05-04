@@ -1,5 +1,5 @@
-// Import components
-import { MonitorPanel } from '../components/index.js';
+// Import stats panel
+import { createStatsPanel } from '../StatsPanel.js';
 
 // Default starter code for Hydra
 const DEFAULT_CODE = `// HYDRACTRL Sample
@@ -306,10 +306,11 @@ async function init() {
     // Focus the editor initially
     editor.focus();
     
-    // Initialize and mount the monitor panel
-    const monitorContainer = document.getElementById('monitor-container');
-    const monitorPanel = new MonitorPanel();
-    monitorPanel.mount(monitorContainer);
+    // Create the stats panel using our simple implementation
+    const statsPanel = createStatsPanel();
+    
+    // Add to window for debugging
+    window.statsPanel = statsPanel;
     
   } catch (error) {
     console.error("Error initializing application:", error);
