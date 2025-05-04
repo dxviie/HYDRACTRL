@@ -193,17 +193,15 @@ function toggleEditor() {
     // Show the editor
     editorContainer.style.display = 'flex'; // Use flex to maintain the flex layout
     
-    // Force a resize event after a small delay to ensure Monaco editor adjusts properly
+    // Force a resize event after showing
     setTimeout(() => {
-      // Monaco editor knows how to handle resize events automatically
-      // Just need to trigger a layout recalculation
       window.dispatchEvent(new Event('resize'));
       
-      // Focus the editor
+      // Focus the editor (use the proxy we exposed to window)
       if (window._editorProxy) {
         window._editorProxy.focus();
       }
-    }, 10);
+    }, 50); // Slightly longer delay
   }
 }
 

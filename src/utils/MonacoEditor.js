@@ -198,7 +198,7 @@ export function createMonacoEditor(container, initialCode = '') {
   // Add to container
   container.appendChild(editorContainer);
   
-  // Create Monaco editor
+  // Create Monaco editor with minimal settings
   const editor = monaco.editor.create(editorContainer, {
     value: initialCode,
     language: 'hydra',
@@ -207,68 +207,23 @@ export function createMonacoEditor(container, initialCode = '') {
     minimap: { enabled: false },
     scrollBeyondLastLine: false,
     automaticLayout: true,
-    contextmenu: true,
     fontSize: 14,
     lineNumbers: 'on',
     scrollbar: {
       useShadows: false,
       verticalScrollbarSize: 10,
-      horizontalScrollbarSize: 10,
-      vertical: 'auto',
-      horizontal: 'auto'
+      horizontalScrollbarSize: 10
     },
-    renderWhitespace: 'none',
-    renderLineHighlight: 'line',
     fontFamily: 'monospace',
-    fontLigatures: false,
-    lineHeight: 20,
-    letterSpacing: 0.5,
-    cursorBlinking: 'blink',
-    cursorStyle: 'line',
-    cursorWidth: 2,
-    // These options can help with cursor visibility
-    hideCursorInOverviewRuler: false,
-    overviewRulerBorder: false,
-    renderValidationDecorations: 'on',
   });
 
-  // Force an initial focus/blur to ensure cursor state is initialized properly
-  setTimeout(() => {
-    editor.focus();
-    
-    // Add a special class to help with cursor styling
-    const domNode = editor.getDomNode();
-    if (domNode) {
-      domNode.classList.add('hydra-monaco-editor');
-    }
-    
-    // Force cursor to be visible initially
-    editor.trigger('keyboard', 'cursorHome', null);
-    editor.trigger('keyboard', 'cursorEnd', null);
-  }, 100);
-  
-  // Create our API
+  // Create our simple API
   return {
     getCode: () => editor.getValue(),
     setCode: (code) => {
       editor.setValue(code);
-      // Re-focus and make cursor visible when code is set
-      setTimeout(() => {
-        editor.focus();
-        editor.setPosition({lineNumber: 1, column: 1});
-      }, 10);
     },
-    focus: () => {
-      editor.focus();
-      // Trigger cursor movement to make it visible
-      const model = editor.getModel();
-      if (model) {
-        const lastLine = model.getLineCount();
-        const lastColumn = model.getLineMaxColumn(lastLine);
-        editor.setPosition({lineNumber: lastLine, column: lastColumn});
-        editor.revealPosition({lineNumber: lastLine, column: lastColumn});
-      }
-    },
+    focus: () => editor.focus(),
     dispose: () => editor.dispose(),
     editor: editor // expose the Monaco editor instance
   };

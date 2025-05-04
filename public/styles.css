@@ -57,7 +57,8 @@ body {
 }
 
 /* Override Monaco's background to be semi-transparent */
-.monaco-editor .monaco-editor-background {
+.monaco-editor .monaco-editor-background,
+.monaco-editor .margin-view-overlays {
   background-color: rgba(40, 42, 54, 0.7) !important;
 }
 
