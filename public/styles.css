@@ -93,6 +93,109 @@ button:active {
   opacity: 0;
 }
 
+/* Monitor Panel */
+.monitor-panel {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: auto;
+  min-width: 120px;
+  background-color: rgba(37, 37, 37, 0.7);
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 100;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
+  transition: height 0.3s ease;
+  user-select: none;
+}
+
+.monitor-handle {
+  height: 24px;
+  background-color: rgba(60, 60, 60, 0.7);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 8px;
+  cursor: move;
+  flex-shrink: 0;
+}
+
+.monitor-title {
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #aaa;
+}
+
+.monitor-toggle {
+  cursor: pointer;
+  font-size: 10px;
+  color: #aaa;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+.monitor-toggle:hover {
+  background-color: rgba(80, 80, 80, 0.7);
+}
+
+.monitor-content {
+  padding: 8px;
+}
+
+.monitor-main-metrics {
+  display: flex;
+  gap: 12px;
+}
+
+.monitor-details {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(100, 100, 100, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.monitor-metric {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.monitor-label {
+  font-size: 12px;
+  font-weight: bold;
+  color: #aaa;
+  white-space: nowrap;
+}
+
+.monitor-value {
+  font-family: monospace;
+  font-size: 12px;
+  color: white;
+  font-weight: bold;
+}
+
+.monitor-value-good {
+  color: rgb(100, 255, 100);
+}
+
+.monitor-value-warning {
+  color: rgb(255, 200, 0);
+}
+
+.monitor-value-bad {
+  color: rgb(255, 100, 100);
+}
+
+/* Expand/collapse animation */
+.monitor-collapsed .monitor-details {
+  display: none;
+}
+
 /* Editor handle for drag indicator */
 .editor-handle {
   height: 30px;

@@ -1,3 +1,6 @@
+// Import components
+import { MonitorPanel } from '../components/index.js';
+
 // Default starter code for Hydra
 const DEFAULT_CODE = `// HYDRACTRL Sample
 
@@ -278,6 +281,11 @@ async function init() {
     
     // Focus the editor initially
     editor.focus();
+    
+    // Initialize and mount the monitor panel
+    const monitorContainer = document.getElementById('monitor-container');
+    const monitorPanel = new MonitorPanel();
+    monitorPanel.mount(monitorContainer);
     
   } catch (error) {
     console.error("Error initializing application:", error);

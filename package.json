@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "bun run build:client && bun --watch src/index.ts",
     "build": "bun run build:client && bun build src/index.ts --outdir ./dist",
-    "build:client": "bun build src/client/index.js --outdir ./public/assets --minify --target browser",
+    "build:client": "bun build src/client/index.js --outdir ./public/assets --minify --target browser --jsx-runtime automatic",
     "build:exe": "bun run build:client && bun build src/index.ts --compile --outfile hydractrl",
     "lint": "biome check src/",
     "format": "biome format --write src/",
