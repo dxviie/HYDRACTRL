@@ -239,23 +239,44 @@ function makeDraggable(element, handle) {
   let offsetY = 0;
   let isDragging = false;
   
+  // Initialize position once the element has rendered
+  setTimeout(() => {
+    // Get and store the initial position
+    const rect = element.getBoundingClientRect();
+    
+    // Calculate position based on right alignment
+    const rightOffset = parseInt(element.style.right || '0');
+    currentX = window.innerWidth - rect.width - rightOffset;
+    currentY = parseInt(element.style.top || '0');
+    
+    // Set explicit left position based on current right position
+    element.style.left = currentX + 'px';
+    
+    console.log('Initial position set:', currentX, currentY);
+  }, 100);
+  
   // Mouse down handler
   function onMouseDown(e) {
     console.log('Mouse down on handle!');
     e.preventDefault();
     e.stopPropagation();
     
-    // Remove right positioning
-    element.style.right = '';
+    // Critical: Remove right positioning before starting drag
+    if (element.style.right) {
+      console.log('Removing right alignment before drag');
+      element.style.right = '';
+    }
     
-    // Calculate initial position
+    // Calculate initial mouse position
     initialX = e.clientX;
     initialY = e.clientY;
     
-    // Get current position
-    const rect = element.getBoundingClientRect();
-    currentX = rect.left;
-    currentY = rect.top;
+    // Get current element position from inline style
+    // This fixes the initial jump by using the stored position
+    currentX = parseInt(element.style.left || '0');
+    currentY = parseInt(element.style.top || '0');
+    
+    console.log('Starting drag from:', currentX, currentY);
     
     // Start dragging
     isDragging = true;
@@ -277,21 +298,26 @@ function makeDraggable(element, handle) {
     offsetX = e.clientX - initialX;
     offsetY = e.clientY - initialY;
     
-    // Update position
-    element.style.left = (currentX + offsetX) + 'px';
-    element.style.top = (currentY + offsetY) + 'px';
+    // Calculate new position with bounds checking
+    const newX = Math.max(0, Math.min(window.innerWidth - element.offsetWidth, currentX + offsetX));
+    const newY = Math.max(0, Math.min(window.innerHeight - element.offsetHeight, currentY + offsetY));
     
-    // Log position
-    console.log('Moving to:', currentX + offsetX, currentY + offsetY);
+    // Update position
+    element.style.left = newX + 'px';
+    element.style.top = newY + 'px';
   }
   
   // Mouse up handler
   function onMouseUp(e) {
+    if (!isDragging) return;
+    
     console.log('Mouse up, drag complete');
     
-    // Update current position
-    currentX += offsetX;
-    currentY += offsetY;
+    // Update current position with final offsets
+    currentX = parseInt(element.style.left || '0');
+    currentY = parseInt(element.style.top || '0');
+    
+    console.log('Drag ended at:', currentX, currentY);
     
     // End dragging
     isDragging = false;
