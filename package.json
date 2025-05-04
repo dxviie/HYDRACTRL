@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "elysia": "^0.8.17",
-    "hydra-synth": "^1.3.25"
+    "hydra-synth": "^1.3.25",
+    "monaco-editor": "^0.43.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",

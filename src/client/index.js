@@ -1,5 +1,6 @@
-// Import stats panel
+// Import utilities
 import { createStatsPanel } from '../StatsPanel.js';
+import { createMonacoEditor } from '../utils/MonacoEditor.js';
 
 // Default starter code for Hydra
 const DEFAULT_CODE = `// HYDRACTRL Sample
@@ -11,52 +12,34 @@ osc(10, 0.1, 1.2)
   .out()
 `;
 
-// Initialize a basic textarea editor instead of CodeMirror
+// Initialize a syntax-highlighted editor for Hydra
 function initEditor() {
   const editorContent = document.getElementById('editor-content');
   
-  // Create a simple textarea with styles that mimic CodeMirror
-  const textarea = document.createElement('textarea');
-  textarea.value = DEFAULT_CODE;
-  textarea.style.width = '100%';
-  textarea.style.height = '100%';
-  textarea.style.boxSizing = 'border-box';
-  textarea.style.padding = '8px';
-  textarea.style.fontFamily = 'monospace';
-  textarea.style.fontSize = '14px';
-  textarea.style.color = '#f8f8f2';
-  textarea.style.backgroundColor = 'transparent';
-  textarea.style.border = 'none';
-  textarea.style.outline = 'none';
-  textarea.style.resize = 'none';
-  
-  editorContent.appendChild(textarea);
+  // Create the hydra editor with syntax highlighting
+  const editor = createMonacoEditor(editorContent, DEFAULT_CODE);
   
   // Make the editor draggable by the handle
   makeDraggable(document.getElementById('editor-container'), document.getElementById('editor-handle'));
   
-  // Prevent the editor textarea from triggering drag when clicking in it
-  textarea.addEventListener('mousedown', e => {
-    e.stopPropagation();
-  });
-  
-  // Create a simple editor object that mimics the CodeMirror API
+  // Create a simplified API that mimics our previous interface
   return {
+    // Match our previous API
     state: {
       doc: {
-        toString: () => textarea.value
+        toString: () => editor.getCode(),
+        length: editor.getCode().length
       }
     },
     dispatch: ({ changes }) => {
       if (changes && changes.insert) {
         // For loadCode functionality
-        textarea.value = changes.insert;
+        editor.setCode(changes.insert);
       }
     },
-    // Add a focus method for better UX
-    focus: () => {
-      textarea.focus();
-    }
+    focus: () => editor.focus(),
+    // Add the raw editor object for direct access if needed
+    _editor: editor.editor // Access the actual Monaco editor instance
   };
 }
 
@@ -210,21 +193,16 @@ function toggleEditor() {
     // Show the editor
     editorContainer.style.display = 'flex'; // Use flex to maintain the flex layout
     
-    // Force a resize event after a small delay to ensure the textarea adjusts properly
+    // Force a resize event after a small delay to ensure Monaco editor adjusts properly
     setTimeout(() => {
-      // Get the textarea and force a resize
-      const textarea = editorContainer.querySelector('textarea');
-      if (textarea) {
-        // Temporarily shrink and restore to force a redraw
-        const originalHeight = textarea.style.height;
-        textarea.style.height = '1px';
-        setTimeout(() => {
-          textarea.style.height = originalHeight || '100%';
-        }, 0);
-      }
-      
-      // Force layout recalculation
+      // Monaco editor knows how to handle resize events automatically
+      // Just need to trigger a layout recalculation
       window.dispatchEvent(new Event('resize'));
+      
+      // Focus the editor
+      if (window._editorProxy) {
+        window._editorProxy.focus();
+      }
     }, 10);
   }
 }
@@ -233,7 +211,6 @@ function toggleEditor() {
 function saveCode(editor) {
   const code = editor.state.doc.toString();
   localStorage.setItem('hydractrl-code', code);
-  alert('Code saved!');
 }
 
 // Load code from local storage
@@ -309,8 +286,9 @@ async function init() {
     // Create the stats panel using our simple implementation
     const statsPanel = createStatsPanel();
     
-    // Add to window for debugging
+    // Add to window for debugging and access
     window.statsPanel = statsPanel;
+    window._editorProxy = editor; // Expose editor proxy for focus etc.
     
   } catch (error) {
     console.error("Error initializing application:", error);
