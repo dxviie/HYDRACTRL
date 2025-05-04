@@ -1,6 +1,6 @@
 // Import utilities
 import { createStatsPanel } from '../StatsPanel.js';
-import { createMonacoEditor } from '../utils/MonacoEditor.js';
+import { createEditor } from '../utils/ContentEditableEditor.js';
 
 // Default starter code for Hydra
 const DEFAULT_CODE = `// HYDRACTRL Sample
@@ -17,7 +17,7 @@ function initEditor() {
   const editorContent = document.getElementById('editor-content');
   
   // Create the hydra editor with syntax highlighting
-  const editor = createMonacoEditor(editorContent, DEFAULT_CODE);
+  const editor = createEditor(editorContent, DEFAULT_CODE);
   
   // Make the editor draggable by the handle
   makeDraggable(document.getElementById('editor-container'), document.getElementById('editor-handle'));
@@ -39,7 +39,7 @@ function initEditor() {
     },
     focus: () => editor.focus(),
     // Add the raw editor object for direct access if needed
-    _editor: editor.editor // Access the actual Monaco editor instance
+    _editor: editor
   };
 }
 
@@ -193,15 +193,15 @@ function toggleEditor() {
     // Show the editor
     editorContainer.style.display = 'flex'; // Use flex to maintain the flex layout
     
-    // Force a resize event after showing
+    // Focus the editor after making it visible
     setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-      
-      // Focus the editor (use the proxy we exposed to window)
       if (window._editorProxy) {
         window._editorProxy.focus();
       }
-    }, 50); // Slightly longer delay
+      
+      // Force a resize event to make sure sizes are updated
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
   }
 }
 
