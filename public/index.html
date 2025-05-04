@@ -8,12 +8,21 @@
 </head>
 <body>
   <div class="app-container">
-    <div class="editor-container" id="editor-container"></div>
+    <!-- Fullscreen Hydra canvas -->
     <div class="preview-container" id="hydra-canvas"></div>
+    
+    <!-- Draggable editor modal -->
+    <div class="editor-container" id="editor-container">
+      <div class="editor-handle" id="editor-handle">
+        <div class="editor-handle-title">HYDRACTRL</div>
+      </div>
+      <div class="editor-content" id="editor-content"></div>
+    </div>
+    
+    <!-- Floating controls -->
     <div class="controls">
       <button id="run-btn">Run</button>
       <button id="save-btn">Save</button>
-      <button id="fullscreen-btn">Fullscreen</button>
     </div>
   </div>
   <script src="/assets/index.js" type="module"></script>

@@ -10,7 +10,7 @@ osc(10, 0.1, 1.2)
 
 // Initialize a basic textarea editor instead of CodeMirror
 function initEditor() {
-  const editorContainer = document.getElementById('editor-container');
+  const editorContent = document.getElementById('editor-content');
   
   // Create a simple textarea with styles that mimic CodeMirror
   const textarea = document.createElement('textarea');
@@ -22,12 +22,15 @@ function initEditor() {
   textarea.style.fontFamily = 'monospace';
   textarea.style.fontSize = '14px';
   textarea.style.color = '#f8f8f2';
-  textarea.style.backgroundColor = '#282a36';
+  textarea.style.backgroundColor = 'transparent';
   textarea.style.border = 'none';
   textarea.style.outline = 'none';
   textarea.style.resize = 'none';
   
-  editorContainer.appendChild(textarea);
+  editorContent.appendChild(textarea);
+  
+  // Make the editor draggable
+  makeDraggable(document.getElementById('editor-container'), document.getElementById('editor-handle'));
   
   // Create a simple editor object that mimics the CodeMirror API
   return {
@@ -43,6 +46,49 @@ function initEditor() {
       }
     }
   };
+}
+
+// Function to make an element draggable
+function makeDraggable(element, handle) {
+  let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  
+  if (handle) {
+    // If handle is specified, use it for dragging
+    handle.onmousedown = dragMouseDown;
+  } else {
+    // Otherwise, use the entire element
+    element.onmousedown = dragMouseDown;
+  }
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // Get the mouse cursor position at startup
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    // Call function whenever the cursor moves
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // Calculate new cursor position
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    // Set the element's new position
+    element.style.top = (element.offsetTop - pos2) + "px";
+    element.style.left = (element.offsetLeft - pos1) + "px";
+  }
+
+  function closeDragElement() {
+    // Stop moving when mouse button is released
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
 }
 
 // Polyfill for Node.js 'global' that hydra-synth expects in the browser environment
@@ -140,10 +186,11 @@ function runCode(editor, hydra) {
   }
 }
 
-// Toggle fullscreen for the preview
-function toggleFullscreen() {
-  const previewContainer = document.getElementById('hydra-canvas');
-  previewContainer.classList.toggle('fullscreen');
+// Toggle editor visibility
+function toggleEditor() {
+  const editorContainer = document.getElementById('editor-container');
+  const isVisible = editorContainer.style.display !== 'none';
+  editorContainer.style.display = isVisible ? 'none' : 'block';
 }
 
 // Save code to local storage
@@ -171,8 +218,31 @@ async function init() {
     
     // Set up event listeners
     document.getElementById('run-btn').addEventListener('click', () => runCode(editor, hydra));
-    document.getElementById('save-btn').addEventListener('click', () => saveCode(editor));
-    document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
+    document.getElementById('save-btn').addEventListener('click', () => {
+      saveCode(editor);
+      alert('Code saved!');
+    });
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+Enter or Cmd+Enter to run code
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        runCode(editor, hydra);
+      }
+      
+      // Ctrl+S or Cmd+S to save code
+      if ((e.ctrlKey || e.metaKey) && e.key === 'S') {
+        e.preventDefault();
+        saveCode(editor);
+        alert('Code saved!');
+      }
+      
+      // ESC to toggle editor visibility
+      if (e.key === 'Escape') {
+        toggleEditor();
+      }
+    });
     
     // Load saved code if available
     loadCode(editor);
