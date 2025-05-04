@@ -1,6 +1,6 @@
 // Import utilities
 import { createStatsPanel } from '../StatsPanel.js';
-import { createEditor } from '../utils/ContentEditableEditor.js';
+import { createEditor } from '../utils/SimpleEditor.js';
 
 // Default starter code for Hydra
 const DEFAULT_CODE = `// HYDRACTRL Sample
