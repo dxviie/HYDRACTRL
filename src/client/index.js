@@ -164,8 +164,11 @@ async function initHydra() {
     // Create a new hydra instance with explicit canvas reference
     const hydra = new HydraSynth({
       canvas: canvas,
-      detectAudio: false,
-      enableStreamCapture: false
+      detectAudio: true, // Enable audio reactivity for a.fft[]
+      enableStreamCapture: false,
+      numBins: 6, // Set bins for a.fft[0], a.fft[1], etc.
+      numSources: 4, // Limit sources for better performance
+      precision: 'mediump' // Better performance
     });
 
     return hydra;
