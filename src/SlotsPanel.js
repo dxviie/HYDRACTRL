@@ -93,9 +93,13 @@ export function createSlotsPanel(editor, hydra, runCode) {
       e.stopPropagation(); // Prevent drag from activating
       switchBank(i);
       
-      // Sync MIDI scene if midiManager is available
+      // Only sync MIDI scene if no device is connected
+      // This prevents conflicts when using a hardware controller
       if (window.midiManager && window.midiManager.setScene) {
-        window.midiManager.setScene(i);
+        const midiConnected = window.midiManager.isConnected && window.midiManager.isConnected();
+        if (!midiConnected) {
+          window.midiManager.setScene(i);
+        }
       }
     });
 

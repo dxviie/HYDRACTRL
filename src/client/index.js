@@ -364,31 +364,35 @@ async function init() {
           window.slotsPanel.setActiveSlot(num - 1); // Convert to 0-based index
         }
         
-        // Ctrl+Left/Right arrow keys to cycle between banks
+        // Ctrl+Left/Right arrow keys to cycle between banks (only when no MIDI device is connected)
         if (e.key === 'ArrowLeft' && window.slotsPanel && window.slotsPanel.cycleBank) {
-          e.preventDefault();
-          window.slotsPanel.cycleBank(-1); // Previous bank
+          // Check if MIDI device is connected
+          const midiConnected = window.midiManager && window.midiManager.isConnected && window.midiManager.isConnected();
           
-          // Sync MIDI scene if appropriate
-          if (window.midiManager && window.midiManager.setScene) {
-            window.midiManager.setScene(window.slotsPanel.getBank());
-            // Update MIDI info in stats panel
-            if (window.updateMidiDeviceList) {
-              window.updateMidiDeviceList();
+          // Only allow keyboard navigation when no MIDI device is connected
+          if (!midiConnected) {
+            e.preventDefault();
+            window.slotsPanel.cycleBank(-1); // Previous bank
+            
+            // Flash the bank dot for visual feedback
+            if (window.flashActiveBankDot) {
+              window.flashActiveBankDot(window.slotsPanel.getBank());
             }
           }
         }
         
         if (e.key === 'ArrowRight' && window.slotsPanel && window.slotsPanel.cycleBank) {
-          e.preventDefault();
-          window.slotsPanel.cycleBank(1); // Next bank
+          // Check if MIDI device is connected
+          const midiConnected = window.midiManager && window.midiManager.isConnected && window.midiManager.isConnected();
           
-          // Sync MIDI scene if appropriate
-          if (window.midiManager && window.midiManager.setScene) {
-            window.midiManager.setScene(window.slotsPanel.getBank());
-            // Update MIDI info in stats panel
-            if (window.updateMidiDeviceList) {
-              window.updateMidiDeviceList();
+          // Only allow keyboard navigation when no MIDI device is connected
+          if (!midiConnected) {
+            e.preventDefault();
+            window.slotsPanel.cycleBank(1); // Next bank
+            
+            // Flash the bank dot for visual feedback
+            if (window.flashActiveBankDot) {
+              window.flashActiveBankDot(window.slotsPanel.getBank());
             }
           }
         }
