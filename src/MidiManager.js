@@ -202,14 +202,62 @@ export function createMidiManager(slotsPanel) {
       { note: 48, slot: 14 },
       { note: 50, slot: 15 }
     ],
-    // Bank 1 (Scene 2) - using same mapping, but notes from 52 > 67
+    // Bank 1 (Scene 2) - using same mapping pattern with different notes
     [
+      { note: 53, slot: 0 },  // Top row (higher notes)
+      { note: 55, slot: 1 },
+      { note: 57, slot: 2 },
+      { note: 59, slot: 3 },
+      { note: 61, slot: 4 },
+      { note: 63, slot: 5 },
+      { note: 65, slot: 6 },
+      { note: 67, slot: 7 },
+      { note: 52, slot: 8 },  // Bottom row (lower notes)
+      { note: 54, slot: 9 },
+      { note: 56, slot: 10 },
+      { note: 58, slot: 11 },
+      { note: 60, slot: 12 },
+      { note: 62, slot: 13 },
+      { note: 64, slot: 14 },
+      { note: 66, slot: 15 }
     ],
-    // Bank 2 (Scene 3) - using same mapping, but notes from 68 > 83
+    // Bank 2 (Scene 3) - using same mapping pattern with different notes
     [
+      { note: 69, slot: 0 },  // Top row (higher notes)
+      { note: 71, slot: 1 },
+      { note: 73, slot: 2 },
+      { note: 75, slot: 3 },
+      { note: 77, slot: 4 },
+      { note: 79, slot: 5 },
+      { note: 81, slot: 6 },
+      { note: 83, slot: 7 },
+      { note: 68, slot: 8 },  // Bottom row (lower notes)
+      { note: 70, slot: 9 },
+      { note: 72, slot: 10 },
+      { note: 74, slot: 11 },
+      { note: 76, slot: 12 },
+      { note: 78, slot: 13 },
+      { note: 80, slot: 14 },
+      { note: 82, slot: 15 }
     ],
-    // Bank 3 (Scene 4) - using same mapping, but notes from 84 > 99
+    // Bank 3 (Scene 4) - using same mapping pattern with different notes
     [
+      { note: 85, slot: 0 },  // Top row (higher notes)
+      { note: 87, slot: 1 },
+      { note: 89, slot: 2 },
+      { note: 91, slot: 3 },
+      { note: 93, slot: 4 },
+      { note: 95, slot: 5 },
+      { note: 97, slot: 6 },
+      { note: 99, slot: 7 },
+      { note: 84, slot: 8 },  // Bottom row (lower notes) 
+      { note: 86, slot: 9 },
+      { note: 88, slot: 10 },
+      { note: 90, slot: 11 },
+      { note: 92, slot: 12 },
+      { note: 94, slot: 13 },
+      { note: 96, slot: 14 },
+      { note: 98, slot: 15 }
     ]
   ];
 
