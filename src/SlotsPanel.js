@@ -198,6 +198,15 @@ export function createSlotsPanel(editor, hydra, runCode) {
     slotElements.push(slot);
   }
 
+  // Function to cycle to next/previous bank
+  function cycleBank(direction) {
+    // Calculate new bank index with wrapping (0-3)
+    const newBank = (currentBank + direction + 4) % 4;
+    
+    // Switch to the new bank
+    switchBank(newBank);
+  }
+
   // Function to switch bank
   function switchBank(bankIndex) {
     if (bankIndex === currentBank) return;
@@ -453,8 +462,11 @@ export function createSlotsPanel(editor, hydra, runCode) {
     saveToActiveSlot,
     loadSlot,
     getActiveSlotIndex: () => activeSlotIndex,
+    getBank: () => currentBank,
     setActiveSlot,
-    clearAllSlots
+    clearAllSlots,
+    switchBank,
+    cycleBank
   };
 }
 

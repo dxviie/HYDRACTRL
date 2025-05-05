@@ -362,6 +362,17 @@ async function init() {
           e.preventDefault();
           window.slotsPanel.setActiveSlot(num - 1); // Convert to 0-based index
         }
+        
+        // Ctrl+Left/Right arrow keys to cycle between banks
+        if (e.key === 'ArrowLeft' && window.slotsPanel && window.slotsPanel.cycleBank) {
+          e.preventDefault();
+          window.slotsPanel.cycleBank(-1); // Previous bank
+        }
+        
+        if (e.key === 'ArrowRight' && window.slotsPanel && window.slotsPanel.cycleBank) {
+          e.preventDefault();
+          window.slotsPanel.cycleBank(1); // Next bank
+        }
       }
     });
     
