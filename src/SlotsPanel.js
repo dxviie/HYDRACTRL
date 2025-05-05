@@ -45,7 +45,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   title.style.fontWeight = 'bold';
   title.style.textTransform = 'uppercase';
   title.style.color = '#aaa';
-  title.textContent = 'SLOTS';
+  title.textContent = 'SCENE ';
 
   // Create bank selector dots container
   const dotsContainer = document.createElement('div');
@@ -92,7 +92,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
     dot.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent drag from activating
       switchBank(i);
-      
+
       // Only sync MIDI scene if no device is connected
       // This prevents conflicts when using a hardware controller
       if (window.midiManager && window.midiManager.setScene) {
@@ -257,7 +257,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
     currentBank = bankIndex;
 
     // Update bank indicator in title
-    title.textContent = `SLOTS ${bankIndex + 1}`;
+    title.textContent = `SCENE ${bankIndex + 1}`;
 
     // Update bank dots styling
     updateBankDots();
@@ -393,7 +393,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   // Load all saved slots on startup
   function loadAllSlots() {
     // Set the bank title
-    title.textContent = `SLOTS ${currentBank + 1}`;
+    title.textContent = `SCENE ${currentBank + 1}`;
 
     // Load thumbnails for the initial bank
     loadAllSlotsForCurrentBank();
@@ -509,16 +509,16 @@ export function createSlotsPanel(editor, hydra, runCode) {
   // Flash the active bank dot for visual feedback
   function flashActiveBankDot(bankIndex) {
     if (bankIndex < 0 || bankIndex >= bankDots.length) return;
-    
+
     // Save original color and transform
     const originalColor = bankDots[bankIndex].style.backgroundColor;
     const originalTransform = bankDots[bankIndex].style.transform;
-    
+
     // Flash effect
     bankDots[bankIndex].style.backgroundColor = 'rgba(255, 255, 255, 0.9)'; // Bright white
     bankDots[bankIndex].style.transform = 'scale(1.3)'; // Bigger
     bankDots[bankIndex].style.boxShadow = '0 0 10px rgba(255, 255, 255, 0.7)'; // Glow
-    
+
     // Reset after animation
     setTimeout(() => {
       bankDots[bankIndex].style.backgroundColor = originalColor;
@@ -526,10 +526,10 @@ export function createSlotsPanel(editor, hydra, runCode) {
       bankDots[bankIndex].style.boxShadow = 'none';
     }, 500);
   }
-  
+
   // Make the flash function available globally
   window.flashActiveBankDot = flashActiveBankDot;
-  
+
   // Return API
   return {
     panel,

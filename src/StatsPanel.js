@@ -17,7 +17,7 @@ export function createStatsPanel() {
   panel.style.overflow = 'hidden';
   panel.style.width = 'auto';
   panel.style.minWidth = '120px';
-  
+
   // Create the handle
   const handle = document.createElement('div');
   handle.className = 'stats-handle';
@@ -29,7 +29,7 @@ export function createStatsPanel() {
   handle.style.padding = '0 8px';
   handle.style.cursor = 'move';
   handle.style.userSelect = 'none';
-  
+
   // Create the title
   const title = document.createElement('div');
   title.className = 'stats-title';
@@ -37,8 +37,8 @@ export function createStatsPanel() {
   title.style.fontWeight = 'bold';
   title.style.textTransform = 'uppercase';
   title.style.color = '#aaa';
-  title.textContent = 'STATS';
-  
+  title.textContent = 'SYSTEM';
+
   // Create the toggle button
   const toggle = document.createElement('div');
   toggle.className = 'stats-toggle';
@@ -48,18 +48,18 @@ export function createStatsPanel() {
   toggle.style.borderRadius = '2px';
   toggle.style.cursor = 'pointer';
   toggle.textContent = '▲';
-  
+
   // Create the content container
   const content = document.createElement('div');
   content.className = 'stats-content';
   content.style.padding = '8px';
-  
+
   // Create the metrics container
   const metrics = document.createElement('div');
   metrics.className = 'stats-metrics';
   metrics.style.display = 'flex';
   metrics.style.gap = '12px';
-  
+
   // MIDI section for expanded view
   const midiSection = document.createElement('div');
   midiSection.className = 'stats-midi';
@@ -69,7 +69,7 @@ export function createStatsPanel() {
   midiSection.style.display = 'none';  // Initially hidden
   midiSection.style.flexDirection = 'column';
   midiSection.style.gap = '6px';
-  
+
   // MIDI status text
   const midiStatusText = document.createElement('div');
   midiStatusText.className = 'midi-status-text';
@@ -77,17 +77,17 @@ export function createStatsPanel() {
   midiStatusText.style.color = '#aaa';
   midiStatusText.style.fontWeight = 'bold';
   midiStatusText.textContent = 'MIDI: Not initialized';
-  
+
   // MIDI device selection
   const midiDeviceContainer = document.createElement('div');
   midiDeviceContainer.style.display = 'flex';
   midiDeviceContainer.style.flexDirection = 'column';
   midiDeviceContainer.style.gap = '4px';
-  
+
   // Add to MIDI section
   midiSection.appendChild(midiStatusText);
   midiSection.appendChild(midiDeviceContainer);
-  
+
   // Create the FPS metric
   const fpsMetric = document.createElement('div');
   fpsMetric.className = 'stats-metric';
@@ -95,7 +95,7 @@ export function createStatsPanel() {
   fpsMetric.style.justifyContent = 'space-between';
   fpsMetric.style.gap = '12px';
   fpsMetric.style.alignItems = 'center';
-  
+
   // FPS Label
   const fpsLabel = document.createElement('span');
   fpsLabel.className = 'stats-label';
@@ -104,7 +104,7 @@ export function createStatsPanel() {
   fpsLabel.style.color = '#aaa';
   fpsLabel.style.whiteSpace = 'nowrap';
   fpsLabel.textContent = 'FPS:';
-  
+
   // FPS Value
   const fpsValue = document.createElement('span');
   fpsValue.className = 'stats-value';
@@ -113,7 +113,7 @@ export function createStatsPanel() {
   fpsValue.style.fontWeight = 'bold';
   fpsValue.style.color = 'white';
   fpsValue.textContent = '0';
-  
+
   // Detailed metrics
   const details = document.createElement('div');
   details.className = 'stats-details';
@@ -123,7 +123,7 @@ export function createStatsPanel() {
   details.style.display = 'none';
   details.style.flexDirection = 'column';
   details.style.gap = '6px';
-  
+
   // Add metrics for avg FPS
   const avgFpsMetric = document.createElement('div');
   avgFpsMetric.className = 'stats-metric';
@@ -131,14 +131,14 @@ export function createStatsPanel() {
   avgFpsMetric.style.justifyContent = 'space-between';
   avgFpsMetric.style.gap = '12px';
   avgFpsMetric.style.alignItems = 'center';
-  
+
   const avgFpsLabel = document.createElement('span');
   avgFpsLabel.className = 'stats-label';
   avgFpsLabel.style.fontSize = '12px';
   avgFpsLabel.style.fontWeight = 'bold';
   avgFpsLabel.style.color = '#aaa';
   avgFpsLabel.textContent = 'AVG FPS:';
-  
+
   const avgFpsValue = document.createElement('span');
   avgFpsValue.className = 'stats-value';
   avgFpsValue.style.fontFamily = 'monospace';
@@ -146,7 +146,7 @@ export function createStatsPanel() {
   avgFpsValue.style.fontWeight = 'bold';
   avgFpsValue.style.color = 'white';
   avgFpsValue.textContent = '0';
-  
+
   // Add metrics for frame count
   const frameCountMetric = document.createElement('div');
   frameCountMetric.className = 'stats-metric';
@@ -154,14 +154,14 @@ export function createStatsPanel() {
   frameCountMetric.style.justifyContent = 'space-between';
   frameCountMetric.style.gap = '12px';
   frameCountMetric.style.alignItems = 'center';
-  
+
   const frameCountLabel = document.createElement('span');
   frameCountLabel.className = 'stats-label';
   frameCountLabel.style.fontSize = '12px';
   frameCountLabel.style.fontWeight = 'bold';
   frameCountLabel.style.color = '#aaa';
   frameCountLabel.textContent = 'FRAMES:';
-  
+
   const frameCountValue = document.createElement('span');
   frameCountValue.className = 'stats-value';
   frameCountValue.style.fontFamily = 'monospace';
@@ -169,35 +169,35 @@ export function createStatsPanel() {
   frameCountValue.style.fontWeight = 'bold';
   frameCountValue.style.color = 'white';
   frameCountValue.textContent = '0';
-  
+
   // Assemble the panel
   fpsMetric.appendChild(fpsLabel);
   fpsMetric.appendChild(fpsValue);
-  
+
   avgFpsMetric.appendChild(avgFpsLabel);
   avgFpsMetric.appendChild(avgFpsValue);
-  
+
   frameCountMetric.appendChild(frameCountLabel);
   frameCountMetric.appendChild(frameCountValue);
-  
+
   metrics.appendChild(fpsMetric);
-  
+
   details.appendChild(avgFpsMetric);
   details.appendChild(frameCountMetric);
-  
+
   content.appendChild(metrics);
   content.appendChild(details);
   content.appendChild(midiSection);
-  
+
   handle.appendChild(title);
   handle.appendChild(toggle);
-  
+
   panel.appendChild(handle);
   panel.appendChild(content);
-  
+
   // Add to document
   document.body.appendChild(panel);
-  
+
   // Set up toggle
   let isExpanded = false;
   toggle.addEventListener('click', () => {
@@ -206,36 +206,36 @@ export function createStatsPanel() {
     midiSection.style.display = isExpanded ? 'flex' : 'none';
     toggle.textContent = isExpanded ? '▼' : '▲';
   });
-  
+
   // Make draggable
   makeDraggable(panel, handle);
-  
+
   // Set up performance monitoring
   let frameCount = 0;
   let fps = 0;
   let avgFps = 0;
   let totalFrameTime = 0;
   let lastTime = performance.now();
-  
+
   function updateStats() {
     const now = performance.now();
     const frameTime = now - lastTime;
     const currentFps = frameTime > 0 ? 1000 / frameTime : 0;
-    
+
     // Update running average
     frameCount++;
     totalFrameTime += frameTime;
     avgFps = totalFrameTime > 0 ? 1000 / (totalFrameTime / frameCount) : 0;
-    
+
     // Update display
     fps = Math.round(currentFps);
     lastTime = now;
-    
+
     // Update UI
     fpsValue.textContent = fps.toString();
     avgFpsValue.textContent = Math.round(avgFps * 10) / 10;
     frameCountValue.textContent = frameCount.toString();
-    
+
     // Update color based on FPS
     if (fps > 50) {
       fpsValue.style.color = 'rgb(100, 255, 100)';
@@ -244,14 +244,14 @@ export function createStatsPanel() {
     } else {
       fpsValue.style.color = 'rgb(255, 100, 100)';
     }
-    
+
     // Request next frame
     requestAnimationFrame(updateStats);
   }
-  
+
   // Start update loop
   requestAnimationFrame(updateStats);
-  
+
   // Return the panel with additional API
   return {
     panel,
@@ -275,96 +275,96 @@ function makeDraggable(element, handle) {
   let offsetX = 0;
   let offsetY = 0;
   let isDragging = false;
-  
+
   // Initialize position once the element has rendered
   setTimeout(() => {
     // Get and store the initial position
     const rect = element.getBoundingClientRect();
-    
+
     // Calculate position based on right alignment
     const rightOffset = parseInt(element.style.right || '0');
     currentX = window.innerWidth - rect.width - rightOffset;
     currentY = parseInt(element.style.top || '0');
-    
+
     // Set explicit left position based on current right position
     element.style.left = currentX + 'px';
-    
+
     console.log('Initial position set:', currentX, currentY);
   }, 100);
-  
+
   // Mouse down handler
   function onMouseDown(e) {
     console.log('Mouse down on handle!');
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Critical: Remove right positioning before starting drag
     if (element.style.right) {
       console.log('Removing right alignment before drag');
       element.style.right = '';
     }
-    
+
     // Calculate initial mouse position
     initialX = e.clientX;
     initialY = e.clientY;
-    
+
     // Get current element position from inline style
     // This fixes the initial jump by using the stored position
     currentX = parseInt(element.style.left || '0');
     currentY = parseInt(element.style.top || '0');
-    
+
     console.log('Starting drag from:', currentX, currentY);
-    
+
     // Start dragging
     isDragging = true;
     element.classList.add('dragging');
-    
+
     // Add listeners
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
   }
-  
+
   // Mouse move handler
   function onMouseMove(e) {
     if (!isDragging) return;
-    
+
     e.preventDefault();
     e.stopPropagation();
-    
+
     // Calculate offset
     offsetX = e.clientX - initialX;
     offsetY = e.clientY - initialY;
-    
+
     // Calculate new position with bounds checking
     const newX = Math.max(0, Math.min(window.innerWidth - element.offsetWidth, currentX + offsetX));
     const newY = Math.max(0, Math.min(window.innerHeight - element.offsetHeight, currentY + offsetY));
-    
+
     // Update position
     element.style.left = newX + 'px';
     element.style.top = newY + 'px';
   }
-  
+
   // Mouse up handler
   function onMouseUp(e) {
     if (!isDragging) return;
-    
+
     console.log('Mouse up, drag complete');
-    
+
     // Update current position with final offsets
     currentX = parseInt(element.style.left || '0');
     currentY = parseInt(element.style.top || '0');
-    
+
     console.log('Drag ended at:', currentX, currentY);
-    
+
     // End dragging
     isDragging = false;
     element.classList.remove('dragging');
-    
+
     // Remove listeners
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);
   }
-  
+
   // Add listener to handle
   handle.addEventListener('mousedown', onMouseDown);
 }

@@ -1,8 +1,10 @@
 // Import utilities
 import { createStatsPanel } from '../StatsPanel.js';
 import { createSlotsPanel } from '../SlotsPanel.js';
+import { createSharePanel } from '../SharePanel.js';
 import { createEditor } from '../utils/SimpleEditor.js';
 import { createMidiManager } from '../MidiManager.js';
+import { createCanvasSharing } from '../utils/CanvasSharing.js';
 
 // Default starter code for Hydra
 const DEFAULT_CODE = `// HYDRACTRL Sample
@@ -621,6 +623,27 @@ async function init() {
     window.slotsPanel = slotsPanel;
     window.midiManager = midiManager;
     window._editorProxy = editor; // Expose editor proxy for focus etc.
+    
+    // Initialize canvas sharing for Resolume integration
+    const canvas = document.querySelector('#hydra-canvas canvas');
+    if (canvas) {
+      // Create canvas sharing utility
+      const canvasSharing = createCanvasSharing(canvas, {
+        frameRate: 30,
+        quality: 0.85,
+        format: 'image/jpeg',
+        autoStart: false
+      });
+      
+      // Create the share panel UI
+      const sharePanel = createSharePanel(canvasSharing);
+      
+      // Expose canvas sharing to window for debugging
+      window.canvasSharing = canvasSharing;
+      window.sharePanel = sharePanel;
+    } else {
+      console.error("Could not find Hydra canvas for streaming");
+    }
     
   } catch (error) {
     console.error("Error initializing application:", error);
