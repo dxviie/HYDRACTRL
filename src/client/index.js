@@ -532,9 +532,72 @@ async function init() {
         }
       });
       
+      // Add reset mapping button
+      const resetButton = document.createElement('button');
+      resetButton.textContent = 'Reset MIDI Mapping';
+      resetButton.style.fontSize = '10px';
+      resetButton.style.padding = '2px 4px';
+      resetButton.style.margin = '4px 0';
+      resetButton.style.backgroundColor = 'rgba(255, 120, 120, 0.2)';
+      resetButton.title = 'Reset to default nanoPAD mapping';
+      
+      resetButton.addEventListener('click', () => {
+        if (window.midiManager && window.midiManager.resetToDefaultMapping) {
+          if (confirm('Reset MIDI mapping to defaults?')) {
+            window.midiManager.resetToDefaultMapping();
+            
+            // Show temporary notification
+            const notification = document.createElement('div');
+            notification.className = 'saved-notification';
+            notification.style.backgroundColor = 'rgba(255, 120, 120, 0.8)';
+            notification.textContent = 'MIDI mapping reset to defaults';
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+              notification.classList.add('fade-out');
+              setTimeout(() => {
+                if (notification.parentNode) {
+                  document.body.removeChild(notification);
+                }
+              }, 500);
+            }, 2000);
+          }
+        }
+      });
+      
+      // Add info button that shows current mapping
+      const infoButton = document.createElement('button');
+      infoButton.textContent = 'Show Mapping';
+      infoButton.style.fontSize = '10px';
+      infoButton.style.padding = '2px 4px';
+      infoButton.style.margin = '4px 0 4px 8px';
+      infoButton.title = 'Show current MIDI mapping';
+      
+      infoButton.addEventListener('click', () => {
+        if (window.midiManager && window.midiManager.getMidiMapping) {
+          const mapping = window.midiManager.getMidiMapping();
+          const currentBank = window.midiManager.getCurrentScene();
+          
+          // Create a formatted display of the current bank's mapping
+          let message = `MIDI Mapping for Bank ${currentBank + 1}:\n`;
+          
+          // Sort by slot for better display
+          const sortedMapping = [...mapping[currentBank]].sort((a, b) => a.slot - b.slot);
+          
+          sortedMapping.forEach(map => {
+            message += `MIDI Note ${map.note} → Slot ${map.slot + 1}\n`;
+          });
+          
+          alert(message);
+        }
+      });
+      
       // Add buttons to device container
       statsPanel.midi.deviceContainer.appendChild(refreshButton);
       statsPanel.midi.deviceContainer.appendChild(syncButton);
+      statsPanel.midi.deviceContainer.appendChild(document.createElement('br'));
+      statsPanel.midi.deviceContainer.appendChild(infoButton);
+      statsPanel.midi.deviceContainer.appendChild(resetButton);
       
       // We've moved this function to the window scope above
       
