@@ -2,13 +2,25 @@
  * Simple Stats Panel
  * A minimal, draggable FPS counter that doesn't rely on complex component architecture
  */
+import { loadPanelPosition, savePanelPosition } from './utils/PanelStorage.js';
+
 export function createStatsPanel() {
+  // Load saved position or use defaults
+  const savedPosition = loadPanelPosition('stats-panel');
+  
   // Create the panel container
   const panel = document.createElement('div');
   panel.className = 'stats-panel';
   panel.style.position = 'absolute';
-  panel.style.top = '20px';
-  panel.style.right = '20px';
+  
+  if (savedPosition) {
+    panel.style.left = savedPosition.left + 'px';
+    panel.style.top = savedPosition.top + 'px';
+  } else {
+    panel.style.top = '20px';
+    panel.style.right = '20px';
+  }
+  
   panel.style.backgroundColor = 'rgba(37, 37, 37, 0.7)';
   panel.style.borderRadius = '8px';
   panel.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
@@ -207,8 +219,8 @@ export function createStatsPanel() {
     toggle.textContent = isExpanded ? '▼' : '▲';
   });
 
-  // Make draggable
-  makeDraggable(panel, handle);
+  // Make draggable with position persistence
+  makeDraggable(panel, handle, 'stats-panel');
 
   // Set up performance monitoring
   let frameCount = 0;
@@ -266,7 +278,7 @@ export function createStatsPanel() {
 /**
  * Make an element draggable
  */
-function makeDraggable(element, handle) {
+function makeDraggable(element, handle, panelId) {
   // Variables for tracking position
   let initialX = 0;
   let initialY = 0;
@@ -278,29 +290,45 @@ function makeDraggable(element, handle) {
 
   // Initialize position once the element has rendered
   setTimeout(() => {
-    // Get and store the initial position
-    const rect = element.getBoundingClientRect();
+    // Only calculate from right if we don't have a saved position and right is specified
+    if (!element.style.left && element.style.right) {
+      // Get and store the initial position
+      const rect = element.getBoundingClientRect();
 
-    // Calculate position based on right alignment
-    const rightOffset = parseInt(element.style.right || '0');
-    currentX = window.innerWidth - rect.width - rightOffset;
-    currentY = parseInt(element.style.top || '0');
+      // Calculate position based on right alignment
+      const rightOffset = parseInt(element.style.right || '0');
+      currentX = window.innerWidth - rect.width - rightOffset;
+      currentY = parseInt(element.style.top || '0');
 
-    // Set explicit left position based on current right position
-    element.style.left = currentX + 'px';
-
-    console.log('Initial position set:', currentX, currentY);
+      // Set explicit left position based on current right position
+      element.style.left = currentX + 'px';
+      
+      // Remove right positioning to prevent conflicts
+      element.style.right = '';
+    } else {
+      // Already positioned by left/top (from saved position or default)
+      currentX = parseInt(element.style.left || '0');
+      currentY = parseInt(element.style.top || '0');
+    }
+    
+    // Save initial position if we have a panelId
+    if (panelId) {
+      savePanelPosition(panelId, {
+        left: currentX,
+        top: currentY,
+        width: element.offsetWidth,
+        height: element.offsetHeight
+      });
+    }
   }, 100);
 
   // Mouse down handler
   function onMouseDown(e) {
-    console.log('Mouse down on handle!');
     e.preventDefault();
     e.stopPropagation();
 
     // Critical: Remove right positioning before starting drag
     if (element.style.right) {
-      console.log('Removing right alignment before drag');
       element.style.right = '';
     }
 
@@ -312,8 +340,6 @@ function makeDraggable(element, handle) {
     // This fixes the initial jump by using the stored position
     currentX = parseInt(element.style.left || '0');
     currentY = parseInt(element.style.top || '0');
-
-    console.log('Starting drag from:', currentX, currentY);
 
     // Start dragging
     isDragging = true;
@@ -348,13 +374,19 @@ function makeDraggable(element, handle) {
   function onMouseUp(e) {
     if (!isDragging) return;
 
-    console.log('Mouse up, drag complete');
-
     // Update current position with final offsets
     currentX = parseInt(element.style.left || '0');
     currentY = parseInt(element.style.top || '0');
-
-    console.log('Drag ended at:', currentX, currentY);
+    
+    // Save position to localStorage if we have a panelId
+    if (panelId) {
+      savePanelPosition(panelId, {
+        left: currentX,
+        top: currentY,
+        width: element.offsetWidth,
+        height: element.offsetHeight
+      });
+    }
 
     // End dragging
     isDragging = false;

@@ -5,6 +5,7 @@ import { createSharePanel } from '../SharePanel.js';
 import { createEditor } from '../utils/SimpleEditor.js';
 import { createMidiManager } from '../MidiManager.js';
 import { createCanvasSharing } from '../utils/CanvasSharing.js';
+import { loadPanelPosition, savePanelPosition } from '../utils/PanelStorage.js';
 
 // Default starter code for Hydra
 const DEFAULT_CODE = `// HYDRACTRL Sample
@@ -23,8 +24,12 @@ function initEditor() {
   // Create the hydra editor with syntax highlighting
   const editor = createEditor(editorContent, DEFAULT_CODE);
   
-  // Make the editor draggable by the handle
-  makeDraggable(document.getElementById('editor-container'), document.getElementById('editor-handle'));
+  // Make the editor draggable by the handle with position persistence
+  makeDraggable(
+    document.getElementById('editor-container'), 
+    document.getElementById('editor-handle'),
+    'editor-panel'
+  );
   
   // Create a simplified API that mimics our previous interface
   return {
@@ -48,8 +53,21 @@ function initEditor() {
 }
 
 // Function to make an element draggable
-function makeDraggable(element, handle) {
+function makeDraggable(element, handle, panelId) {
   let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  
+  // Apply saved position if available
+  if (panelId) {
+    const savedPosition = loadPanelPosition(panelId);
+    if (savedPosition) {
+      if (savedPosition.left !== undefined) element.style.left = savedPosition.left + 'px';
+      if (savedPosition.top !== undefined) element.style.top = savedPosition.top + 'px';
+      if (savedPosition.width !== undefined && savedPosition.width !== 'auto') 
+        element.style.width = savedPosition.width + 'px';
+      if (savedPosition.height !== undefined && savedPosition.height !== 'auto') 
+        element.style.height = savedPosition.height + 'px';
+    }
+  }
   
   if (handle) {
     // If handle is specified, use it for dragging
@@ -62,6 +80,7 @@ function makeDraggable(element, handle) {
   function dragMouseDown(e) {
     e = e || window.event;
     e.preventDefault();
+    element.classList.add('dragging');
     // Get the mouse cursor position at startup
     pos3 = e.clientX;
     pos4 = e.clientY;
@@ -87,6 +106,17 @@ function makeDraggable(element, handle) {
     // Stop moving when mouse button is released
     document.onmouseup = null;
     document.onmousemove = null;
+    element.classList.remove('dragging');
+    
+    // Save position to localStorage if specified
+    if (panelId) {
+      savePanelPosition(panelId, {
+        left: parseInt(element.style.left),
+        top: parseInt(element.style.top),
+        width: element.offsetWidth,
+        height: element.offsetHeight
+      });
+    }
   }
 }
 

@@ -2,20 +2,27 @@
  * Share Panel Component
  * A draggable panel for controlling stream sharing settings
  */
+import { loadPanelPosition, savePanelPosition } from './utils/PanelStorage.js';
+
 export function createSharePanel(canvasSharing) {
+  // Load saved position or use defaults
+  const savedPosition = loadPanelPosition('share-panel');
+  const defaultTop = '440px';
+  const defaultLeft = '20px';
+  
   // Create the panel container
   const panel = document.createElement('div');
   panel.className = 'share-panel';
   panel.style.position = 'absolute';
-  panel.style.top = '440px';
-  panel.style.left = '20px';
+  panel.style.top = savedPosition ? `${savedPosition.top}px` : defaultTop;
+  panel.style.left = savedPosition ? `${savedPosition.left}px` : defaultLeft;
   panel.style.backgroundColor = 'rgba(37, 37, 37, 0.7)';
   panel.style.borderRadius = '8px';
   panel.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
   panel.style.backdropFilter = 'blur(5px)';
   panel.style.zIndex = '100';
   panel.style.overflow = 'hidden';
-  panel.style.width = 'auto';
+  panel.style.width = savedPosition && savedPosition.width !== 'auto' ? `${savedPosition.width}px` : 'auto';
   panel.style.minWidth = '220px';
 
   // Create the handle
@@ -351,8 +358,8 @@ export function createSharePanel(canvasSharing) {
   // Add to document
   document.body.appendChild(panel);
 
-  // Make draggable
-  makeDraggable(panel, handle);
+  // Make draggable with position persistence
+  makeDraggable(panel, handle, 'share-panel');
 
   // Initial UI update
   updateUI();
@@ -446,7 +453,7 @@ function createSetting(label, type, value, onChange, options = {}) {
 /**
  * Make an element draggable
  */
-function makeDraggable(element, handle) {
+function makeDraggable(element, handle, panelId) {
   // Variables for tracking position
   let initialX = 0;
   let initialY = 0;
@@ -465,7 +472,15 @@ function makeDraggable(element, handle) {
     currentX = parseInt(element.style.left || '20px');
     currentY = parseInt(element.style.top || '20px');
 
-    console.log('Initial position set:', currentX, currentY);
+    // Save initial position if we have a panelId
+    if (panelId) {
+      savePanelPosition(panelId, {
+        left: currentX,
+        top: currentY,
+        width: element.offsetWidth,
+        height: element.offsetHeight
+      });
+    }
   }, 100);
 
   // Mouse down handler
@@ -517,6 +532,16 @@ function makeDraggable(element, handle) {
     // Update current position with final offsets
     currentX = parseInt(element.style.left || '0');
     currentY = parseInt(element.style.top || '0');
+
+    // Save position to localStorage if we have a panelId
+    if (panelId) {
+      savePanelPosition(panelId, {
+        left: currentX,
+        top: currentY,
+        width: element.offsetWidth,
+        height: element.offsetHeight
+      });
+    }
 
     // End dragging
     isDragging = false;

@@ -2,12 +2,26 @@
  * Slots Panel Component
  * A draggable panel with 16 slots for saving and loading Hydra programs
  */
+import { loadPanelPosition, savePanelPosition } from './utils/PanelStorage.js';
+
 export function createSlotsPanel(editor, hydra, runCode) {
+  // Load saved position or use defaults
+  const savedPosition = loadPanelPosition('slots-panel');
+  
   // Create the panel container
   const panel = document.createElement('div');
   panel.className = 'slots-panel';
   panel.style.position = 'absolute';
-  panel.style.right = '20px';
+  
+  if (savedPosition) {
+    panel.style.left = savedPosition.left + 'px';
+    panel.style.top = savedPosition.top + 'px';
+    // Don't apply width as slots panel has fixed width slots
+  } else {
+    panel.style.right = '20px';
+    panel.style.top = '20px';
+  }
+  
   panel.style.backgroundColor = 'rgba(37, 37, 37, 0.7)';
   panel.style.borderRadius = '8px';
   panel.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
@@ -500,8 +514,8 @@ export function createSlotsPanel(editor, hydra, runCode) {
   // Add to document
   document.body.appendChild(panel);
 
-  // Make draggable
-  makeDraggable(panel, handle);
+  // Make draggable with position persistence
+  makeDraggable(panel, handle, 'slots-panel');
 
   // Load all saved slots
   loadAllSlots();
@@ -548,7 +562,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
 /**
  * Make an element draggable
  */
-function makeDraggable(element, handle) {
+function makeDraggable(element, handle, panelId) {
   // Variables for tracking position
   let initialX = 0;
   let initialY = 0;
@@ -560,25 +574,41 @@ function makeDraggable(element, handle) {
 
   // Initialize position once the element has rendered
   setTimeout(() => {
-    // Get and store the initial position
-    const rect = element.getBoundingClientRect();
+    // Only calculate from right if we don't have a saved position and right is specified
+    if (!element.style.left && element.style.right) {
+      // Get and store the initial position
+      const rect = element.getBoundingClientRect();
 
-    // Calculate position based on right alignment
-    const rightOffset = parseInt(element.style.right || '0');
-    currentX = window.innerWidth - rect.width - rightOffset;
+      // Calculate position based on right alignment
+      const rightOffset = parseInt(element.style.right || '0');
+      currentX = window.innerWidth - rect.width - rightOffset;
 
-    // Calculate position based on bottom alignment
-    const bottomOffset = parseInt(element.style.bottom || '0');
-    currentY = window.innerHeight - rect.height - bottomOffset;
+      // Calculate position based on bottom alignment
+      const bottomOffset = parseInt(element.style.bottom || '0');
+      currentY = window.innerHeight - rect.height - bottomOffset;
 
-    // Set explicit left and top position
-    element.style.left = currentX + 'px';
-    element.style.top = currentY + 'px';
+      // Set explicit left and top position
+      element.style.left = currentX + 'px';
+      element.style.top = currentY + 'px';
 
-    // Remove the bottom positioning to prevent stretching
-    element.style.bottom = '';
+      // Remove the bottom and right positioning to prevent stretching
+      element.style.bottom = '';
+      element.style.right = '';
+    } else {
+      // Already positioned by left/top (from saved position or default)
+      currentX = parseInt(element.style.left || '0');
+      currentY = parseInt(element.style.top || '0');
+    }
 
-    console.log('Initial position set:', currentX, currentY);
+    // Save initial position if we have a panelId
+    if (panelId) {
+      savePanelPosition(panelId, {
+        left: currentX,
+        top: currentY,
+        width: element.offsetWidth,
+        height: element.offsetHeight
+      });
+    }
   }, 100);
 
   // Mouse down handler
@@ -635,6 +665,16 @@ function makeDraggable(element, handle) {
     // Update current position with final offsets
     currentX = parseInt(element.style.left || '0');
     currentY = parseInt(element.style.top || '0');
+
+    // Save position to localStorage if we have a panelId
+    if (panelId) {
+      savePanelPosition(panelId, {
+        left: currentX,
+        top: currentY,
+        width: element.offsetWidth,
+        height: element.offsetHeight
+      });
+    }
 
     // End dragging
     isDragging = false;
