@@ -2,7 +2,7 @@
 import { createStatsPanel } from '../StatsPanel.js';
 import { createSlotsPanel } from '../SlotsPanel.js';
 import { createSharePanel } from '../SharePanel.js';
-import { createEditor } from '../utils/SimpleEditor.js';
+import { createSyntaxEditor } from '../utils/SyntaxHighlightEditor.js'; // Use the syntax highlighting editor
 import { createMidiManager } from '../MidiManager.js';
 import { createCanvasSharing } from '../utils/CanvasSharing.js';
 import { loadPanelPosition, savePanelPosition } from '../utils/PanelStorage.js';
@@ -22,7 +22,7 @@ function initEditor() {
   const editorContent = document.getElementById('editor-content');
 
   // Create the hydra editor with syntax highlighting
-  const editor = createEditor(editorContent, DEFAULT_CODE);
+  const editor = createSyntaxEditor(editorContent, DEFAULT_CODE);
 
   // Make the editor draggable by the handle with position persistence
   makeDraggable(
