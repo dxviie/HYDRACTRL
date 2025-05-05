@@ -229,8 +229,8 @@ export function createSlotsPanel(editor, hydra, runCode) {
         bankDots[i].style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
         bankDots[i].style.transform = 'scale(1.1)';
       } else if (bankHasContent(i)) {
-        // Bank with content is colored light blue
-        bankDots[i].style.backgroundColor = 'rgba(100, 180, 255, 0.6)';
+        // Bank with content is colored fuchsia
+        bankDots[i].style.backgroundColor = 'rgba(255, 0, 234, 0.8)';
         bankDots[i].style.transform = 'scale(1)';
       } else {
         // Empty bank is dim
