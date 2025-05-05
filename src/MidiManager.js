@@ -137,11 +137,50 @@ export function createMidiManager(slotsPanel) {
   // Track the current scene on the nanoPAD
   let currentScene = 0; // Scene 1 by default
 
+  // Track rate limiting for messages that may come from XY pad
+  const lastCCValues = {};
+  const THROTTLE_TIME = 500; // ms between allowed bank changes
+  let lastBankChange = 0;
+  
   // Handle MIDI messages
   function onMIDIMessage(message) {
     const data = message.data;
     const cmd = data[0] & 0xF0; // Command byte (top 4 bits)
     const channel = data[0] & 0x0F; // Channel (bottom 4 bits)
+    
+    // Special guard for XY pad - block high frequency CC messages
+    if (cmd === 0xB0) { // Control Change
+      const ccNum = data[1];
+      const value = data[2];
+      
+      // Check if this CC number is known to be an XY pad (usually CC 16-17 or 0-1)
+      const xyPadCCs = [0, 1, 16, 17, 18, 19];
+      if (xyPadCCs.includes(ccNum)) {
+        // Throttle the message if it's coming too fast
+        const now = Date.now();
+        const ccKey = `${channel}_${ccNum}`;
+        const lastTime = lastCCValues[ccKey]?.time || 0;
+        const lastValue = lastCCValues[ccKey]?.value || 0;
+        
+        // Store the current value and time
+        lastCCValues[ccKey] = { time: now, value: value };
+        
+        // If this message is coming too quickly after the last one, it's likely the XY pad
+        if (now - lastTime < 100) {
+          console.log(`Blocking potential XY pad message: CC#${ccNum}=${value}`);
+          return; // Skip processing this message further
+        }
+        
+        // If this CC value could trigger a bank change, enforce a cooldown period
+        if (value >= 0 && value <= 3) {
+          if (now - lastBankChange < THROTTLE_TIME) {
+            console.log(`Throttling potential bank change message: CC#${ccNum}=${value}`);
+            return; // Skip processing this message
+          }
+          lastBankChange = now;
+        }
+      }
+    }
     
     // Enhanced MIDI debugging
     let messageType = "Unknown";
@@ -163,8 +202,18 @@ export function createMidiManager(slotsPanel) {
       if (data[1] === 66 && data[2] === 64 && data[8] === 79) {
         const sceneNumber = data[9];
         if (sceneNumber >= 0 && sceneNumber <= 3) {
-          console.log(`nanoPAD2 Scene change SysEx detected: Scene ${sceneNumber + 1}`);
-          handlePossibleSceneChange(sceneNumber);
+          // Throttle scene changes to prevent issues from XY pad
+          const now = Date.now();
+          
+          // Only allow a scene change if it's been at least THROTTLE_TIME ms since the last one
+          // This prevents the XY pad from triggering multiple scene changes
+          if (now - lastBankChange >= THROTTLE_TIME) {
+            console.log(`nanoPAD2 Scene change SysEx detected: Scene ${sceneNumber + 1}`);
+            lastBankChange = now;
+            handlePossibleSceneChange(sceneNumber);
+          } else {
+            console.log(`Throttling nanoPAD2 scene change to prevent XY pad interference`);
+          }
         }
       }
     }
@@ -180,15 +229,8 @@ export function createMidiManager(slotsPanel) {
       if (cmd === 0x90 && data[2] > 0) { // Note On with velocity > 0
         const note = data[1];
         
-        // Some devices may send scene changes as regular note events
-        // Check if this could be a scene change
-        if (note >= 16 && note <= 19) {
-          handlePossibleSceneChange(note - 16);
-        } else if (note >= 36 && note <= 39) {
-          handlePossibleSceneChange(note - 36);
-        } else {
-          handleNanoPadNote(note);
-        }
+        // Process regular pad notes (not scene buttons)
+        handleNanoPadNote(note);
       }
       
       // Program Change messages - sometimes used for scene changes
@@ -201,51 +243,14 @@ export function createMidiManager(slotsPanel) {
         }
       }
 
-      // Control change (CC) messages - used for scene changes
-      // nanoKONTROL and nanoPAD2 use control change messages for scene buttons
+      // For nanoPAD2, we've determined that it uses SysEx messages for scene changes
+      // So we'll completely ignore CC messages for scene changes to prevent the XY pad
+      // from triggering unwanted bank changes
       if (cmd === 0xB0) { // CC message
+        // Just log the message but don't take action
         const ccNum = data[1];
         const value = data[2];
-
-        // First try standard patterns
-        // Common scene button CC numbers
-        const sceneButtonCCs = [
-          [0, 1, 2, 3],        // Common first scheme
-          [16, 17, 18, 19],    // Common second scheme
-          [32, 33, 34, 35],    // Another possible scheme
-          [64, 65, 66, 67],    // Another possible scheme
-          [80, 81, 82, 83]     // Another possible scheme
-        ];
-        
-        // Check all possible CC schemes for scene buttons
-        let found = false;
-        for (let scheme of sceneButtonCCs) {
-          const index = scheme.indexOf(ccNum);
-          if (index !== -1 && value > 0) {
-            console.log(`Scene button detected from scheme: [${scheme.join(', ')}]`);
-            handlePossibleSceneChange(index);
-            found = true;
-            break;
-          }
-        }
-        
-        // Scene button detection based on pattern
-        // Some devices use a single CC number with different values for different scenes
-        if (!found && value >= 0 && value <= 3) {
-          // These are common CC numbers that might control scene selection
-          const sceneControlCCs = [0, 16, 32, 64, 80, 81, 82, 83, 84, 85];
-          
-          if (sceneControlCCs.includes(ccNum)) {
-            console.log(`Possible scene selection via CC#${ccNum} with value ${value}`);
-            handlePossibleSceneChange(value);
-          }
-        }
-        
-        // As a last resort, any CC with value 0-3 might be a scene
-        if (!found && ccNum <= 127 && value >= 0 && value <= 3) {
-          console.log(`Potential scene change via CC#${ccNum}=${value}`);
-          // Just log it for now but don't act on it automatically
-        }
+        console.log(`Ignoring CC#${ccNum}=${value} to prevent XY pad interference`);
       }
     } else {
       // Generic MIDI handling for other devices
