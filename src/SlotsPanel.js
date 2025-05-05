@@ -284,7 +284,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   }
 
   // Function to update active slot styling
-  function setActiveSlot(index, loadContent = true) {
+  async function setActiveSlot(index, loadContent = true) {
     // Remove active class from previous active slot
     slotElements[activeSlotIndex].style.border = '1px solid rgba(80, 80, 80, 0.3)';
 
@@ -296,12 +296,12 @@ export function createSlotsPanel(editor, hydra, runCode) {
 
     // Load code from storage if requested
     if (loadContent) {
-      loadSlot(activeSlotIndex);
+      await loadSlot(activeSlotIndex);
     }
   }
 
   // Function to save current code to active slot
-  function saveToActiveSlot() {
+  async function saveToActiveSlot() {
     // Get code from editor
     const code = editor.state.doc.toString();
 
@@ -313,7 +313,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
     updateBankDots();
 
     // Run the code first (to ensure visuals are updated) then capture screenshot
-    const success = runCode(editor, hydra);
+    const success = await runCode(editor, hydra);
     if (success) {
       // Capture screenshot with a longer delay to ensure rendering is complete
       captureScreenshot(currentBank, activeSlotIndex);
@@ -336,7 +336,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   }
 
   // Function to load code from slot
-  function loadSlot(index, runCodeAfterLoad = true) {
+  async function loadSlot(index, runCodeAfterLoad = true) {
     const storageKey = getStorageKey(currentBank, index);
     const savedCode = localStorage.getItem(storageKey);
 
@@ -348,7 +348,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
 
       // Run the code if requested
       if (runCodeAfterLoad) {
-        runCode(editor, hydra);
+        await runCode(editor, hydra);
       }
 
       return true;

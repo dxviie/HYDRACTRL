@@ -229,7 +229,7 @@ function showErrorNotification(errorMessage) {
 }
 
 // Run hydra code
-function runCode(editor, hydra) {
+async function runCode(editor, hydra) {
   try {
     // Get code from editor
     const code = editor.state.doc.toString();
@@ -244,8 +244,11 @@ function runCode(editor, hydra) {
     // Clear canvas by resetting default outputs
     hydra.hush();
 
-    // Create a function to execute the code with hydra in scope
-    const fn = new Function('hydra', `
+    // Create an async function to execute the code with hydra in scope
+    // This allows top-level await support
+    const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+    
+    const fn = new AsyncFunction('hydra', `
       // Set global h variable to hydra for convenience
       window.h = hydra;
       // Make hydra functions available in global scope
@@ -270,7 +273,7 @@ function runCode(editor, hydra) {
     `);
 
     // Execute the function with hydra as parameter
-    const result = fn(hydra);
+    const result = await fn(hydra);
 
     // Check if there was an error
     if (result && !result.success) {
@@ -334,8 +337,8 @@ async function init() {
     const hydra = await initHydra();
 
     // Set up event listeners
-    document.getElementById('run-btn').addEventListener('click', () => {
-      const success = runCode(editor, hydra);
+    document.getElementById('run-btn').addEventListener('click', async () => {
+      const success = await runCode(editor, hydra);
       if (success) {
         editor.focus(); // Return focus to editor after successful run
       }
@@ -373,7 +376,11 @@ async function init() {
       // Ctrl+Enter or Cmd+Enter to run code
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
-        runCode(editor, hydra);
+        runCode(editor, hydra).then(success => {
+          if (success) {
+            editor.focus();
+          }
+        });
       }
 
       // Ctrl+S or Cmd+S to save code
@@ -438,7 +445,7 @@ async function init() {
     loadCode(editor);
 
     // Run initial code
-    runCode(editor, hydra);
+    await runCode(editor, hydra);
 
     // Focus the editor initially
     editor.focus();
