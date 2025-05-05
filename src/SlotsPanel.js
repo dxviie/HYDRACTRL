@@ -37,7 +37,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   titleContainer.style.display = 'flex';
   titleContainer.style.alignItems = 'center';
   titleContainer.style.gap = '8px';
-  
+
   // Create the title
   const title = document.createElement('div');
   title.className = 'slots-title';
@@ -46,17 +46,17 @@ export function createSlotsPanel(editor, hydra, runCode) {
   title.style.textTransform = 'uppercase';
   title.style.color = '#aaa';
   title.textContent = 'SLOTS';
-  
+
   // Create bank selector dots container
   const dotsContainer = document.createElement('div');
   dotsContainer.className = 'bank-selector';
   dotsContainer.style.display = 'flex';
   dotsContainer.style.gap = '5px';
   dotsContainer.style.alignItems = 'center';
-  
+
   // Bank dot elements array
   const bankDots = [];
-  
+
   // Create 4 bank selector dots
   for (let i = 0; i < 4; i++) {
     const dot = document.createElement('div');
@@ -68,32 +68,36 @@ export function createSlotsPanel(editor, hydra, runCode) {
     dot.style.backgroundColor = i === 0 ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.3)';
     dot.style.cursor = 'pointer';
     dot.style.transition = 'all 0.2s ease';
-    
+
     // Add hover effect
     dot.addEventListener('mouseover', () => {
-      if (parseInt(dot.dataset.bank) !== currentBank) {
-        dot.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+      const bank = parseInt(dot.dataset.bank);
+      if (bank !== currentBank) {
+        // Highlight with a brighter version of its current color
+        if (bankHasContent(bank)) {
+          dot.style.backgroundColor = 'rgba(255, 0, 234, 0.8)';
+        } else {
+          dot.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+        }
         dot.style.transform = 'scale(1.1)';
       }
     });
-    
+
     dot.addEventListener('mouseout', () => {
-      if (parseInt(dot.dataset.bank) !== currentBank) {
-        dot.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
-        dot.style.transform = 'scale(1)';
-      }
+      // On mouseout, restore proper color based on content state
+      updateBankDots();
     });
-    
+
     // Add click handler to switch banks
     dot.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent drag from activating
       switchBank(i);
     });
-    
+
     dotsContainer.appendChild(dot);
     bankDots.push(dot);
   }
-  
+
   // Add the title and dots to the title container
   titleContainer.appendChild(title);
   titleContainer.appendChild(dotsContainer);
@@ -112,13 +116,13 @@ export function createSlotsPanel(editor, hydra, runCode) {
   clearBtn.style.alignItems = 'center';
   clearBtn.style.justifyContent = 'center';
   clearBtn.textContent = '×'; // Using × (multiplication sign) as it looks better than X
-  
+
   // Add hover effect
   clearBtn.addEventListener('mouseover', () => {
     clearBtn.style.backgroundColor = 'rgba(255, 68, 68, 0.2)';
     clearBtn.style.transform = 'scale(1.1)';
   });
-  
+
   clearBtn.addEventListener('mouseout', () => {
     clearBtn.style.backgroundColor = 'transparent';
     clearBtn.style.transform = 'scale(1)';
@@ -139,11 +143,11 @@ export function createSlotsPanel(editor, hydra, runCode) {
 
   // Local storage key prefix
   const STORAGE_KEY_PREFIX = 'hydractrl-slot-';
-  
+
   // Track current bank (0-3) and active slot
   let currentBank = 0; // Default to first bank
   let activeSlotIndex = 0; // Default to first slot
-  
+
   // Storage key includes bank
   const getStorageKey = (bank, index) => `${STORAGE_KEY_PREFIX}bank-${bank}-slot-${index}`;
 
@@ -202,35 +206,60 @@ export function createSlotsPanel(editor, hydra, runCode) {
   function cycleBank(direction) {
     // Calculate new bank index with wrapping (0-3)
     const newBank = (currentBank + direction + 4) % 4;
-    
+
     // Switch to the new bank
     switchBank(newBank);
+  }
+
+  // Function to check if a bank has any content
+  function bankHasContent(bankIndex) {
+    for (let i = 0; i < 16; i++) {
+      if (localStorage.getItem(getStorageKey(bankIndex, i))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Function to update the dots to reflect which banks have content
+  function updateBankDots() {
+    for (let i = 0; i < 4; i++) {
+      if (i === currentBank) {
+        // Active bank is white
+        bankDots[i].style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+        bankDots[i].style.transform = 'scale(1.1)';
+      } else if (bankHasContent(i)) {
+        // Bank with content is colored light blue
+        bankDots[i].style.backgroundColor = 'rgba(100, 180, 255, 0.6)';
+        bankDots[i].style.transform = 'scale(1)';
+      } else {
+        // Empty bank is dim
+        bankDots[i].style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+        bankDots[i].style.transform = 'scale(1)';
+      }
+    }
   }
 
   // Function to switch bank
   function switchBank(bankIndex) {
     if (bankIndex === currentBank) return;
-    
-    // Update bank dots styling
-    bankDots[currentBank].style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
-    bankDots[currentBank].style.transform = 'scale(1)';
-    
-    bankDots[bankIndex].style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-    bankDots[bankIndex].style.transform = 'scale(1.1)';
-    
+
     // Save current bank index
     currentBank = bankIndex;
-    
+
     // Update bank indicator in title
     title.textContent = `SLOTS ${bankIndex + 1}`;
-    
+
+    // Update bank dots styling
+    updateBankDots();
+
     // Load all thumbnails for the new bank
     loadAllSlotsForCurrentBank();
-    
+
     // Set the first slot as active
     setActiveSlot(0);
   }
-  
+
   // Function to update active slot styling
   function setActiveSlot(index, loadContent = true) {
     // Remove active class from previous active slot
@@ -256,6 +285,9 @@ export function createSlotsPanel(editor, hydra, runCode) {
     // Save to localStorage with bank and slot index
     const storageKey = getStorageKey(currentBank, activeSlotIndex);
     localStorage.setItem(storageKey, code);
+
+    // Update bank dots to reflect new content
+    updateBankDots();
 
     // Run the code first (to ensure visuals are updated) then capture screenshot
     const success = runCode(editor, hydra);
@@ -295,10 +327,10 @@ export function createSlotsPanel(editor, hydra, runCode) {
       if (runCodeAfterLoad) {
         runCode(editor, hydra);
       }
-      
+
       return true;
     }
-    
+
     return false;
   }
 
@@ -338,7 +370,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
       const thumbnailElement = slotElements[i].querySelector('.slot-thumbnail');
       thumbnailElement.style.backgroundImage = '';
     }
-    
+
     // Load thumbnails for current bank
     for (let i = 0; i < 16; i++) {
       const thumbnail = localStorage.getItem(`${getStorageKey(currentBank, i)}-thumbnail`);
@@ -348,15 +380,18 @@ export function createSlotsPanel(editor, hydra, runCode) {
       }
     }
   }
-  
+
   // Load all saved slots on startup
   function loadAllSlots() {
     // Set the bank title
     title.textContent = `SLOTS ${currentBank + 1}`;
-    
+
     // Load thumbnails for the initial bank
     loadAllSlotsForCurrentBank();
-    
+
+    // Update bank dots to reflect which banks have content
+    updateBankDots();
+
     // Set the first slot as active by default
     setActiveSlot(0);
   }
@@ -364,7 +399,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   // Assemble the panel
   handle.appendChild(titleContainer);
   handle.appendChild(clearBtn);
-  
+
   // Function to clear all slots
   function clearAllSlots() {
     // Create confirmation options
@@ -373,13 +408,13 @@ export function createSlotsPanel(editor, hydra, runCode) {
       'Clear All Banks',
       'Cancel'
     ];
-    
+
     const choice = confirm('Clear current bank only or all banks?');
-    
+
     if (choice === null) {
       return; // User canceled
     }
-    
+
     if (choice) {
       // Clear all banks
       for (let bank = 0; bank < 4; bank++) {
@@ -388,20 +423,23 @@ export function createSlotsPanel(editor, hydra, runCode) {
           localStorage.removeItem(`${getStorageKey(bank, slot)}-thumbnail`);
         }
       }
-      
+
       // Clear current bank's thumbnail display
       for (let i = 0; i < 16; i++) {
         const thumbnailElement = slotElements[i].querySelector('.slot-thumbnail');
         thumbnailElement.style.backgroundImage = '';
       }
-      
+
+      // Update bank dots
+      updateBankDots();
+
       // Show notification
       const clearedNotification = document.createElement('div');
       clearedNotification.className = 'saved-notification';
       clearedNotification.style.backgroundColor = 'rgba(220, 50, 50, 0.8)';
       clearedNotification.textContent = 'Cleared All Banks!';
       document.body.appendChild(clearedNotification);
-      
+
       setTimeout(() => {
         clearedNotification.classList.add('fade-out');
         setTimeout(() => {
@@ -415,19 +453,22 @@ export function createSlotsPanel(editor, hydra, runCode) {
       for (let i = 0; i < 16; i++) {
         localStorage.removeItem(getStorageKey(currentBank, i));
         localStorage.removeItem(`${getStorageKey(currentBank, i)}-thumbnail`);
-        
+
         // Clear thumbnail display
         const thumbnailElement = slotElements[i].querySelector('.slot-thumbnail');
         thumbnailElement.style.backgroundImage = '';
       }
-      
+
+      // Update bank dots
+      updateBankDots();
+
       // Show notification
       const clearedNotification = document.createElement('div');
       clearedNotification.className = 'saved-notification';
       clearedNotification.style.backgroundColor = 'rgba(220, 50, 50, 0.8)';
       clearedNotification.textContent = `Cleared Bank ${currentBank + 1}!`;
       document.body.appendChild(clearedNotification);
-      
+
       setTimeout(() => {
         clearedNotification.classList.add('fade-out');
         setTimeout(() => {
@@ -438,7 +479,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
       }, 1500);
     }
   }
-  
+
   // Add click handler for clear button
   clearBtn.addEventListener('click', clearAllSlots);
 
