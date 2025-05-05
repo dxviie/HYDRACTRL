@@ -1,5 +1,6 @@
 // Import utilities
 import { createStatsPanel } from '../StatsPanel.js';
+import { createSlotsPanel } from '../SlotsPanel.js';
 import { createEditor } from '../utils/SimpleEditor.js';
 
 // Default starter code for Hydra
@@ -305,22 +306,28 @@ async function init() {
     });
     
     document.getElementById('save-btn').addEventListener('click', () => {
+      // First save to regular storage
       saveCode(editor);
       
-      // Show temporary "Saved!" notification
-      const savedNotification = document.createElement('div');
-      savedNotification.className = 'saved-notification';
-      savedNotification.textContent = 'Saved!';
-      document.body.appendChild(savedNotification);
-      
-      setTimeout(() => {
-        savedNotification.classList.add('fade-out');
+      // Then save to active slot if slots panel exists
+      if (window.slotsPanel) {
+        window.slotsPanel.saveToActiveSlot();
+      } else {
+        // Show temporary "Saved!" notification only if not using slots
+        const savedNotification = document.createElement('div');
+        savedNotification.className = 'saved-notification';
+        savedNotification.textContent = 'Saved!';
+        document.body.appendChild(savedNotification);
+        
         setTimeout(() => {
-          if (savedNotification.parentNode) {
-            document.body.removeChild(savedNotification);
-          }
-        }, 500);
-      }, 1500);
+          savedNotification.classList.add('fade-out');
+          setTimeout(() => {
+            if (savedNotification.parentNode) {
+              document.body.removeChild(savedNotification);
+            }
+          }, 500);
+        }, 1500);
+      }
       
       editor.focus(); // Return focus to editor after saving
     });
@@ -337,11 +344,24 @@ async function init() {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         saveCode(editor);
+        // Also save to active slot if slots panel exists
+        if (window.slotsPanel) {
+          window.slotsPanel.saveToActiveSlot();
+        }
       }
       
       // ESC to toggle editor visibility
       if (e.key === 'Escape') {
         toggleEditor();
+      }
+      
+      // Number keys 1-9 to select slots 1-9 (when holding Ctrl)
+      if (e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+        const num = parseInt(e.key);
+        if (!isNaN(num) && num >= 1 && num <= 9 && window.slotsPanel) {
+          e.preventDefault();
+          window.slotsPanel.setActiveSlot(num - 1); // Convert to 0-based index
+        }
       }
     });
     
@@ -357,8 +377,12 @@ async function init() {
     // Create the stats panel using our simple implementation
     const statsPanel = createStatsPanel();
     
+    // Create the slots panel
+    const slotsPanel = createSlotsPanel(editor, hydra, runCode);
+    
     // Add to window for debugging and access
     window.statsPanel = statsPanel;
+    window.slotsPanel = slotsPanel;
     window._editorProxy = editor; // Expose editor proxy for focus etc.
     
   } catch (error) {

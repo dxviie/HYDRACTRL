@@ -158,6 +158,28 @@ button:active {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5) !important;
 }
 
+/* Slots Panel */
+.slots-panel {
+  min-width: 360px;
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 4px;
+  padding: 4px;
+}
+
+.slot {
+  transition: all 0.2s ease;
+}
+
+.slot:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
 /* Hydra Syntax Highlighting */
 .hydra-core {
   color: #ff79c6 !important;
