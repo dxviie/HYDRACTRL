@@ -60,6 +60,34 @@ export function createStatsPanel() {
   metrics.style.display = 'flex';
   metrics.style.gap = '12px';
   
+  // MIDI section for expanded view
+  const midiSection = document.createElement('div');
+  midiSection.className = 'stats-midi';
+  midiSection.style.marginTop = '8px';
+  midiSection.style.paddingTop = '8px';
+  midiSection.style.borderTop = '1px solid rgba(100, 100, 100, 0.3)';
+  midiSection.style.display = 'none';  // Initially hidden
+  midiSection.style.flexDirection = 'column';
+  midiSection.style.gap = '6px';
+  
+  // MIDI status text
+  const midiStatusText = document.createElement('div');
+  midiStatusText.className = 'midi-status-text';
+  midiStatusText.style.fontSize = '12px';
+  midiStatusText.style.color = '#aaa';
+  midiStatusText.style.fontWeight = 'bold';
+  midiStatusText.textContent = 'MIDI: Not initialized';
+  
+  // MIDI device selection
+  const midiDeviceContainer = document.createElement('div');
+  midiDeviceContainer.style.display = 'flex';
+  midiDeviceContainer.style.flexDirection = 'column';
+  midiDeviceContainer.style.gap = '4px';
+  
+  // Add to MIDI section
+  midiSection.appendChild(midiStatusText);
+  midiSection.appendChild(midiDeviceContainer);
+  
   // Create the FPS metric
   const fpsMetric = document.createElement('div');
   fpsMetric.className = 'stats-metric';
@@ -159,6 +187,7 @@ export function createStatsPanel() {
   
   content.appendChild(metrics);
   content.appendChild(details);
+  content.appendChild(midiSection);
   
   handle.appendChild(title);
   handle.appendChild(toggle);
@@ -174,6 +203,7 @@ export function createStatsPanel() {
   toggle.addEventListener('click', () => {
     isExpanded = !isExpanded;
     details.style.display = isExpanded ? 'flex' : 'none';
+    midiSection.style.display = isExpanded ? 'flex' : 'none';
     toggle.textContent = isExpanded ? '▼' : '▲';
   });
   
@@ -222,8 +252,15 @@ export function createStatsPanel() {
   // Start update loop
   requestAnimationFrame(updateStats);
   
-  // Return the panel for any additional manipulation
-  return panel;
+  // Return the panel with additional API
+  return {
+    panel,
+    midi: {
+      statusText: midiStatusText,
+      deviceContainer: midiDeviceContainer,
+      section: midiSection
+    }
+  };
 }
 
 /**

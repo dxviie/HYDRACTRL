@@ -2,6 +2,7 @@
 import { createStatsPanel } from '../StatsPanel.js';
 import { createSlotsPanel } from '../SlotsPanel.js';
 import { createEditor } from '../utils/SimpleEditor.js';
+import { createMidiManager } from '../MidiManager.js';
 
 // Default starter code for Hydra
 const DEFAULT_CODE = `// HYDRACTRL Sample
@@ -391,9 +392,97 @@ async function init() {
     // Create the slots panel
     const slotsPanel = createSlotsPanel(editor, hydra, runCode);
     
+    // Initialize MIDI support with the slots panel
+    const midiManager = createMidiManager(slotsPanel);
+    
+    // Initialize MIDI access
+    const midiSupported = midiManager.init();
+    
+    // Update the stats panel with MIDI info if supported
+    if (midiSupported) {
+      statsPanel.midi.statusText.textContent = 'MIDI: Initializing...';
+      
+      // Add refresh button
+      const refreshButton = document.createElement('button');
+      refreshButton.textContent = 'Refresh MIDI';
+      refreshButton.style.fontSize = '10px';
+      refreshButton.style.padding = '2px 4px';
+      refreshButton.style.margin = '4px 0';
+      refreshButton.style.width = 'fit-content';
+      
+      refreshButton.addEventListener('click', () => {
+        updateMidiDeviceList();
+      });
+      
+      statsPanel.midi.deviceContainer.appendChild(refreshButton);
+      
+      // Function to update MIDI device list
+      function updateMidiDeviceList() {
+        // Clear device container except for the refresh button
+        while (statsPanel.midi.deviceContainer.children.length > 1) {
+          statsPanel.midi.deviceContainer.removeChild(
+            statsPanel.midi.deviceContainer.lastChild
+          );
+        }
+        
+        // Get device list
+        const devices = midiManager.listDevices();
+        
+        if (devices.length === 0) {
+          statsPanel.midi.statusText.textContent = 'MIDI: No devices found';
+          return;
+        }
+        
+        // Update status text with active device
+        const activeDevice = midiManager.getActiveDevice();
+        if (activeDevice) {
+          statsPanel.midi.statusText.textContent = `MIDI: ${activeDevice.name || 'Unknown Device'}`;
+          
+          // Highlight nanoPAD if connected
+          if (activeDevice.name && (
+              activeDevice.name.toLowerCase().includes('nanopad') || 
+              activeDevice.name.toLowerCase().includes('korg'))) {
+            statsPanel.midi.statusText.style.color = '#50fa7b'; // Green
+          } else {
+            statsPanel.midi.statusText.style.color = '#aaa';
+          }
+        } else {
+          statsPanel.midi.statusText.textContent = 'MIDI: No active device';
+          statsPanel.midi.statusText.style.color = '#aaa';
+        }
+        
+        // Add device buttons
+        devices.forEach((device, index) => {
+          const deviceButton = document.createElement('button');
+          deviceButton.textContent = device.name || `Device ${index+1}`;
+          deviceButton.style.fontSize = '10px';
+          deviceButton.style.padding = '2px 4px';
+          deviceButton.style.margin = '2px 0';
+          
+          if (device.isActive) {
+            deviceButton.style.backgroundColor = 'rgba(80, 250, 123, 0.3)';
+          }
+          
+          deviceButton.addEventListener('click', () => {
+            midiManager.connectToDeviceByIndex(index);
+            updateMidiDeviceList();
+          });
+          
+          statsPanel.midi.deviceContainer.appendChild(deviceButton);
+        });
+      }
+      
+      // Initial update of device list
+      setTimeout(updateMidiDeviceList, 1000);
+    } else {
+      statsPanel.midi.statusText.textContent = 'MIDI: Not supported';
+      statsPanel.midi.statusText.style.color = '#ff5555'; // Red
+    }
+    
     // Add to window for debugging and access
     window.statsPanel = statsPanel;
     window.slotsPanel = slotsPanel;
+    window.midiManager = midiManager;
     window._editorProxy = editor; // Expose editor proxy for focus etc.
     
   } catch (error) {
