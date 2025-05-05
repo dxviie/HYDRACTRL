@@ -49,8 +49,12 @@ export function createMidiManager(slotsPanel) {
       return false;
     }
 
-    navigator.requestMIDIAccess()
+    navigator.requestMIDIAccess({ sysex: true })
       .then(onMIDISuccess, onMIDIFailure);
+    
+    console.log("MIDI Debug Info: If your scene buttons aren't recognized, " +
+                "press them and check the console log to see their MIDI messages. " +
+                "Then you can add them to the supported patterns.");
 
     return true;
   }
@@ -138,13 +142,63 @@ export function createMidiManager(slotsPanel) {
     const data = message.data;
     const cmd = data[0] & 0xF0; // Command byte (top 4 bits)
     const channel = data[0] & 0x0F; // Channel (bottom 4 bits)
+    
+    // Enhanced MIDI debugging
+    let messageType = "Unknown";
+    switch(cmd) {
+      case 0x80: messageType = "Note Off"; break;
+      case 0x90: messageType = data[2] > 0 ? "Note On" : "Note Off"; break;
+      case 0xA0: messageType = "Aftertouch"; break;
+      case 0xB0: messageType = "Control Change"; break;
+      case 0xC0: messageType = "Program Change"; break;
+      case 0xD0: messageType = "Channel Pressure"; break;
+      case 0xE0: messageType = "Pitch Bend"; break;
+      case 0xF0: messageType = "System Exclusive"; break;
+    }
+    
+    // Special case for SysEx messages (240 = 0xF0)
+    if (data[0] === 240) {
+      // Check for nanoPAD2 scene change SysEx messages
+      // Pattern: [240, 66, 64, 0, 1, 18, 0, 95, 79, sceneNumber, 247]
+      if (data[1] === 66 && data[2] === 64 && data[8] === 79) {
+        const sceneNumber = data[9];
+        if (sceneNumber >= 0 && sceneNumber <= 3) {
+          console.log(`nanoPAD2 Scene change SysEx detected: Scene ${sceneNumber + 1}`);
+          handlePossibleSceneChange(sceneNumber);
+        }
+      }
+    }
+    
+    console.log(`MIDI ${messageType}: [${data.join(', ')}] Channel: ${channel+1}`, 
+                cmd === 0x90 ? `Note: ${data[1]} Velocity: ${data[2]}` : 
+                cmd === 0xB0 ? `Controller: ${data[1]} Value: ${data[2]}` :
+                cmd === 0xC0 ? `Program: ${data[1]}` : '');
 
     // nanoPAD2 specific handling
     if (isNanoPad) {
       // Note On message (button press)
       if (cmd === 0x90 && data[2] > 0) { // Note On with velocity > 0
         const note = data[1];
-        handleNanoPadNote(note);
+        
+        // Some devices may send scene changes as regular note events
+        // Check if this could be a scene change
+        if (note >= 16 && note <= 19) {
+          handlePossibleSceneChange(note - 16);
+        } else if (note >= 36 && note <= 39) {
+          handlePossibleSceneChange(note - 36);
+        } else {
+          handleNanoPadNote(note);
+        }
+      }
+      
+      // Program Change messages - sometimes used for scene changes
+      if (cmd === 0xC0) { // Program Change
+        const program = data[1];
+        
+        // If program is in range 0-3, it might be a scene change
+        if (program >= 0 && program <= 3) {
+          handlePossibleSceneChange(program);
+        }
       }
 
       // Control change (CC) messages - used for scene changes
@@ -153,22 +207,44 @@ export function createMidiManager(slotsPanel) {
         const ccNum = data[1];
         const value = data[2];
 
-        // Scene button detection
-        if ((ccNum === 16 || ccNum === 17 || ccNum === 18 || ccNum === 19) && value > 0) {
-          // Scene buttons on nanoPAD2
-          // Scene 1-4 typically use CC numbers 16-19
-          const sceneNumber = ccNum - 16; // 0-3
-
-          // Update current scene
-          currentScene = sceneNumber;
-
-          // Switch bank to match scene
-          if (slotsPanel && slotsPanel.switchBank) {
-            slotsPanel.switchBank(sceneNumber);
+        // First try standard patterns
+        // Common scene button CC numbers
+        const sceneButtonCCs = [
+          [0, 1, 2, 3],        // Common first scheme
+          [16, 17, 18, 19],    // Common second scheme
+          [32, 33, 34, 35],    // Another possible scheme
+          [64, 65, 66, 67],    // Another possible scheme
+          [80, 81, 82, 83]     // Another possible scheme
+        ];
+        
+        // Check all possible CC schemes for scene buttons
+        let found = false;
+        for (let scheme of sceneButtonCCs) {
+          const index = scheme.indexOf(ccNum);
+          if (index !== -1 && value > 0) {
+            console.log(`Scene button detected from scheme: [${scheme.join(', ')}]`);
+            handlePossibleSceneChange(index);
+            found = true;
+            break;
           }
-
-          // Update MIDI status
-          showMidiStatus(`Scene ${sceneNumber + 1} / Bank ${sceneNumber + 1} selected`);
+        }
+        
+        // Scene button detection based on pattern
+        // Some devices use a single CC number with different values for different scenes
+        if (!found && value >= 0 && value <= 3) {
+          // These are common CC numbers that might control scene selection
+          const sceneControlCCs = [0, 16, 32, 64, 80, 81, 82, 83, 84, 85];
+          
+          if (sceneControlCCs.includes(ccNum)) {
+            console.log(`Possible scene selection via CC#${ccNum} with value ${value}`);
+            handlePossibleSceneChange(value);
+          }
+        }
+        
+        // As a last resort, any CC with value 0-3 might be a scene
+        if (!found && ccNum <= 127 && value >= 0 && value <= 3) {
+          console.log(`Potential scene change via CC#${ccNum}=${value}`);
+          // Just log it for now but don't act on it automatically
         }
       }
     } else {
@@ -179,6 +255,63 @@ export function createMidiManager(slotsPanel) {
         handleGenericNote(note);
       }
     }
+  }
+  
+  // Helper for handling scene changes
+  function handlePossibleSceneChange(sceneNumber) {
+    if (sceneNumber >= 0 && sceneNumber <= 3) {
+      console.log(`Scene change detected: ${sceneNumber + 1}`);
+      
+      // Update current scene
+      currentScene = sceneNumber;
+
+      // Switch bank to match scene
+      if (slotsPanel && slotsPanel.switchBank) {
+        slotsPanel.switchBank(sceneNumber);
+      }
+
+      // Update MIDI status with highlighted text
+      showMidiStatus(`Scene ${sceneNumber + 1} / Bank ${sceneNumber + 1} selected`);
+      
+      // Update UI if needed
+      if (window.updateMidiDeviceList) {
+        window.updateMidiDeviceList();
+      }
+      
+      // Visual feedback - flash the active bank dot
+      if (window.flashActiveBankDot) {
+        window.flashActiveBankDot(sceneNumber);
+      } else {
+        // Create a temporary visual indicator
+        const notification = document.createElement('div');
+        notification.className = 'saved-notification';
+        notification.style.backgroundColor = 'rgba(80, 250, 123, 0.8)';
+        notification.textContent = `Scene ${sceneNumber + 1} / Bank ${sceneNumber + 1}`;
+        notification.style.position = 'fixed';
+        notification.style.top = '50%';
+        notification.style.left = '50%';
+        notification.style.transform = 'translate(-50%, -50%)';
+        notification.style.fontSize = '24px';
+        notification.style.padding = '20px';
+        notification.style.borderRadius = '10px';
+        notification.style.boxShadow = '0 0 20px rgba(0, 0, 0, 0.5)';
+        notification.style.zIndex = '2000';
+        document.body.appendChild(notification);
+        
+        // Remove after a short time
+        setTimeout(() => {
+          notification.classList.add('fade-out');
+          setTimeout(() => {
+            if (notification.parentNode) {
+              document.body.removeChild(notification);
+            }
+          }, 300);
+        }, 800);
+      }
+      
+      return true;
+    }
+    return false;
   }
 
   // Define the default MIDI mapping structure
