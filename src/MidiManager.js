@@ -130,6 +130,9 @@ export function createMidiManager(slotsPanel) {
     showMidiStatus('MIDI access failed. Check permissions.', true);
   }
   
+  // Track the current scene on the nanoPAD
+  let currentScene = 0; // Scene 1 by default
+  
   // Handle MIDI messages
   function onMIDIMessage(message) {
     const data = message.data;
@@ -142,6 +145,31 @@ export function createMidiManager(slotsPanel) {
       if (cmd === 0x90 && data[2] > 0) { // Note On with velocity > 0
         const note = data[1];
         handleNanoPadNote(note);
+      }
+      
+      // Control change (CC) messages - used for scene changes
+      // nanoKONTROL and nanoPAD2 use control change messages for scene buttons
+      if (cmd === 0xB0) { // CC message
+        const ccNum = data[1];
+        const value = data[2];
+        
+        // Scene button detection
+        if ((ccNum === 16 || ccNum === 17 || ccNum === 18 || ccNum === 19) && value > 0) {
+          // Scene buttons on nanoPAD2
+          // Scene 1-4 typically use CC numbers 16-19
+          const sceneNumber = ccNum - 16; // 0-3
+          
+          // Update current scene
+          currentScene = sceneNumber;
+          
+          // Switch bank to match scene
+          if (slotsPanel && slotsPanel.switchBank) {
+            slotsPanel.switchBank(sceneNumber);
+          }
+          
+          // Update MIDI status
+          showMidiStatus(`Scene ${sceneNumber + 1} / Bank ${sceneNumber + 1} selected`);
+        }
       }
     } else {
       // Generic MIDI handling for other devices
@@ -164,13 +192,19 @@ export function createMidiManager(slotsPanel) {
     // Map to slot index (0-15)
     let slotIndex = -1;
     
-    // First row (pads 1-8)
+    // Fix for physical layout: 
+    // The physical layout has top row, then bottom row
+    // We need to map each button to the correct visual slot
+    
+    // First row (pads 1-8): map to slot positions 0,2,4,6,8,10,12,14 (even numbers)
     if (note >= 36 && note <= 43) {
-      slotIndex = note - 36;
+      const relativePad = note - 36; // 0-7
+      slotIndex = relativePad * 2; // 0,2,4,6,8,10,12,14
     }
-    // Second row (pads 9-16)
+    // Second row (pads 9-16): map to slot positions 1,3,5,7,9,11,13,15 (odd numbers)
     else if (note >= 44 && note <= 51) {
-      slotIndex = note - 44 + 8;
+      const relativePad = note - 44; // 0-7 
+      slotIndex = relativePad * 2 + 1; // 1,3,5,7,9,11,13,15
     }
     
     // Select the slot if valid
@@ -195,6 +229,22 @@ export function createMidiManager(slotsPanel) {
     init,
     isConnected: () => isConnected,
     getActiveDevice: () => activeDevice,
+    // Get current scene
+    getCurrentScene: () => currentScene,
+    // Set scene and bank
+    setScene: (sceneIndex) => {
+      if (sceneIndex >= 0 && sceneIndex < 4) {
+        currentScene = sceneIndex;
+        
+        // Also change the bank to match
+        if (slotsPanel && slotsPanel.switchBank) {
+          slotsPanel.switchBank(sceneIndex);
+        }
+        
+        return true;
+      }
+      return false;
+    },
     // Allow manual connection to a specific device by index
     connectToDeviceByIndex: (index) => {
       if (!midiAccess) return false;

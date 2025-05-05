@@ -92,6 +92,11 @@ export function createSlotsPanel(editor, hydra, runCode) {
     dot.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent drag from activating
       switchBank(i);
+      
+      // Sync MIDI scene if midiManager is available
+      if (window.midiManager && window.midiManager.setScene) {
+        window.midiManager.setScene(i);
+      }
     });
 
     dotsContainer.appendChild(dot);
