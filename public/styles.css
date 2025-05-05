@@ -116,6 +116,42 @@ button:active {
   opacity: 0;
 }
 
+/* Error notification */
+.error-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: rgba(220, 50, 50, 0.85);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: monospace;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  max-width: 500px;
+  word-break: break-word;
+  transition: opacity 0.5s, transform 0.3s;
+  cursor: pointer;
+}
+
+.error-notification.fade-out {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.error-notification .error-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.error-notification .error-message {
+  font-size: 13px;
+  opacity: 0.9;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
 /* Stats Panel */
 .dragging {
   opacity: 0.9;

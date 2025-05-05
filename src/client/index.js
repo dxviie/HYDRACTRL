@@ -141,6 +141,56 @@ async function initHydra() {
   }
 }
 
+// Display error message to the user
+function showErrorNotification(errorMessage) {
+  // Remove any existing error notifications
+  const existingErrors = document.querySelectorAll('.error-notification');
+  existingErrors.forEach(el => el.remove());
+  
+  // Create error notification element
+  const errorNotification = document.createElement('div');
+  errorNotification.className = 'error-notification';
+  
+  // Create title
+  const errorTitle = document.createElement('div');
+  errorTitle.className = 'error-title';
+  errorTitle.textContent = 'Hydra Error (click to dismiss)';
+  
+  // Create message
+  const errorMessageEl = document.createElement('div');
+  errorMessageEl.className = 'error-message';
+  errorMessageEl.textContent = errorMessage;
+  
+  // Add elements to notification
+  errorNotification.appendChild(errorTitle);
+  errorNotification.appendChild(errorMessageEl);
+  
+  // Add to body
+  document.body.appendChild(errorNotification);
+  
+  // Allow clicking to dismiss
+  errorNotification.addEventListener('click', () => {
+    errorNotification.classList.add('fade-out');
+    setTimeout(() => {
+      if (errorNotification.parentNode) {
+        document.body.removeChild(errorNotification);
+      }
+    }, 500);
+  });
+  
+  // Auto-dismiss after 10 seconds
+  setTimeout(() => {
+    if (errorNotification.parentNode) {
+      errorNotification.classList.add('fade-out');
+      setTimeout(() => {
+        if (errorNotification.parentNode) {
+          document.body.removeChild(errorNotification);
+        }
+      }, 500);
+    }
+  }, 10000);
+}
+
 // Run hydra code
 function runCode(editor, hydra) {
   try {
@@ -149,6 +199,10 @@ function runCode(editor, hydra) {
     
     // Clear any previous errors
     console.clear();
+    
+    // Remove any existing error notifications
+    const existingErrors = document.querySelectorAll('.error-notification');
+    existingErrors.forEach(el => el.remove());
     
     // Clear canvas by resetting default outputs
     hydra.hush();
@@ -167,17 +221,32 @@ function runCode(editor, hydra) {
       // Execute the user's code
       try {
         ${code}
+        return { success: true };
       } catch(e) {
         console.error('Error in Hydra code:', e);
+        return { 
+          success: false, 
+          error: e,
+          message: e.message || 'Unknown error'
+        };
       }
     `);
     
     // Execute the function with hydra as parameter
-    fn(hydra);
+    const result = fn(hydra);
+    
+    // Check if there was an error
+    if (result && !result.success) {
+      showErrorNotification(result.message);
+      return false;
+    }
     
     console.log("Hydra code executed successfully");
+    return true;
   } catch (error) {
     console.error('Error running Hydra code:', error);
+    showErrorNotification(error.message || 'Failed to execute Hydra code');
+    return false;
   }
 }
 
@@ -229,8 +298,10 @@ async function init() {
     
     // Set up event listeners
     document.getElementById('run-btn').addEventListener('click', () => {
-      runCode(editor, hydra);
-      editor.focus(); // Return focus to editor after clicking run
+      const success = runCode(editor, hydra);
+      if (success) {
+        editor.focus(); // Return focus to editor after successful run
+      }
     });
     
     document.getElementById('save-btn').addEventListener('click', () => {
@@ -245,7 +316,9 @@ async function init() {
       setTimeout(() => {
         savedNotification.classList.add('fade-out');
         setTimeout(() => {
-          document.body.removeChild(savedNotification);
+          if (savedNotification.parentNode) {
+            document.body.removeChild(savedNotification);
+          }
         }, 500);
       }, 1500);
       
