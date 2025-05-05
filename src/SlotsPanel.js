@@ -40,14 +40,31 @@ export function createSlotsPanel(editor, hydra, runCode) {
   title.style.color = '#aaa';
   title.textContent = 'SLOTS';
 
-  // Create the toggle button (optional for future expansion)
-  const toggle = document.createElement('div');
-  toggle.className = 'slots-toggle';
-  toggle.style.fontSize = '10px';
-  toggle.style.color = '#aaa';
-  toggle.style.padding = '2px 4px';
-  toggle.style.cursor = 'pointer';
-  toggle.textContent = '▲';
+  // Create the clear button
+  const clearBtn = document.createElement('div');
+  clearBtn.className = 'slots-clear';
+  clearBtn.style.fontSize = '14px';
+  clearBtn.style.color = '#ff4444';
+  clearBtn.style.padding = '0px 6px';
+  clearBtn.style.cursor = 'pointer';
+  clearBtn.style.fontWeight = 'bold';
+  clearBtn.style.borderRadius = '3px';
+  clearBtn.style.lineHeight = '1';
+  clearBtn.style.display = 'flex';
+  clearBtn.style.alignItems = 'center';
+  clearBtn.style.justifyContent = 'center';
+  clearBtn.textContent = '×'; // Using × (multiplication sign) as it looks better than X
+  
+  // Add hover effect
+  clearBtn.addEventListener('mouseover', () => {
+    clearBtn.style.backgroundColor = 'rgba(255, 68, 68, 0.2)';
+    clearBtn.style.transform = 'scale(1.1)';
+  });
+  
+  clearBtn.addEventListener('mouseout', () => {
+    clearBtn.style.backgroundColor = 'transparent';
+    clearBtn.style.transform = 'scale(1)';
+  });
 
   // Create the content container
   const content = document.createElement('div');
@@ -226,7 +243,42 @@ export function createSlotsPanel(editor, hydra, runCode) {
 
   // Assemble the panel
   handle.appendChild(title);
-  handle.appendChild(toggle);
+  handle.appendChild(clearBtn);
+  
+  // Function to clear all slots
+  function clearAllSlots() {
+    // Show confirmation dialog
+    if (confirm('Are you sure you want to clear all slots? This cannot be undone.')) {
+      // Clear all slots from localStorage
+      for (let i = 0; i < 16; i++) {
+        localStorage.removeItem(`${STORAGE_KEY_PREFIX}${i}`);
+        localStorage.removeItem(`${STORAGE_KEY_PREFIX}${i}-thumbnail`);
+        
+        // Clear thumbnail display
+        const thumbnailElement = slotElements[i].querySelector('.slot-thumbnail');
+        thumbnailElement.style.backgroundImage = '';
+      }
+      
+      // Show temporary "Cleared All Slots!" notification
+      const clearedNotification = document.createElement('div');
+      clearedNotification.className = 'saved-notification';
+      clearedNotification.style.backgroundColor = 'rgba(220, 50, 50, 0.8)';
+      clearedNotification.textContent = 'Cleared All Slots!';
+      document.body.appendChild(clearedNotification);
+      
+      setTimeout(() => {
+        clearedNotification.classList.add('fade-out');
+        setTimeout(() => {
+          if (clearedNotification.parentNode) {
+            document.body.removeChild(clearedNotification);
+          }
+        }, 500);
+      }, 1500);
+    }
+  }
+  
+  // Add click handler for clear button
+  clearBtn.addEventListener('click', clearAllSlots);
 
   content.appendChild(slotsGrid);
 
@@ -248,7 +300,8 @@ export function createSlotsPanel(editor, hydra, runCode) {
     saveToActiveSlot,
     loadSlot,
     getActiveSlotIndex: () => activeSlotIndex,
-    setActiveSlot
+    setActiveSlot,
+    clearAllSlots
   };
 }
 
