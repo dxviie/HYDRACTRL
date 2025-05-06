@@ -15,20 +15,23 @@ const languageCompartment = new Compartment();
 // Create a custom theme that's similar to our existing editor's theme
 const hydraTheme = EditorView.theme({
   "&": {
-    backgroundColor: "rgba(40, 42, 54, 0.7)",
+    backgroundColor: "transparent !important", // Force transparent background
     height: "100%",
     fontSize: "14px",
   },
   ".cm-scroller": {
     fontFamily: "monospace",
     lineHeight: "1.5",
+    backgroundColor: "transparent !important", // Force transparent background
   },
   ".cm-content": {
     caretColor: "#f8f8f2",
+    backgroundColor: "transparent !important", // Force transparent background
   },
   ".cm-line": {
     padding: "0 8px",
     color: "#f8f8f2",
+    backgroundColor: "transparent !important", // Force transparent background
   },
   ".cm-cursor": {
     borderLeftColor: "#f8f8f2",
@@ -94,6 +97,9 @@ export function createCodeMirrorEditor(container, initialCode = '') {
     state: startState,
     parent: container,
   });
+  
+  // Add custom class for additional styling
+  view.dom.classList.add('cm-editor');
 
   // Create an object to simplify the integration
   const editor = {
