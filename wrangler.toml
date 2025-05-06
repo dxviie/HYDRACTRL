@@ -1,0 +1,9 @@
+name = "hydractrl"
+main = "./dist/index.js"
+
+# Compatibility flags for Cloudflare Workers
+compatibility_date = "2023-12-01"
+
+# Include public assets directory in the deployed worker
+[site]
+bucket = "./public"
