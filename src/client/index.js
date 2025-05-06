@@ -1,7 +1,10 @@
 // Import utilities
 import { createStatsPanel } from '../StatsPanel.js';
 import { createSlotsPanel } from '../SlotsPanel.js';
-import { createSyntaxEditor } from '../utils/SyntaxHighlightEditor.js'; // Use the syntax highlighting editor
+// Import editor implementations - uncomment one to use it
+// import { createSyntaxEditor } from '../utils/SyntaxHighlightEditor.js'; // Original editor
+import { createCodeMirrorEditor } from '../utils/CodeMirrorEditor.js'; // Full CodeMirror editor
+// import { createBasicCodeMirrorEditor } from '../utils/BasicCodeMirrorEditor.js'; // Basic CodeMirror editor
 import { createMidiManager } from '../MidiManager.js';
 import { loadPanelPosition, savePanelPosition } from '../utils/PanelStorage.js';
 
@@ -15,12 +18,15 @@ osc(10, 0.1, 1.2)
   .out()
 `;
 
-// Initialize a syntax-highlighted editor for Hydra
+// Initialize a CodeMirror editor for Hydra
 function initEditor() {
   const editorContent = document.getElementById('editor-content');
 
-  // Create the hydra editor with syntax highlighting
-  const editor = createSyntaxEditor(editorContent, DEFAULT_CODE);
+  // Create the hydra editor with CodeMirror
+  const editor = createCodeMirrorEditor(editorContent, DEFAULT_CODE);
+  // Alternative options:
+  // const editor = createSyntaxEditor(editorContent, DEFAULT_CODE); // Original syntax editor
+  // const editor = createBasicCodeMirrorEditor(editorContent, DEFAULT_CODE); // Basic CM editor
 
   // Make the editor draggable by the handle with position persistence
   makeDraggable(
