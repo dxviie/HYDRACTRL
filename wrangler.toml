@@ -5,3 +5,9 @@ main = "./dist/worker.js"
 
 [site]
 bucket = "./public"
+
+[observability.logs]
+enabled = false
+
+
+
