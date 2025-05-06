@@ -1,8 +1,6 @@
 // Import utilities
 import { createStatsPanel } from '../StatsPanel.js';
 import { createSlotsPanel } from '../SlotsPanel.js';
-// Import editor implementations - uncomment one to use it
-// import { createSyntaxEditor } from '../utils/SyntaxHighlightEditor.js'; // Original editor
 import { createCodeMirrorEditor } from '../utils/CodeMirrorEditor.js'; // Full CodeMirror editor
 // import { createBasicCodeMirrorEditor } from '../utils/BasicCodeMirrorEditor.js'; // Basic CodeMirror editor
 import { createMidiManager } from '../MidiManager.js';
