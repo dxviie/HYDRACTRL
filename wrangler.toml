@@ -1,6 +1,7 @@
-# Remove all configurations and try the simplest approach
+# Setup for Workers Sites
 name = "hydractrl"
 compatibility_date = "2023-12-01"
+main = "./dist/worker.js" 
 
 [site]
 bucket = "./public"
