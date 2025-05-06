@@ -1,12 +1,6 @@
+# Remove all configurations and try the simplest approach
 name = "hydractrl"
-main = "./dist/worker.js"
-
-# Compatibility flags for Cloudflare Workers
 compatibility_date = "2023-12-01"
 
-# Include public assets directory in the deployed worker
 [site]
 bucket = "./public"
-
-[build]
-command = "bun run build:worker"
