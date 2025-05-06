@@ -74,12 +74,44 @@ const hydraKeywords = [
  * @returns {Object} Editor object with API methods
  */
 export function createCodeMirrorEditor(container, initialCode = '') {
+  // Custom key handler for Ctrl+Enter
+  // We need to use a combination of approaches to ensure it's captured
+  
+  // Direct DOM event handler
+  const preventCtrlEnterHandler = EditorView.domEventHandlers({
+    keydown: (event, view) => {
+      // Check for Ctrl+Enter or Cmd+Enter (code 13 is Enter)
+      if ((event.ctrlKey || event.metaKey) && (event.key === 'Enter' || event.keyCode === 13)) {
+        // Prevent default behavior (adding newline)
+        event.preventDefault();
+        event.stopPropagation();
+        // The actual run code action is handled by the global event listener in client/index.js
+        return true;
+      }
+      return false;
+    }
+  });
+  
+  // Custom keymap that takes priority over the default keymap
+  const ctrlEnterKeymap = keymap.of([{
+    key: "Ctrl-Enter",
+    mac: "Cmd-Enter",
+    run: () => {
+      // Returning true means the key was handled
+      return true;
+    },
+    // High priority to override other keymaps
+    preventDefault: true
+  }]);
+
   // Create initial editor state
   const startState = EditorState.create({
     doc: initialCode,
     extensions: [
       lineNumbers(),
       highlightActiveLineGutter(),
+      // Our custom Ctrl+Enter keymap comes first for highest priority
+      ctrlEnterKeymap,
       keymap.of([
         indentWithTab,
         ...defaultKeymap
@@ -89,6 +121,7 @@ export function createCodeMirrorEditor(container, initialCode = '') {
       oneDark,
       EditorView.lineWrapping,
       EditorState.tabSize.of(2),
+      preventCtrlEnterHandler, // Add our custom handler
     ]
   });
 
