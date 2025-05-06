@@ -7,12 +7,12 @@ import { loadPanelPosition, savePanelPosition } from './utils/PanelStorage.js';
 export function createSlotsPanel(editor, hydra, runCode) {
   // Load saved position or use defaults
   const savedPosition = loadPanelPosition('slots-panel');
-  
+
   // Create the panel container
   const panel = document.createElement('div');
   panel.className = 'slots-panel';
   panel.style.position = 'absolute';
-  
+
   if (savedPosition) {
     panel.style.left = savedPosition.left + 'px';
     panel.style.top = savedPosition.top + 'px';
@@ -21,7 +21,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
     panel.style.right = '20px';
     panel.style.top = '20px';
   }
-  
+
   panel.style.backgroundColor = 'rgba(37, 37, 37, 0.7)';
   panel.style.borderRadius = '8px';
   panel.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
@@ -322,7 +322,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
     // Show temporary "Saved to Slot!" notification
     const savedNotification = document.createElement('div');
     savedNotification.className = 'saved-notification';
-    savedNotification.textContent = `Saved to Bank ${currentBank + 1}, Slot ${activeSlotIndex + 1}!`;
+    savedNotification.textContent = `Saved to Bank ${currentBank + 1}, Slot ${activeSlotIndex + 1}`;
     document.body.appendChild(savedNotification);
 
     setTimeout(() => {
