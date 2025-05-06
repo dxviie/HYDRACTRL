@@ -10,28 +10,50 @@
  * @returns {Object} Editor object with API methods
  */
 export function createSyntaxEditor(container, initialCode = '') {
-  // Hydra keywords and functions to highlight
-  const KEYWORDS = [
-    // Core functions
-    'osc', 'noise', 'voronoi', 'shape', 'gradient', 'src', 'solid',
-    // Color operations
-    'color', 'colorama', 'saturate', 'hue', 'brightness', 'contrast', 'invert',
-    // Geometry operations
-    'rotate', 'repeat', 'repeatX', 'repeatY', 'kaleid', 'pixelate', 'scale',
-    // Modulation and blending
-    'modulate', 'modulatePixelate', 'modulateRotate', 'modulateScale', 'modulateKaleid',
-    'blend', 'mult', 'add', 'diff', 'mask', 'thresh',
-    // Output
-    'out', 'render', 'hush', 'setFunction', 'setResolution',
-    // Audio
-    'setBins', 'fft',
-    // P5 related
-    'draw', 'setup', 'mousePressed', 'mouseReleased', 'mouseMoved',
-    // JavaScript constructs
-    'function', 'return', 'if', 'else', 'for', 'while', 'let', 'const', 'var',
-    'true', 'false', 'null', 'undefined', 'new', 'this', 'class', 'extends',
-    'import', 'export', 'from', 'await', 'async'
-  ];
+  // Keyword groups with different colors
+  const KEYWORD_GROUPS = {
+    // Core generator functions - magenta
+    CORE: [
+      'osc', 'noise', 'voronoi', 'shape', 'gradient', 'src', 'solid'
+    ],
+    
+    // Color operations - orange
+    COLOR: [
+      'color', 'colorama', 'saturate', 'hue', 'brightness', 'contrast', 'invert'
+    ],
+    
+    // Geometry operations - green
+    GEOMETRY: [
+      'rotate', 'repeat', 'repeatX', 'repeatY', 'kaleid', 'pixelate', 'scale'
+    ],
+    
+    // Modulation and blending - cyan
+    MODULATION: [
+      'modulate', 'modulatePixelate', 'modulateRotate', 'modulateScale', 'modulateKaleid',
+      'blend', 'mult', 'add', 'diff', 'mask', 'thresh'
+    ],
+    
+    // Output and system functions - yellow
+    OUTPUT: [
+      'out', 'render', 'hush', 'setFunction', 'setResolution',
+      'setBins', 'fft'
+    ],
+    
+    // P5 related - light blue
+    P5: [
+      'draw', 'setup', 'mousePressed', 'mouseReleased', 'mouseMoved'
+    ],
+    
+    // JavaScript keywords - pink
+    JS_KEYWORDS: [
+      'function', 'return', 'if', 'else', 'for', 'while', 'let', 'const', 'var',
+      'true', 'false', 'null', 'undefined', 'new', 'this', 'class', 'extends',
+      'import', 'export', 'from', 'await', 'async'
+    ]
+  };
+  
+  // Create flat keywords array for pattern matching
+  const KEYWORDS = Object.values(KEYWORD_GROUPS).flat();
   
   // Create editor container
   const editor = document.createElement('div');
@@ -122,9 +144,41 @@ export function createSyntaxEditor(container, initialCode = '') {
     html = html.replace(/(\/\/.*?$|\/\*[\s\S]*?\*\/)/gm, 
       match => `<span style="color: #6272a4;">${match}</span>`);
     
-    // Highlight keywords
-    const keywordPattern = new RegExp(`\\b(${KEYWORDS.join('|')})\\b`, 'g');
-    html = html.replace(keywordPattern, 
+    // Highlight different keyword groups with different colors
+    
+    // Core generator functions - magenta
+    const corePattern = new RegExp(`\\b(${KEYWORD_GROUPS.CORE.join('|')})\\b`, 'g');
+    html = html.replace(corePattern, 
+      match => `<span style="color: #ff79c6;">${match}</span>`);
+    
+    // Color operations - orange
+    const colorPattern = new RegExp(`\\b(${KEYWORD_GROUPS.COLOR.join('|')})\\b`, 'g');
+    html = html.replace(colorPattern, 
+      match => `<span style="color: #ffb86c;">${match}</span>`);
+    
+    // Geometry operations - green
+    const geometryPattern = new RegExp(`\\b(${KEYWORD_GROUPS.GEOMETRY.join('|')})\\b`, 'g');
+    html = html.replace(geometryPattern, 
+      match => `<span style="color: #50fa7b;">${match}</span>`);
+    
+    // Modulation and blending - cyan
+    const modulationPattern = new RegExp(`\\b(${KEYWORD_GROUPS.MODULATION.join('|')})\\b`, 'g');
+    html = html.replace(modulationPattern, 
+      match => `<span style="color: #8be9fd;">${match}</span>`);
+    
+    // Output and system functions - yellow
+    const outputPattern = new RegExp(`\\b(${KEYWORD_GROUPS.OUTPUT.join('|')})\\b`, 'g');
+    html = html.replace(outputPattern, 
+      match => `<span style="color: #f1fa8c;">${match}</span>`);
+    
+    // P5 related - light blue
+    const p5Pattern = new RegExp(`\\b(${KEYWORD_GROUPS.P5.join('|')})\\b`, 'g');
+    html = html.replace(p5Pattern, 
+      match => `<span style="color: #9fd3ff;">${match}</span>`);
+    
+    // JavaScript keywords - pink
+    const jsPattern = new RegExp(`\\b(${KEYWORD_GROUPS.JS_KEYWORDS.join('|')})\\b`, 'g');
+    html = html.replace(jsPattern, 
       match => `<span style="color: #ff79c6;">${match}</span>`);
     
     // Highlight methods (functions called with dot notation)
