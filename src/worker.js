@@ -3,11 +3,11 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
-    
+
     try {
       // Debug the available bindings
       const availableBindings = Object.keys(env).join(', ');
-      
+
       // Serve index.html for the root
       if (path === '/' || path === '/index.html') {
         return new Response(
@@ -40,20 +40,20 @@ export default {
   <script src="/assets/index.js" type="module"></script>
 </body>
 </html>`,
-          { 
-            headers: { 'Content-Type': 'text/html' } 
+          {
+            headers: { 'Content-Type': 'text/html' }
           }
         );
       }
-      
+
       // Return the full env object for debugging
-      return new Response(`Available environment bindings: ${availableBindings}`, { 
+      return new Response(`Available environment bindings: ${availableBindings}`, {
         status: 200,
         headers: { 'Content-Type': 'text/plain' }
       });
     } catch (e) {
       // If there's an error, return a simple error page
-      return new Response(`Error: ${e.message}`, { 
+      return new Response(`Error: ${e.message}`, {
         status: 500,
         headers: { 'Content-Type': 'text/plain' }
       });
