@@ -302,12 +302,12 @@ export function createSyntaxEditor(container, initialCode = '') {
       e.preventDefault();
 
       // Insert actual newline character in the editable content
-      document.execCommand('insertText', false, '\n');
+      document.execCommand('insertText', false, '\n\r');
 
       // Create a direct interim update - simple but effective approach
       // This will be replaced by the full highlight update but gives immediate visual feedback
       const currentText = editable.textContent;
-      const lines = currentText.split('\n');
+      const lines = currentText.split('\n\r');
       let simpleHtml = '';
 
       for (const line of lines) {
