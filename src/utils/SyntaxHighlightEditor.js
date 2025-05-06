@@ -127,71 +127,119 @@ export function createSyntaxEditor(container, initialCode = '') {
   // Function to update syntax highlighting
   function updateHighlighting() {
     const text = editable.textContent || '';
+    
+    // First, escape HTML special characters
     let html = text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
     
-    // Highlight strings
-    html = html.replace(/(["'`])(?:(?=(\\?))\2.)*?\1/g, 
-      match => `<span style="color: #f1fa8c;">${match}</span>`);
+    // Tokenize the code for proper highlighting without overlap
+    // This safer approach prevents nested span issues
+    const tokens = [];
     
-    // Highlight numbers
-    html = html.replace(/\b(\d+(?:\.\d+)?)\b/g, 
-      match => `<span style="color: #bd93f9;">${match}</span>`);
+    // Add comment tokens
+    const commentRegex = /(\/\/.*?$|\/\*[\s\S]*?\*\/)/gm;
+    let lastIndex = 0;
+    let match;
     
-    // Highlight comments (both // and /* */)
-    html = html.replace(/(\/\/.*?$|\/\*[\s\S]*?\*\/)/gm, 
-      match => `<span style="color: #6272a4;">${match}</span>`);
+    while ((match = commentRegex.exec(html)) !== null) {
+      if (match.index > lastIndex) {
+        tokens.push({
+          type: 'text',
+          content: html.substring(lastIndex, match.index)
+        });
+      }
+      
+      tokens.push({
+        type: 'comment',
+        content: match[0]
+      });
+      
+      lastIndex = match.index + match[0].length;
+    }
     
-    // Highlight different keyword groups with different colors
+    if (lastIndex < html.length) {
+      tokens.push({
+        type: 'text',
+        content: html.substring(lastIndex)
+      });
+    }
     
-    // Core generator functions - magenta
-    const corePattern = new RegExp(`\\b(${KEYWORD_GROUPS.CORE.join('|')})\\b`, 'g');
-    html = html.replace(corePattern, 
-      match => `<span style="color: #ff79c6;">${match}</span>`);
-    
-    // Color operations - orange
-    const colorPattern = new RegExp(`\\b(${KEYWORD_GROUPS.COLOR.join('|')})\\b`, 'g');
-    html = html.replace(colorPattern, 
-      match => `<span style="color: #ffb86c;">${match}</span>`);
-    
-    // Geometry operations - green
-    const geometryPattern = new RegExp(`\\b(${KEYWORD_GROUPS.GEOMETRY.join('|')})\\b`, 'g');
-    html = html.replace(geometryPattern, 
-      match => `<span style="color: #50fa7b;">${match}</span>`);
-    
-    // Modulation and blending - cyan
-    const modulationPattern = new RegExp(`\\b(${KEYWORD_GROUPS.MODULATION.join('|')})\\b`, 'g');
-    html = html.replace(modulationPattern, 
-      match => `<span style="color: #8be9fd;">${match}</span>`);
-    
-    // Output and system functions - yellow
-    const outputPattern = new RegExp(`\\b(${KEYWORD_GROUPS.OUTPUT.join('|')})\\b`, 'g');
-    html = html.replace(outputPattern, 
-      match => `<span style="color: #f1fa8c;">${match}</span>`);
-    
-    // P5 related - light blue
-    const p5Pattern = new RegExp(`\\b(${KEYWORD_GROUPS.P5.join('|')})\\b`, 'g');
-    html = html.replace(p5Pattern, 
-      match => `<span style="color: #9fd3ff;">${match}</span>`);
-    
-    // JavaScript keywords - pink
-    const jsPattern = new RegExp(`\\b(${KEYWORD_GROUPS.JS_KEYWORDS.join('|')})\\b`, 'g');
-    html = html.replace(jsPattern, 
-      match => `<span style="color: #ff79c6;">${match}</span>`);
-    
-    // Highlight methods (functions called with dot notation)
-    html = html.replace(/\.(\w+)(?=\s*\()/g, 
-      match => `<span style="color: #50fa7b;">${match}</span>`);
-    
-    // Highlight variable declarations
-    html = html.replace(/\b(const|let|var)\s+(\w+)\b/g, 
-      (match, keyword, variable) => 
-        `<span style="color: #ff79c6;">${keyword}</span> <span style="color: #f8f8f2;">${variable}</span>`);
+    // Process each token
+    let processedHtml = '';
+    for (const token of tokens) {
+      if (token.type === 'comment') {
+        processedHtml += `<span style="color: #6272a4;">${token.content}</span>`;
+      } else {
+        // Process non-comment text
+        let content = token.content;
+        
+        // Highlight strings
+        content = content.replace(/(["'`])(?:(?=(\\?))\2.)*?\1/g, 
+          match => `<span style="color: #f1fa8c;">${match}</span>`);
+        
+        // Highlight numbers
+        content = content.replace(/\b(\d+(?:\.\d+)?)\b/g, 
+          match => `<span style="color: #bd93f9;">${match}</span>`);
+        
+        // Core generator functions - magenta
+        content = content.replace(
+          new RegExp(`\\b(${KEYWORD_GROUPS.CORE.join('|')})\\b`, 'g'), 
+          match => `<span style="color: #ff79c6;">${match}</span>`
+        );
+        
+        // Color operations - orange
+        content = content.replace(
+          new RegExp(`\\b(${KEYWORD_GROUPS.COLOR.join('|')})\\b`, 'g'), 
+          match => `<span style="color: #ffb86c;">${match}</span>`
+        );
+        
+        // Geometry operations - green
+        content = content.replace(
+          new RegExp(`\\b(${KEYWORD_GROUPS.GEOMETRY.join('|')})\\b`, 'g'), 
+          match => `<span style="color: #50fa7b;">${match}</span>`
+        );
+        
+        // Modulation and blending - cyan
+        content = content.replace(
+          new RegExp(`\\b(${KEYWORD_GROUPS.MODULATION.join('|')})\\b`, 'g'), 
+          match => `<span style="color: #8be9fd;">${match}</span>`
+        );
+        
+        // Output and system functions - yellow
+        content = content.replace(
+          new RegExp(`\\b(${KEYWORD_GROUPS.OUTPUT.join('|')})\\b`, 'g'), 
+          match => `<span style="color: #f1fa8c;">${match}</span>`
+        );
+        
+        // P5 related - light blue
+        content = content.replace(
+          new RegExp(`\\b(${KEYWORD_GROUPS.P5.join('|')})\\b`, 'g'), 
+          match => `<span style="color: #9fd3ff;">${match}</span>`
+        );
+        
+        // JavaScript keywords - pink
+        content = content.replace(
+          new RegExp(`\\b(${KEYWORD_GROUPS.JS_KEYWORDS.join('|')})\\b`, 'g'), 
+          match => `<span style="color: #ff79c6;">${match}</span>`
+        );
+        
+        // Highlight methods (functions called with dot notation)
+        content = content.replace(/\.(\w+)(?=\s*\()/g, 
+          match => `<span style="color: #50fa7b;">${match}</span>`);
+        
+        // Highlight variable declarations
+        content = content.replace(/\b(const|let|var)\s+(\w+)\b/g, 
+          (match, keyword, variable) => 
+            `<span style="color: #ff79c6;">${keyword}</span> <span style="color: #f8f8f2;">${variable}</span>`);
+        
+        processedHtml += content;
+      }
+    }
     
     // Apply highlighting
-    code.innerHTML = html;
+    code.innerHTML = processedHtml;
   }
   
   // Handle input events for real-time highlighting
