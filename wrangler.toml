@@ -1,5 +1,5 @@
 name = "hydractrl"
-main = "./dist/index.js"
+main = "./dist/worker.js"
 
 # Compatibility flags for Cloudflare Workers
 compatibility_date = "2023-12-01"
@@ -7,3 +7,6 @@ compatibility_date = "2023-12-01"
 # Include public assets directory in the deployed worker
 [site]
 bucket = "./public"
+
+[build]
+command = "bun run build:worker"

@@ -4,9 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "bun run build:client && bun --watch src/index.ts",
-    "build": "bun run build:client && bun build src/index.ts --outdir ./dist --target bun",
+    "build": "bun run build:client && bun build src/index.ts --outdir ./dist --target bun --format esm",
     "build:client": "bun build src/client/index.js --outdir ./public/assets --minify --target browser --jsx-runtime automatic",
     "build:exe": "bun run build:client && bun build src/index.ts --compile --outfile hydractrl --target bun",
+    "build:worker": "bun run build:client && bun build src/worker.ts --outdir ./dist --target browser",
     "deploy": "wrangler deploy",
     "lint": "biome check src/",
     "format": "biome format --write src/",
