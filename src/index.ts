@@ -17,7 +17,7 @@ const app = new Elysia()
       const filePath = join(publicDir, 'assets', params.file);
       const content = readFileSync(filePath, 'utf-8');
       const contentType = params.file.endsWith('.js') 
-        ? 'text/javascript' 
+        ? 'application/javascript' 
         : params.file.endsWith('.css') 
           ? 'text/css' 
           : 'application/octet-stream';
