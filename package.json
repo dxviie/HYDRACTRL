@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "bun run build:client && bun --watch src/index.ts",
-    "build": "bun run build:client && bun build src/index.ts --outdir ./dist",
+    "build": "bun run build:client && bun build src/index.ts --outdir ./dist --target bun",
     "build:client": "bun build src/client/index.js --outdir ./public/assets --minify --target browser --jsx-runtime automatic",
-    "build:exe": "bun run build:client && bun build src/index.ts --compile --outfile hydractrl",
+    "build:exe": "bun run build:client && bun build src/index.ts --compile --outfile hydractrl --target bun",
     "lint": "biome check src/",
     "format": "biome format --write src/",
     "test": "bun test"
