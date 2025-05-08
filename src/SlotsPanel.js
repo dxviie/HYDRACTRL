@@ -506,6 +506,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
       for (let i = 0; i < 16; i++) {
         const thumbnailElement = slotElements[i].querySelector('.slot-thumbnail');
         thumbnailElement.style.backgroundImage = '';
+        thumbnailElement.style.backgroundColor = '';
       }
 
       // Update bank dots
@@ -535,6 +536,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
         // Clear thumbnail display
         const thumbnailElement = slotElements[i].querySelector('.slot-thumbnail');
         thumbnailElement.style.backgroundImage = '';
+        thumbnailElement.style.backgroundColor = '';
       }
 
       // Update bank dots
