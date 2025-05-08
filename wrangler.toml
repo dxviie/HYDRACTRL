@@ -2,6 +2,3 @@
 name = "hydractrl"
 pages_build_output_dir = "public"
 
-[observability.logs]
-enabled = true
-
