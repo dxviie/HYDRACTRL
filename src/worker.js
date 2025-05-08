@@ -1,13 +1,9 @@
-// Investigate the environment to find the correct binding
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
 
     try {
-      // Debug the available bindings
-      const availableBindings = Object.keys(env).join(', ');
-
       // Serve index.html for the root
       if (path === '/' || path === '/index.html') {
         return new Response(
@@ -41,16 +37,42 @@ export default {
 </body>
 </html>`,
           {
-            headers: { 'Content-Type': 'text/html' }
+            headers: { 
+              'Content-Type': 'text/html',
+              'Permissions-Policy': 'interest-cohort=(), run-ad-auction=(), attribution-reporting=(), join-ad-interest-group=()'
+            }
           }
         );
       }
 
-      // Return the full env object for debugging
-      return new Response(`Available environment bindings: ${availableBindings}`, {
-        status: 200,
-        headers: { 'Content-Type': 'text/plain' }
-      });
+      // Handle JavaScript files (including modules)
+      if (path.endsWith('.js')) {
+        // Fetch from the Workers site
+        const response = await env.ASSETS.fetch(request);
+        // Create a new response with the correct MIME type
+        return new Response(response.body, {
+          status: response.status,
+          headers: {
+            ...Object.fromEntries(response.headers),
+            'Content-Type': 'application/javascript'
+          }
+        });
+      }
+
+      // Handle CSS files
+      if (path.endsWith('.css')) {
+        const response = await env.ASSETS.fetch(request);
+        return new Response(response.body, {
+          status: response.status,
+          headers: {
+            ...Object.fromEntries(response.headers),
+            'Content-Type': 'text/css'
+          }
+        });
+      }
+
+      // Pass all other requests through to the asset store
+      return env.ASSETS.fetch(request);
     } catch (e) {
       // If there's an error, return a simple error page
       return new Response(`Error: ${e.message}`, {
