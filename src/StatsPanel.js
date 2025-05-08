@@ -109,6 +109,16 @@ export function createStatsPanel() {
   displaySection.style.display = 'none';  // Initially hidden
   displaySection.style.flexDirection = 'column';
   displaySection.style.gap = '6px';
+  
+  // Create export settings section
+  const exportSection = document.createElement('div');
+  exportSection.className = 'stats-export';
+  exportSection.style.marginTop = '8px';
+  exportSection.style.paddingTop = '8px';
+  exportSection.style.borderTop = '1px solid rgba(100, 100, 100, 0.3)';
+  exportSection.style.display = 'none';  // Initially hidden
+  exportSection.style.flexDirection = 'column';
+  exportSection.style.gap = '6px';
 
   // Display section title
   const displayTitle = document.createElement('div');
@@ -195,6 +205,44 @@ export function createStatsPanel() {
   displaySection.appendChild(displayTitle);
   displaySection.appendChild(sizeSelectionContainer);
   displaySection.appendChild(breakoutButton);
+  
+  // Export section title
+  const exportTitle = document.createElement('div');
+  exportTitle.className = 'export-title';
+  exportTitle.style.fontSize = '12px';
+  exportTitle.style.color = '#aaa';
+  exportTitle.style.fontWeight = 'bold';
+  exportTitle.textContent = 'EXPORT';
+  
+  // Create thumbnail export option
+  const thumbnailOption = document.createElement('div');
+  thumbnailOption.style.display = 'flex';
+  thumbnailOption.style.alignItems = 'center';
+  thumbnailOption.style.gap = '8px';
+  thumbnailOption.style.marginTop = '4px';
+  
+  // Checkbox for thumbnail inclusion
+  const thumbnailCheckbox = document.createElement('input');
+  thumbnailCheckbox.type = 'checkbox';
+  thumbnailCheckbox.id = 'include-thumbnails';
+  thumbnailCheckbox.checked = true; // Default to including thumbnails
+  thumbnailCheckbox.style.cursor = 'pointer';
+  
+  // Label for thumbnail checkbox
+  const thumbnailLabel = document.createElement('label');
+  thumbnailLabel.htmlFor = 'include-thumbnails';
+  thumbnailLabel.textContent = 'Include thumbnails in exports';
+  thumbnailLabel.style.fontSize = '11px';
+  thumbnailLabel.style.color = '#ddd';
+  thumbnailLabel.style.cursor = 'pointer';
+  
+  // Add checkbox and label to option container
+  thumbnailOption.appendChild(thumbnailCheckbox);
+  thumbnailOption.appendChild(thumbnailLabel);
+  
+  // Add elements to export section
+  exportSection.appendChild(exportTitle);
+  exportSection.appendChild(thumbnailOption);
 
   // Create the FPS metric
   const fpsMetric = document.createElement('div');
@@ -297,6 +345,7 @@ export function createStatsPanel() {
   content.appendChild(details);
   content.appendChild(midiSection);
   content.appendChild(displaySection);
+  content.appendChild(exportSection);
 
   handle.appendChild(title);
   handle.appendChild(toggle);
@@ -314,6 +363,7 @@ export function createStatsPanel() {
     details.style.display = isExpanded ? 'flex' : 'none';
     midiSection.style.display = isExpanded ? 'flex' : 'none';
     displaySection.style.display = isExpanded ? 'flex' : 'none';
+    exportSection.style.display = isExpanded ? 'flex' : 'none';
     toggle.textContent = isExpanded ? '▼' : '▲';
   });
 
@@ -377,6 +427,10 @@ export function createStatsPanel() {
       sizeButtons: Array.from(sizeButtonsContainer.querySelectorAll('button')),
       selectedSizeIndicator: selectedSizeIndicator,
       selectedSize: selectedSize
+    },
+    export: {
+      section: exportSection,
+      thumbnailCheckbox: thumbnailCheckbox
     }
   };
 }

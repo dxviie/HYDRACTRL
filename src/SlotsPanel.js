@@ -616,11 +616,17 @@ export function createSlotsPanel(editor, hydra, runCode) {
           hasFilledSlots = true;
           // Add slot data with base64 encoded content
           // Use encodeURIComponent before btoa to handle non-Latin1 characters
-          bankData.slots.push({
+          const slotData = {
             slotIndex,
-            code: btoa(encodeURIComponent(code)), // Safe base64 encoding
-            thumbnail: thumbnail || '' // Store thumbnail if available
-          });
+            code: btoa(encodeURIComponent(code)) // Safe base64 encoding
+          };
+          
+          // Only include thumbnail if the option is enabled
+          if (window.includeExportThumbnails && thumbnail) {
+            slotData.thumbnail = thumbnail;
+          }
+          
+          bankData.slots.push(slotData);
         }
       }
 

@@ -172,6 +172,9 @@ async function initHydra() {
       numSources: 4, // Limit sources for better performance
       precision: 'mediump' // Better performance
     });
+    
+    // Add global flag for including thumbnails in exports (default: true)
+    window.includeExportThumbnails = true;
 
     return hydra;
   } catch (error) {
@@ -674,6 +677,11 @@ async function init() {
       });
     };
 
+    // Set up the thumbnails export checkbox
+    statsPanel.export.thumbnailCheckbox.addEventListener('change', (e) => {
+      window.includeExportThumbnails = e.target.checked;
+    });
+    
     // Update the stats panel with MIDI info if supported
     if (midiSupported) {
       statsPanel.midi.statusText.textContent = 'MIDI: Initializing...';
