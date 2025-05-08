@@ -440,10 +440,21 @@ export function createSlotsPanel(editor, hydra, runCode) {
 
     // Load thumbnails for current bank
     for (let i = 0; i < 16; i++) {
-      const thumbnail = localStorage.getItem(`${getStorageKey(currentBank, i)}-thumbnail`);
+      const storageKey = getStorageKey(currentBank, i);
+      const hasCode = localStorage.getItem(storageKey);
+      const thumbnail = localStorage.getItem(`${storageKey}-thumbnail`);
+      const thumbnailElement = slotElements[i].querySelector('.slot-thumbnail');
+      
+      // Clear the thumbnail display first
+      thumbnailElement.style.backgroundImage = '';
+      thumbnailElement.style.backgroundColor = '';
+      
       if (thumbnail) {
-        const thumbnailElement = slotElements[i].querySelector('.slot-thumbnail');
+        // If we have a thumbnail, display it
         thumbnailElement.style.backgroundImage = `url(${thumbnail})`;
+      } else if (hasCode) {
+        // If we have code but no thumbnail, show a colored background
+        thumbnailElement.style.backgroundColor = 'rgba(255, 0, 234, 0.3)'; // Light pink/purple
       }
     }
   }
@@ -722,7 +733,10 @@ export function createSlotsPanel(editor, hydra, runCode) {
                       const storageKey = getStorageKey(bankIndex, slot.slotIndex);
                       localStorage.setItem(storageKey, decodedCode);
 
-                      // Save thumbnail if available
+                      // Always remove existing thumbnail first
+                      localStorage.removeItem(`${storageKey}-thumbnail`);
+                      
+                      // Save thumbnail if available in the imported data
                       if (slot.thumbnail) {
                         localStorage.setItem(`${storageKey}-thumbnail`, slot.thumbnail);
                       }
