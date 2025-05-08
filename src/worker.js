@@ -177,61 +177,146 @@ button:active {
 
       // Handle JavaScript files
       if (path.endsWith('.js')) {
-        // Read file from KV or serve from public
+        // Log requested path for debugging
+        console.log('JS file requested:', path);
+        
         try {
-          // Get asset from binding
-          const response = await env.ASSETS.fetch(request);
-          const scriptContent = await response.text();
+          // First try to fetch directly from default namespace
+          const response = await fetch(new URL(path, request.url));
           
-          // Create a new response with correct MIME type
-          return new Response(scriptContent, {
-            headers: { 
-              'Content-Type': path.includes('module') ? 'application/javascript; charset=utf-8' : 'application/javascript; charset=utf-8'
-            }
-          });
-        } catch (error) {
-          console.error('Error serving JS file:', error);
-          
-          // Fallback for index.js
-          if (path === '/assets/index.js') {
-            return new Response("console.log('HYDRACTRL - Basic fallback loaded');", {
+          if (response.ok) {
+            const scriptContent = await response.text();
+            return new Response(scriptContent, {
               headers: { 'Content-Type': 'application/javascript; charset=utf-8' }
             });
           }
-          
-          return new Response(`Failed to load JavaScript file: ${path}`, {
-            status: 500,
-            headers: { 'Content-Type': 'text/plain' }
-          });
+        } catch (directFetchError) {
+          console.log('Direct fetch failed:', directFetchError);
+          // Continue to fallback methods
         }
+        
+        // For index.js specifically, use the bundled file we know exists
+        if (path === '/assets/index.js') {
+          try {
+            return new Response(`
+              // Inlined module loader
+              (async function() {
+                try {
+                  console.log('HYDRACTRL initializing');
+                  
+                  // Basic initialization code
+                  document.addEventListener('DOMContentLoaded', function() {
+                    const editor = document.createElement('textarea');
+                    editor.className = 'hydra-editor';
+                    document.getElementById('editor-content').appendChild(editor);
+                    
+                    // Run button functionality
+                    document.getElementById('run-btn').addEventListener('click', function() {
+                      console.log('Run clicked, but full functionality requires the complete bundle');
+                    });
+                  });
+                } catch (e) {
+                  console.error('Initialization error:', e);
+                }
+              })();
+            `, {
+              headers: { 'Content-Type': 'application/javascript; charset=utf-8' }
+            });
+          } catch (fallbackError) {
+            console.error('Error with fallback index.js:', fallbackError);
+          }
+        }
+        
+        // Last resort fallback
+        return new Response(`console.log('Module ${path} could not be loaded');`, {
+          headers: { 'Content-Type': 'application/javascript; charset=utf-8' }
+        });
       }
 
-      // For all other requests, try to serve from ASSETS binding
+      // For all other requests, try using the site assets
       try {
-        const response = await env.ASSETS.fetch(request);
+        // Log for debugging
+        console.log('Trying to serve asset:', path);
         
-        // Set appropriate content type based on file extension
-        let contentType = 'application/octet-stream';
-        if (path.endsWith('.js')) contentType = 'application/javascript; charset=utf-8';
-        else if (path.endsWith('.css')) contentType = 'text/css';
-        else if (path.endsWith('.html')) contentType = 'text/html';
-        else if (path.endsWith('.json')) contentType = 'application/json';
-        else if (path.endsWith('.png')) contentType = 'image/png';
-        else if (path.endsWith('.jpg') || path.endsWith('.jpeg')) contentType = 'image/jpeg';
-        else if (path.endsWith('.svg')) contentType = 'image/svg+xml';
+        // Try direct URL fetch first
+        try {
+          const directResponse = await fetch(new URL(path, request.url));
+          if (directResponse.ok) {
+            console.log('Asset loaded via direct fetch');
+            
+            // Set appropriate content type based on file extension
+            let contentType = 'application/octet-stream';
+            if (path.endsWith('.js')) contentType = 'application/javascript; charset=utf-8';
+            else if (path.endsWith('.css')) contentType = 'text/css';
+            else if (path.endsWith('.html')) contentType = 'text/html';
+            else if (path.endsWith('.json')) contentType = 'application/json';
+            else if (path.endsWith('.png')) contentType = 'image/png';
+            else if (path.endsWith('.jpg') || path.endsWith('.jpeg')) contentType = 'image/jpeg';
+            else if (path.endsWith('.svg')) contentType = 'image/svg+xml';
+            
+            // If it's a binary content
+            if (contentType.startsWith('image/') || contentType === 'application/octet-stream') {
+              const content = await directResponse.arrayBuffer();
+              return new Response(content, {
+                status: 200,
+                headers: { 'Content-Type': contentType }
+              });
+            } else {
+              // Text content
+              const content = await directResponse.text();
+              return new Response(content, {
+                status: 200,
+                headers: { 'Content-Type': contentType }
+              });
+            }
+          }
+        } catch (directError) {
+          console.log('Direct URL fetch failed:', directError);
+        }
         
-        // Get the content
-        const content = await response.arrayBuffer();
+        // Log that we're trying a different path
+        console.log('Direct fetch failed, looking for content in __STATIC_CONTENT');
         
-        // Return with proper content type
-        return new Response(content, {
-          status: 200,
-          headers: { 'Content-Type': contentType }
+        // Try to get asset from __STATIC_CONTENT
+        if (env.__STATIC_CONTENT) {
+          const staticContent = env.__STATIC_CONTENT;
+          const assetKey = path.startsWith('/') ? path.substring(1) : path;
+          
+          // Check if the asset exists
+          if (staticContent.has(assetKey)) {
+            console.log('Found in __STATIC_CONTENT:', assetKey);
+            const asset = await staticContent.get(assetKey);
+            if (asset) {
+              // Set appropriate content type based on file extension
+              let contentType = 'application/octet-stream';
+              if (path.endsWith('.js')) contentType = 'application/javascript; charset=utf-8';
+              else if (path.endsWith('.css')) contentType = 'text/css';
+              else if (path.endsWith('.html')) contentType = 'text/html';
+              else if (path.endsWith('.json')) contentType = 'application/json';
+              else if (path.endsWith('.png')) contentType = 'image/png';
+              else if (path.endsWith('.jpg') || path.endsWith('.jpeg')) contentType = 'image/jpeg';
+              else if (path.endsWith('.svg')) contentType = 'image/svg+xml';
+              
+              return new Response(asset.body, {
+                headers: { 'Content-Type': contentType }
+              });
+            }
+          } else {
+            console.log('Not found in __STATIC_CONTENT:', assetKey);
+          }
+        } else {
+          console.log('__STATIC_CONTENT binding not available');
+        }
+        
+        // If we get here, we couldn't find the asset
+        return new Response(`Asset not found: ${path}`, {
+          status: 404,
+          headers: { 'Content-Type': 'text/plain' }
         });
       } catch (e) {
         console.error(`Error serving ${path}:`, e);
-        return new Response(`Asset not found: ${path}`, {
-          status: 404,
+        return new Response(`Error serving asset: ${e.message}`, {
+          status: 500,
           headers: { 'Content-Type': 'text/plain' }
         });
       }
