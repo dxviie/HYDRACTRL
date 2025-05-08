@@ -7,7 +7,7 @@ main = "./dist/worker.js"
 bucket = "./public"
 
 [observability.logs]
-enabled = false
+enabled = true
 
 
 

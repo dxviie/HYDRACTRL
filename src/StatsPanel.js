@@ -7,12 +7,12 @@ import { loadPanelPosition, savePanelPosition } from './utils/PanelStorage.js';
 export function createStatsPanel() {
   // Load saved position or use defaults
   const savedPosition = loadPanelPosition('stats-panel');
-  
+
   // Create the panel container
   const panel = document.createElement('div');
   panel.className = 'stats-panel';
   panel.style.position = 'absolute';
-  
+
   if (savedPosition) {
     panel.style.left = savedPosition.left + 'px';
     panel.style.top = savedPosition.top + 'px';
@@ -20,7 +20,7 @@ export function createStatsPanel() {
     panel.style.top = '20px';
     panel.style.right = '20px';
   }
-  
+
   panel.style.backgroundColor = 'rgba(37, 37, 37, 0.7)';
   panel.style.borderRadius = '8px';
   panel.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
@@ -99,6 +99,102 @@ export function createStatsPanel() {
   // Add to MIDI section
   midiSection.appendChild(midiStatusText);
   midiSection.appendChild(midiDeviceContainer);
+
+  // Create a section for display settings
+  const displaySection = document.createElement('div');
+  displaySection.className = 'stats-display';
+  displaySection.style.marginTop = '8px';
+  displaySection.style.paddingTop = '8px';
+  displaySection.style.borderTop = '1px solid rgba(100, 100, 100, 0.3)';
+  displaySection.style.display = 'none';  // Initially hidden
+  displaySection.style.flexDirection = 'column';
+  displaySection.style.gap = '6px';
+
+  // Display section title
+  const displayTitle = document.createElement('div');
+  displayTitle.className = 'display-title';
+  displayTitle.style.fontSize = '12px';
+  displayTitle.style.color = '#aaa';
+  displayTitle.style.fontWeight = 'bold';
+  displayTitle.textContent = 'DISPLAY';
+
+  // Breakout button
+  const breakoutButton = document.createElement('button');
+  breakoutButton.textContent = 'Breakout View';
+  breakoutButton.style.fontSize = '10px';
+  breakoutButton.style.padding = '2px 4px';
+  breakoutButton.style.margin = '4px 0';
+  breakoutButton.style.width = 'fit-content';
+  breakoutButton.title = 'Open visualization in a new window';
+
+  // Size selection container
+  const sizeSelectionContainer = document.createElement('div');
+  sizeSelectionContainer.style.marginTop = '4px';
+  sizeSelectionContainer.style.display = 'flex';
+  sizeSelectionContainer.style.flexDirection = 'column';
+  sizeSelectionContainer.style.gap = '4px';
+
+  // Size options
+  const sizeLabel = document.createElement('div');
+  sizeLabel.style.fontSize = '10px';
+  sizeLabel.style.color = '#aaa';
+  sizeLabel.textContent = 'Select Size:';
+
+  // Size buttons container
+  const sizeButtonsContainer = document.createElement('div');
+  sizeButtonsContainer.style.display = 'flex';
+  sizeButtonsContainer.style.flexDirection = 'column';
+  sizeButtonsContainer.style.flexWrap = 'wrap';
+  sizeButtonsContainer.style.gap = '4px';
+
+  // Common sizes
+  const sizes = [
+    { label: 'nHD (640×360)', width: 640, height: 360 },
+    { label: 'qHD (960×540)', width: 960, height: 540 },
+    { label: 'HD (1280×720)', width: 1280, height: 720 },
+    { label: 'FHD (1920×1080)', width: 1920, height: 1080 },
+    { label: '2K (2048×1080)', width: 2048, height: 1080 },
+    { label: 'Square (1080×1080)', width: 1080, height: 1080 }
+  ];
+
+  // Selected size indicator and variable to track selection
+  const selectedSizeIndicator = document.createElement('div');
+  selectedSizeIndicator.style.fontSize = '10px';
+  selectedSizeIndicator.style.color = '#50fa7b';
+  selectedSizeIndicator.style.marginTop = '2px';
+  selectedSizeIndicator.style.fontWeight = 'bold';
+  selectedSizeIndicator.textContent = 'No size selected';
+
+  // Create a variable to track the selected size
+  let selectedSize = null;
+
+  sizes.forEach(size => {
+    const sizeButton = document.createElement('button');
+    sizeButton.textContent = size.label;
+    sizeButton.style.fontSize = '10px';
+    sizeButton.style.padding = '1px 3px';
+    sizeButton.style.margin = '2px';
+    sizeButton.dataset.width = size.width;
+    sizeButton.dataset.height = size.height;
+    sizeButton.dataset.label = size.label;
+
+    sizeButtonsContainer.appendChild(sizeButton);
+  });
+
+  // Initially disable breakout button until size is selected
+  breakoutButton.disabled = true;
+  breakoutButton.style.opacity = '0.5';
+  breakoutButton.title = 'Select a size first';
+
+  // Add elements to size selection container
+  sizeSelectionContainer.appendChild(sizeLabel);
+  sizeSelectionContainer.appendChild(sizeButtonsContainer);
+  sizeSelectionContainer.appendChild(selectedSizeIndicator);
+
+  // Add elements to display section
+  displaySection.appendChild(displayTitle);
+  displaySection.appendChild(sizeSelectionContainer);
+  displaySection.appendChild(breakoutButton);
 
   // Create the FPS metric
   const fpsMetric = document.createElement('div');
@@ -200,6 +296,7 @@ export function createStatsPanel() {
   content.appendChild(metrics);
   content.appendChild(details);
   content.appendChild(midiSection);
+  content.appendChild(displaySection);
 
   handle.appendChild(title);
   handle.appendChild(toggle);
@@ -216,6 +313,7 @@ export function createStatsPanel() {
     isExpanded = !isExpanded;
     details.style.display = isExpanded ? 'flex' : 'none';
     midiSection.style.display = isExpanded ? 'flex' : 'none';
+    displaySection.style.display = isExpanded ? 'flex' : 'none';
     toggle.textContent = isExpanded ? '▼' : '▲';
   });
 
@@ -271,6 +369,14 @@ export function createStatsPanel() {
       statusText: midiStatusText,
       deviceContainer: midiDeviceContainer,
       section: midiSection
+    },
+    display: {
+      section: displaySection,
+      breakoutButton: breakoutButton,
+      sizeSelectionContainer: sizeSelectionContainer,
+      sizeButtons: Array.from(sizeButtonsContainer.querySelectorAll('button')),
+      selectedSizeIndicator: selectedSizeIndicator,
+      selectedSize: selectedSize
     }
   };
 }
@@ -302,7 +408,7 @@ function makeDraggable(element, handle, panelId) {
 
       // Set explicit left position based on current right position
       element.style.left = currentX + 'px';
-      
+
       // Remove right positioning to prevent conflicts
       element.style.right = '';
     } else {
@@ -310,7 +416,7 @@ function makeDraggable(element, handle, panelId) {
       currentX = parseInt(element.style.left || '0');
       currentY = parseInt(element.style.top || '0');
     }
-    
+
     // Save initial position if we have a panelId
     if (panelId) {
       savePanelPosition(panelId, {
@@ -377,7 +483,7 @@ function makeDraggable(element, handle, panelId) {
     // Update current position with final offsets
     currentX = parseInt(element.style.left || '0');
     currentY = parseInt(element.style.top || '0');
-    
+
     // Save position to localStorage if we have a panelId
     if (panelId) {
       savePanelPosition(panelId, {

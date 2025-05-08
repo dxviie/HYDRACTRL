@@ -332,15 +332,163 @@ function loadCode(editor) {
   }
 }
 
+// Initialize a new window for breakout view
+function openBreakoutWindow(width = 1280, height = 720) {
+  // Default options for the window
+  const options = `width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes`;
+  
+  // Open a blank window first
+  const breakoutWindow = window.open('', 'HydraBreakout', options);
+  
+  if (!breakoutWindow) {
+    showErrorNotification('Could not open breakout window. Please check your popup blocker settings.');
+    return null;
+  }
+  
+  // Add basic HTML structure to the new window
+  breakoutWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>HYDRACTRL Breakout</title>
+      <style>
+        body, html {
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          width: 100%;
+          height: 100%;
+          background-color: #000;
+        }
+        
+        #hydra-canvas-breakout {
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          top: 0;
+          left: 0;
+        }
+      </style>
+    </head>
+    <body>
+      <div id="hydra-canvas-breakout"></div>
+    </body>
+    </html>
+  `);
+  
+  // Close the document to finish writing
+  breakoutWindow.document.close();
+  
+  return breakoutWindow;
+}
+
+// Initialize Hydra in the breakout window
+async function initBreakoutHydra(breakoutWindow, mainHydra) {
+  try {
+    if (!breakoutWindow || !breakoutWindow.document) {
+      throw new Error("Invalid breakout window");
+    }
+    
+    // Get or create the canvas element in the breakout window
+    let canvasContainer = breakoutWindow.document.getElementById('hydra-canvas-breakout');
+    let canvas = breakoutWindow.document.createElement('canvas');
+    canvas.width = breakoutWindow.innerWidth || 500;
+    canvas.height = breakoutWindow.innerHeight || 400;
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvasContainer.innerHTML = '';
+    canvasContainer.appendChild(canvas);
+
+    // Ensure we have the buffer ready for WebGL to use
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Dynamically import hydra-synth in the main window
+    const hydraModule = await import('hydra-synth');
+    const HydraSynth = hydraModule.default || hydraModule;
+
+    // Create a new hydra instance with explicit canvas reference
+    const breakoutHydra = new HydraSynth({
+      canvas: canvas,
+      detectAudio: true, // Enable audio reactivity for a.fft[]
+      enableStreamCapture: false,
+      numBins: 6, // Set bins for a.fft[0], a.fft[1], etc.
+      numSources: 4, // Limit sources for better performance
+      precision: 'mediump' // Better performance
+    });
+    
+    // Define loadScript function in breakout window
+    breakoutWindow.loadScript = function(url) {
+      return new Promise((resolve, reject) => {
+        const script = breakoutWindow.document.createElement('script');
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = reject;
+        breakoutWindow.document.head.appendChild(script);
+      });
+    };
+    
+    // Copy existing global variables and functions to breakout window
+    if (window.hydraText) {
+      breakoutWindow.hydraText = window.hydraText;
+    }
+    
+    // Listen for window resize events
+    breakoutWindow.addEventListener('resize', () => {
+      // Adjust canvas size when window is resized
+      canvas.width = breakoutWindow.innerWidth;
+      canvas.height = breakoutWindow.innerHeight;
+    });
+    
+    // Listen for window close events
+    breakoutWindow.addEventListener('beforeunload', () => {
+      // Update UI when breakout window is closed
+      if (window.statsPanel && window.statsPanel.display) {
+        window.statsPanel.display.sizeSelectionContainer.style.display = 'none';
+      }
+      window.breakoutHydra = null;
+      window.breakoutWindow = null;
+    });
+    
+    return breakoutHydra;
+  } catch (error) {
+    console.error("Error initializing breakout Hydra:", error);
+    throw error;
+  }
+}
+
+// Run Hydra code on both main and breakout windows
+async function runCodeOnAllInstances(editor, mainHydra) {
+  // Run on main Hydra instance
+  const success = await runCode(editor, mainHydra);
+  
+  // If breakout window is active, run the same code there
+  if (window.breakoutHydra && window.breakoutWindow && !window.breakoutWindow.closed) {
+    try {
+      await runCode(editor, window.breakoutHydra);
+    } catch (error) {
+      console.error("Error running Hydra code in breakout window:", error);
+    }
+  }
+  
+  return success;
+}
+
 // Initialize the application
 async function init() {
   try {
     const editor = initEditor(); // No longer async
     const hydra = await initHydra();
+    
+    // Store references to these globally
+    window.mainHydra = hydra;
+    window.breakoutHydra = null;
+    window.breakoutWindow = null;
 
     // Set up event listeners
     document.getElementById('run-btn').addEventListener('click', async () => {
-      const success = await runCode(editor, hydra);
+      const success = await runCodeOnAllInstances(editor, hydra);
       if (success) {
         editor.focus(); // Return focus to editor after successful run
       }
@@ -378,7 +526,7 @@ async function init() {
       // Ctrl+Enter or Cmd+Enter to run code
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
-        runCode(editor, hydra).then(success => {
+        runCodeOnAllInstances(editor, hydra).then(success => {
           if (success) {
             editor.focus();
           }
@@ -447,7 +595,7 @@ async function init() {
     loadCode(editor);
 
     // Run initial code
-    await runCode(editor, hydra);
+    await runCodeOnAllInstances(editor, hydra);
 
     // Focus the editor initially
     editor.focus();
@@ -665,6 +813,112 @@ async function init() {
     window.slotsPanel = slotsPanel;
     window.midiManager = midiManager;
     window._editorProxy = editor; // Expose editor proxy for focus etc.
+    
+    // Set up size buttons functionality
+    statsPanel.display.sizeButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const width = parseInt(button.dataset.width);
+        const height = parseInt(button.dataset.height);
+        const label = button.dataset.label;
+        
+        if (isNaN(width) || isNaN(height)) {
+          return;
+        }
+        
+        // Store the selected size
+        statsPanel.display.selectedSize = { width, height, label };
+        
+        // Update the selected size indicator
+        statsPanel.display.selectedSizeIndicator.textContent = `Selected: ${label}`;
+        
+        // Enable the breakout button
+        statsPanel.display.breakoutButton.disabled = false;
+        statsPanel.display.breakoutButton.style.opacity = '1';
+        statsPanel.display.breakoutButton.title = `Open breakout window at ${width}×${height}`;
+        
+        // Highlight the selected button and unhighlight others
+        statsPanel.display.sizeButtons.forEach(btn => {
+          if (btn === button) {
+            btn.style.backgroundColor = 'rgba(80, 250, 123, 0.3)';
+          } else {
+            btn.style.backgroundColor = '';
+          }
+        });
+      });
+    });
+    
+    // Set up breakout button functionality
+    statsPanel.display.breakoutButton.addEventListener('click', async () => {
+      // If window is already open, close it
+      if (window.breakoutWindow && !window.breakoutWindow.closed) {
+        window.breakoutWindow.close();
+        window.breakoutHydra = null;
+        window.breakoutWindow = null;
+        
+        // Reset button
+        statsPanel.display.breakoutButton.textContent = 'Breakout View';
+        statsPanel.display.breakoutButton.style.backgroundColor = '';
+        return;
+      }
+      
+      // Check if a size is selected
+      if (!statsPanel.display.selectedSize) {
+        showErrorNotification('Please select a window size first');
+        return;
+      }
+      
+      const { width, height } = statsPanel.display.selectedSize;
+      
+      // Open a new breakout window with the selected size
+      const breakoutWindow = openBreakoutWindow(width, height);
+      if (!breakoutWindow) {
+        return; // Error already shown by openBreakoutWindow
+      }
+      
+      // Store reference to window
+      window.breakoutWindow = breakoutWindow;
+      
+      try {
+        // Initialize Hydra in the breakout window
+        window.breakoutHydra = await initBreakoutHydra(breakoutWindow, hydra);
+        
+        // Update the breakout window title to include size
+        const { label } = statsPanel.display.selectedSize;
+        breakoutWindow.document.title = `HYDRACTRL Breakout - ${label}`;
+        
+        // Run the current code in the breakout window
+        await runCode(editor, window.breakoutHydra);
+        
+        // Update button text and style
+        statsPanel.display.breakoutButton.textContent = 'Close Breakout';
+        statsPanel.display.breakoutButton.style.backgroundColor = 'rgba(255, 120, 120, 0.3)';
+        
+        // Event handler for window close
+        window.breakoutWindow.addEventListener('beforeunload', () => {
+          // Reset button
+          statsPanel.display.breakoutButton.textContent = 'Breakout View';
+          statsPanel.display.breakoutButton.style.backgroundColor = '';
+          
+          window.breakoutHydra = null;
+          window.breakoutWindow = null;
+        });
+      } catch (error) {
+        console.error("Error initializing breakout view:", error);
+        showErrorNotification(`Failed to initialize breakout view: ${error.message}`);
+        
+        // Clean up on failure
+        if (window.breakoutWindow) {
+          window.breakoutWindow.close();
+          window.breakoutWindow = null;
+        }
+        window.breakoutHydra = null;
+        
+        // Reset button
+        statsPanel.display.breakoutButton.textContent = 'Breakout View';
+        statsPanel.display.breakoutButton.style.backgroundColor = '';
+      }
+    });
+    
   } catch (error) {
     console.error("Error initializing application:", error);
   }
