@@ -37,9 +37,8 @@ export default {
 </body>
 </html>`,
           {
-            headers: { 
-              'Content-Type': 'text/html',
-              'Permissions-Policy': 'interest-cohort=(), run-ad-auction=(), attribution-reporting=(), join-ad-interest-group=()'
+            headers: {
+              'Content-Type': 'text/html'
             }
           }
         );
