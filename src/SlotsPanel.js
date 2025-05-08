@@ -121,9 +121,53 @@ export function createSlotsPanel(editor, hydra, runCode) {
     bankDots.push(dot);
   }
 
-  // Add the title and dots to the title container
+  // Create icons container
+  const iconsContainer = document.createElement('div');
+  iconsContainer.className = 'slots-icons';
+  iconsContainer.style.display = 'flex';
+  iconsContainer.style.alignItems = 'center';
+  iconsContainer.style.marginLeft = '1rem';
+  iconsContainer.style.marginRight = '6px';
+  iconsContainer.style.gap = '3px';
+
+  // Create export button
+  const exportBtn = document.createElement('div');
+  exportBtn.className = 'slots-export';
+  exportBtn.title = 'Export scenes';
+  exportBtn.style.fontSize = '12px';
+  exportBtn.style.width = '14px';
+  exportBtn.style.height = '14px';
+  exportBtn.style.display = 'flex';
+  exportBtn.style.alignItems = 'center';
+  exportBtn.style.justifyContent = 'center';
+  exportBtn.style.cursor = 'pointer';
+  exportBtn.style.color = 'white';
+  exportBtn.style.fontWeight = 'bold';
+  exportBtn.innerHTML = '↓'; // Simple download arrow
+
+  // Create import button
+  const importBtn = document.createElement('div');
+  importBtn.className = 'slots-import';
+  importBtn.title = 'Import scenes';
+  importBtn.style.fontSize = '12px';
+  importBtn.style.width = '14px';
+  importBtn.style.height = '14px';
+  importBtn.style.display = 'flex';
+  importBtn.style.alignItems = 'center';
+  importBtn.style.justifyContent = 'center';
+  importBtn.style.cursor = 'pointer';
+  importBtn.style.color = 'white';
+  importBtn.style.fontWeight = 'bold';
+  importBtn.innerHTML = '↑'; // Simple upload arrow
+
+  // Add icons to container
+  iconsContainer.appendChild(exportBtn);
+  iconsContainer.appendChild(importBtn);
+
+  // Add the title, dots, and icons to the title container
   titleContainer.appendChild(title);
   titleContainer.appendChild(dotsContainer);
+  titleContainer.appendChild(iconsContainer);
 
   // Create the clear button
   const clearBtn = document.createElement('div');
@@ -544,6 +588,218 @@ export function createSlotsPanel(editor, hydra, runCode) {
   // Make the flash function available globally
   window.flashActiveBankDot = flashActiveBankDot;
 
+  // Function to export all filled slots in all banks
+  function exportAllSlots() {
+    // Create an object to hold all scenes data
+    const scenesData = {
+      version: 1,
+      banks: [],
+      exportDate: new Date().toISOString()
+    };
+
+    // Loop through all banks
+    for (let bankIndex = 0; bankIndex < 4; bankIndex++) {
+      const bankData = {
+        bankIndex,
+        slots: []
+      };
+
+      let hasFilledSlots = false;
+
+      // Loop through all slots in this bank
+      for (let slotIndex = 0; slotIndex < 16; slotIndex++) {
+        const storageKey = getStorageKey(bankIndex, slotIndex);
+        const code = localStorage.getItem(storageKey);
+        const thumbnail = localStorage.getItem(`${storageKey}-thumbnail`);
+
+        if (code) {
+          hasFilledSlots = true;
+          // Add slot data with base64 encoded content
+          // Use encodeURIComponent before btoa to handle non-Latin1 characters
+          bankData.slots.push({
+            slotIndex,
+            code: btoa(encodeURIComponent(code)), // Safe base64 encoding
+            thumbnail: thumbnail || '' // Store thumbnail if available
+          });
+        }
+      }
+
+      // Only add banks that have filled slots
+      if (hasFilledSlots) {
+        scenesData.banks.push(bankData);
+      }
+    }
+
+    // Check if there's data to export
+    if (scenesData.banks.length === 0) {
+      alert('No scenes found to export.');
+      return;
+    }
+
+    // Convert to JSON and prepare for download
+    const jsonData = JSON.stringify(scenesData, null, 2);
+    const blob = new Blob([jsonData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    // Create download link
+    const downloadLink = document.createElement('a');
+    downloadLink.href = url;
+    downloadLink.download = `hydractrl-scenes-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+
+    // Clean up
+    URL.revokeObjectURL(url);
+
+    // Show notification
+    const notification = document.createElement('div');
+    notification.className = 'saved-notification';
+    notification.textContent = 'Scenes exported successfully!';
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.classList.add('fade-out');
+      setTimeout(() => {
+        if (notification.parentNode) {
+          document.body.removeChild(notification);
+        }
+      }, 500);
+    }, 1500);
+  }
+
+  // Function to import slots from JSON file
+  function importSlots() {
+    // Create a file input element
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.json';
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
+
+    // Set up file reader
+    fileInput.onchange = (event) => {
+      const file = event.target.files[0];
+      if (!file) {
+        document.body.removeChild(fileInput);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const scenesData = JSON.parse(e.target.result);
+
+          // Validate format
+          if (!scenesData.version || !Array.isArray(scenesData.banks)) {
+            throw new Error('Invalid scenes data format');
+          }
+
+          // Confirm import with user
+          const confirmImport = confirm(
+            `Import ${scenesData.banks.length} bank(s) of scenes?\nThis will overwrite any existing scenes in those slots.`
+          );
+
+          if (confirmImport) {
+            // Import all banks and slots
+            scenesData.banks.forEach(bankData => {
+              const { bankIndex, slots } = bankData;
+
+              if (bankIndex >= 0 && bankIndex < 4 && Array.isArray(slots)) {
+                slots.forEach(slot => {
+                  if (slot.slotIndex >= 0 && slot.slotIndex < 16 && slot.code) {
+                    try {
+                      // Decode base64 code and handle non-Latin1 characters
+                      const decodedCode = decodeURIComponent(atob(slot.code));
+
+                      // Save to localStorage
+                      const storageKey = getStorageKey(bankIndex, slot.slotIndex);
+                      localStorage.setItem(storageKey, decodedCode);
+
+                      // Save thumbnail if available
+                      if (slot.thumbnail) {
+                        localStorage.setItem(`${storageKey}-thumbnail`, slot.thumbnail);
+                      }
+                    } catch (decodeError) {
+                      console.error('Error decoding slot data:', decodeError);
+                    }
+                  }
+                });
+              }
+            });
+
+            // Reload current bank
+            loadAllSlotsForCurrentBank();
+            updateBankDots();
+
+            // Show notification
+            const notification = document.createElement('div');
+            notification.className = 'saved-notification';
+            notification.textContent = 'Scenes imported successfully!';
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+              notification.classList.add('fade-out');
+              setTimeout(() => {
+                if (notification.parentNode) {
+                  document.body.removeChild(notification);
+                }
+              }, 500);
+            }, 1500);
+          }
+        } catch (error) {
+          console.error('Error importing scenes:', error);
+          alert('Error importing scenes. Invalid file format.');
+        }
+
+        // Clean up file input
+        document.body.removeChild(fileInput);
+      };
+
+      reader.onerror = () => {
+        alert('Error reading file');
+        document.body.removeChild(fileInput);
+      };
+
+      reader.readAsText(file);
+    };
+
+    // Trigger file selection
+    fileInput.click();
+  }
+
+  // Add event listeners for export/import buttons
+  exportBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevent drag from activating
+    exportAllSlots();
+  });
+
+  importBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevent drag from activating
+    importSlots();
+  });
+
+  // Add hover effects for export/import buttons
+  exportBtn.addEventListener('mouseover', () => {
+    exportBtn.style.transform = 'scale(1.2)';
+    exportBtn.style.color = 'rgba(255, 255, 255, 1)';
+  });
+
+  exportBtn.addEventListener('mouseout', () => {
+    exportBtn.style.transform = 'scale(1)';
+    exportBtn.style.color = 'white';
+  });
+
+  importBtn.addEventListener('mouseover', () => {
+    importBtn.style.transform = 'scale(1.2)';
+    importBtn.style.color = 'rgba(255, 255, 255, 1)';
+  });
+
+  importBtn.addEventListener('mouseout', () => {
+    importBtn.style.transform = 'scale(1)';
+    importBtn.style.color = 'white';
+  });
+
   // Return API
   return {
     panel,
@@ -555,7 +811,9 @@ export function createSlotsPanel(editor, hydra, runCode) {
     clearAllSlots,
     switchBank,
     cycleBank,
-    flashActiveBankDot
+    flashActiveBankDot,
+    exportAllSlots,
+    importSlots
   };
 }
 
