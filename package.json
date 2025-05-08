@@ -4,10 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "bun run build:client && bun --watch src/index.ts",
-    "build": "bun run build:client && mkdir -p dist && cp src/worker.js dist/",
+    "build": "bun run build:client",
     "build:client": "bun build src/client/index.js --outdir ./public/assets --minify --target browser --jsx-runtime automatic",
     "build:exe": "bun run build:client && bun build src/index.ts --compile --outfile hydractrl --target bun",
-    "deploy": "wrangler deploy",
+    "deploy": "echo 'Use Cloudflare Pages git integration for deployment'",
     "lint": "biome check src/",
     "format": "biome format --write src/",
     "test": "bun test"
