@@ -573,6 +573,28 @@ export function createSlotsPanel(editor, hydra, runCode) {
 
   // Make draggable with position persistence
   makeDraggable(panel, handle, 'slots-panel');
+  
+  // Add window resize event listener to ensure panel stays on screen
+  window.addEventListener('resize', () => {
+    // Get current panel position
+    const left = parseInt(panel.style.left || '0');
+    const top = parseInt(panel.style.top || '0');
+    
+    // Ensure the panel stays within the viewport bounds
+    const minVisiblePart = 100; // Minimum visible part in pixels
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    // Check horizontal position - ensure panel is not too far off-screen
+    if (left > windowWidth - minVisiblePart) {
+      panel.style.left = (windowWidth - minVisiblePart) + 'px';
+    }
+    
+    // Check vertical position - ensure panel is not too far off-screen
+    if (top > windowHeight - minVisiblePart) {
+      panel.style.top = (windowHeight - minVisiblePart) + 'px';
+    }
+  });
 
   // Load all saved slots
   loadAllSlots();
@@ -878,6 +900,27 @@ function makeDraggable(element, handle, panelId) {
       // Already positioned by left/top (from saved position or default)
       currentX = parseInt(element.style.left || '0');
       currentY = parseInt(element.style.top || '0');
+    }
+    
+    // Ensure the panel stays within the viewport bounds
+    const minVisiblePart = 100; // Minimum visible part in pixels
+    
+    // Check horizontal position - ensure panel is not too far off-screen
+    if (currentX < -element.offsetWidth + minVisiblePart) {
+      currentX = 0;
+      element.style.left = currentX + 'px';
+    } else if (currentX > window.innerWidth - minVisiblePart) {
+      currentX = window.innerWidth - minVisiblePart;
+      element.style.left = currentX + 'px';
+    }
+    
+    // Check vertical position - ensure panel is not too far off-screen
+    if (currentY < 0) {
+      currentY = 0;
+      element.style.top = currentY + 'px';
+    } else if (currentY > window.innerHeight - minVisiblePart) {
+      currentY = window.innerHeight - minVisiblePart;
+      element.style.top = currentY + 'px';
     }
 
     // Save initial position if we have a panelId

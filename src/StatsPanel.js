@@ -355,6 +355,28 @@ export function createStatsPanel() {
 
   // Add to document
   document.body.appendChild(panel);
+  
+  // Add window resize event listener to ensure panel stays on screen
+  window.addEventListener('resize', () => {
+    // Get current panel position
+    const left = parseInt(panel.style.left || '0');
+    const top = parseInt(panel.style.top || '0');
+    
+    // Ensure the panel stays within the viewport bounds
+    const minVisiblePart = 100; // Minimum visible part in pixels
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    // Check horizontal position - ensure panel is not too far off-screen
+    if (left > windowWidth - minVisiblePart) {
+      panel.style.left = (windowWidth - minVisiblePart) + 'px';
+    }
+    
+    // Check vertical position - ensure panel is not too far off-screen
+    if (top > windowHeight - minVisiblePart) {
+      panel.style.top = (windowHeight - minVisiblePart) + 'px';
+    }
+  });
 
   // Set up toggle
   let isExpanded = false;

@@ -20,14 +20,47 @@ export function savePanelPosition(panelId, position) {
 }
 
 /**
- * Load panel position and size from localStorage
+ * Load panel position and size from localStorage with bounds checking
  * @param {string} panelId - Unique identifier for the panel
  * @returns {Object|null} Position and size data or null if not found
  */
 export function loadPanelPosition(panelId) {
   try {
     const stored = localStorage.getItem(PREFIX + panelId);
-    return stored ? JSON.parse(stored) : null;
+    if (!stored) return null;
+    
+    const position = JSON.parse(stored);
+    
+    // Ensure position is within the viewport bounds
+    const minPanelSize = 100; // Minimum visible panel size
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    // Adjust left position if it would place the panel too far off-screen
+    if (position.left !== undefined) {
+      // Keep at least minPanelSize pixels visible
+      if (position.left > windowWidth - minPanelSize) {
+        position.left = windowWidth - minPanelSize;
+      }
+      // Don't allow panels to be positioned too far left
+      if (position.left < -position.width + minPanelSize) {
+        position.left = 0;
+      }
+    }
+    
+    // Adjust top position if it would place the panel too far off-screen
+    if (position.top !== undefined) {
+      // Keep at least minPanelSize pixels visible
+      if (position.top > windowHeight - minPanelSize) {
+        position.top = windowHeight - minPanelSize;
+      }
+      // Don't allow panels to be positioned too far up
+      if (position.top < 0) {
+        position.top = 0;
+      }
+    }
+    
+    return position;
   } catch (error) {
     console.warn('Failed to load panel position:', error);
     return null;
