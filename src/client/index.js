@@ -1,8 +1,7 @@
 // Import utilities
 import { createStatsPanel } from '../StatsPanel.js';
 import { createSlotsPanel } from '../SlotsPanel.js';
-import { createCodeMirrorEditor } from '../utils/CodeMirrorEditor.js'; // Full CodeMirror editor
-// import { createBasicCodeMirrorEditor } from '../utils/BasicCodeMirrorEditor.js'; // Basic CodeMirror editor
+import { createCodeMirrorEditor } from '../utils/CodeMirrorEditor.js';
 import { createMidiManager } from '../MidiManager.js';
 import { loadPanelPosition, savePanelPosition } from '../utils/PanelStorage.js';
 import P5 from './p5-wrapper.js'
@@ -23,9 +22,6 @@ function initEditor() {
 
   // Create the hydra editor with CodeMirror
   const editor = createCodeMirrorEditor(editorContent, DEFAULT_CODE);
-  // Alternative options:
-  // const editor = createSyntaxEditor(editorContent, DEFAULT_CODE); // Original syntax editor
-  // const editor = createBasicCodeMirrorEditor(editorContent, DEFAULT_CODE); // Basic CM editor
 
   // Make the editor draggable by the handle with position persistence
   makeDraggable(
