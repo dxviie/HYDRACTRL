@@ -21,7 +21,8 @@ bun-debug.log*
 dist/
 build/
 .cache/
-public/assets/
+public/assets/index.css
+public/assets/index.js
 
 # IDEs and editors
 .vscode/
