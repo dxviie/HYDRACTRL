@@ -25,30 +25,46 @@ const hydraTheme = EditorView.theme({
     backgroundColor: "transparent !important", // Force transparent background
   },
   ".cm-content": {
-    caretColor: "var(--color-text-editor)",
+    caretColor: "var(--cm-cursor)",
     backgroundColor: "transparent !important", // Force transparent background
   },
   ".cm-line": {
     padding: "0 8px",
-    color: "var(--color-text-editor)",
+    color: "var(--cm-text)",
     backgroundColor: "transparent !important", // Force transparent background
   },
   ".cm-cursor": {
-    borderLeftColor: "var(--color-text-editor)",
+    borderLeftColor: "var(--cm-cursor)",
   },
   ".cm-activeLine": {
-    backgroundColor: "var(--color-bg-tertiary)",
-    opacity: "0.7",
+    backgroundColor: "var(--cm-active-line-bg)",
   },
   ".cm-gutters": {
     backgroundColor: "var(--color-bg-editor)",
-    color: "var(--color-syntax-comment)",
+    color: "var(--cm-comment)",
     border: "none",
   },
   ".cm-activeLineGutter": {
-    backgroundColor: "var(--color-bg-tertiary)",
-    opacity: "0.7",
+    backgroundColor: "var(--cm-active-line-bg)",
   },
+  ".cm-selectionBackground": {
+    backgroundColor: "var(--cm-selection-bg) !important",
+  },
+  ".cm-searchMatch": {
+    backgroundColor: "var(--cm-selection-bg) !important",
+    outline: "1px solid var(--cm-selection-bg) !important",
+  },
+  // Syntax highlighting
+  ".cm-keyword": { color: "var(--cm-keyword)" },
+  ".cm-definition": { color: "var(--cm-definition)" },
+  ".cm-variable": { color: "var(--cm-variable)" },
+  ".cm-function": { color: "var(--cm-function)" },
+  ".cm-number": { color: "var(--cm-number)" },
+  ".cm-string": { color: "var(--cm-string)" },
+  ".cm-comment": { color: "var(--cm-comment)" },
+  ".cm-property": { color: "var(--cm-property)" },
+  ".cm-operator": { color: "var(--cm-operator)" },
+  ".cm-punctuation": { color: "var(--cm-punctuation)" },
 });
 
 // Create a list of Hydra functions for syntax highlighting

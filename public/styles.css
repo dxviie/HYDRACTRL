@@ -36,6 +36,22 @@
   --color-syntax-comment: #6272a4;
   --color-syntax-operator: #ff79c6;
   --color-syntax-bracket: #f8f8f2;
+
+  /* CodeMirror specific */
+  --cm-text: var(--color-text-editor);
+  --cm-cursor: var(--color-text-editor);
+  --cm-active-line-bg: rgba(255, 255, 255, 0.1);
+  --cm-selection-bg: rgba(255, 255, 255, 0.2);
+  --cm-keyword: var(--color-syntax-keyword);
+  --cm-definition: var(--color-syntax-transform);
+  --cm-variable: var(--color-text-editor);
+  --cm-function: var(--color-syntax-function);
+  --cm-number: var(--color-syntax-number);
+  --cm-string: var(--color-syntax-string);
+  --cm-comment: var(--color-syntax-comment);
+  --cm-property: var(--color-syntax-math);
+  --cm-operator: var(--color-syntax-operator);
+  --cm-punctuation: var(--color-syntax-bracket);
 }
 
 /* Light Theme */
@@ -76,6 +92,22 @@
   --color-syntax-comment: #6c757d;
   --color-syntax-operator: #d6409d;
   --color-syntax-bracket: #333333;
+  
+  /* CodeMirror specific */
+  --cm-text: var(--color-text-editor);
+  --cm-cursor: #000000;
+  --cm-active-line-bg: rgba(0, 0, 0, 0.05);
+  --cm-selection-bg: rgba(0, 0, 0, 0.1);
+  --cm-keyword: var(--color-syntax-keyword);
+  --cm-definition: var(--color-syntax-transform);
+  --cm-variable: var(--color-text-editor);
+  --cm-function: var(--color-syntax-function);
+  --cm-number: var(--color-syntax-number);
+  --cm-string: var(--color-syntax-string);
+  --cm-comment: var(--color-syntax-comment);
+  --cm-property: var(--color-syntax-math);
+  --cm-operator: var(--color-syntax-operator);
+  --cm-punctuation: var(--color-syntax-bracket);
 }
 
 /* Dark Theme (High Contrast) */
@@ -116,6 +148,22 @@
   --color-syntax-comment: #7f848e;
   --color-syntax-operator: #ff55bb;
   --color-syntax-bracket: #ffffff;
+  
+  /* CodeMirror specific */
+  --cm-text: var(--color-text-editor);
+  --cm-cursor: #ffffff;
+  --cm-active-line-bg: rgba(255, 255, 255, 0.1);
+  --cm-selection-bg: rgba(255, 255, 255, 0.15);
+  --cm-keyword: var(--color-syntax-keyword);
+  --cm-definition: var(--color-syntax-transform);
+  --cm-variable: var(--color-text-editor);
+  --cm-function: var(--color-syntax-function);
+  --cm-number: var(--color-syntax-number);
+  --cm-string: var(--color-syntax-string);
+  --cm-comment: var(--color-syntax-comment);
+  --cm-property: var(--color-syntax-math);
+  --cm-operator: var(--color-syntax-operator);
+  --cm-punctuation: var(--color-syntax-bracket);
 }
 
 /* Neon Eighties Theme */
@@ -156,6 +204,22 @@
   --color-syntax-comment: #7d9eff;
   --color-syntax-operator: #ff00ff;
   --color-syntax-bracket: #ffffff;
+  
+  /* CodeMirror specific */
+  --cm-text: var(--color-text-editor);
+  --cm-cursor: #00ffff;
+  --cm-active-line-bg: rgba(255, 0, 255, 0.2);
+  --cm-selection-bg: rgba(255, 0, 255, 0.3);
+  --cm-keyword: var(--color-syntax-keyword);
+  --cm-definition: var(--color-syntax-transform);
+  --cm-variable: var(--color-text-editor);
+  --cm-function: var(--color-syntax-function);
+  --cm-number: var(--color-syntax-number);
+  --cm-string: var(--color-syntax-string);
+  --cm-comment: var(--color-syntax-comment);
+  --cm-property: var(--color-syntax-math);
+  --cm-operator: var(--color-syntax-operator);
+  --cm-punctuation: var(--color-syntax-bracket);
 }
 
 /* Nineties Pop Theme */
@@ -196,6 +260,22 @@
   --color-syntax-comment: #696969; /* Dim Gray */
   --color-syntax-operator: #ff1493; /* Deep Pink */
   --color-syntax-bracket: #000000; /* Black */
+  
+  /* CodeMirror specific */
+  --cm-text: var(--color-text-editor);
+  --cm-cursor: #0000ff; /* Blue */
+  --cm-active-line-bg: rgba(135, 206, 250, 0.3); /* Light sky blue */
+  --cm-selection-bg: rgba(0, 191, 255, 0.3); /* Deep sky blue */
+  --cm-keyword: var(--color-syntax-keyword);
+  --cm-definition: var(--color-syntax-transform);
+  --cm-variable: var(--color-text-editor);
+  --cm-function: var(--color-syntax-function);
+  --cm-number: var(--color-syntax-number);
+  --cm-string: var(--color-syntax-string);
+  --cm-comment: var(--color-syntax-comment);
+  --cm-property: var(--color-syntax-math);
+  --cm-operator: var(--color-syntax-operator);
+  --cm-punctuation: var(--color-syntax-bracket);
 }
 
 * {
