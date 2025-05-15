@@ -5,6 +5,7 @@ import { createCodeMirrorEditor } from '../utils/CodeMirrorEditor.js'; // Full C
 // import { createBasicCodeMirrorEditor } from '../utils/BasicCodeMirrorEditor.js'; // Basic CodeMirror editor
 import { createMidiManager } from '../MidiManager.js';
 import { loadPanelPosition, savePanelPosition } from '../utils/PanelStorage.js';
+import P5 from './p5-wrapper.js'
 
 // Default starter code for Hydra
 const DEFAULT_CODE = `// HYDRACTRL Sample
@@ -172,7 +173,7 @@ async function initHydra() {
       numSources: 4, // Limit sources for better performance
       precision: 'mediump' // Better performance
     });
-    
+
     // Add global flag for including thumbnails in exports (default: true)
     window.includeExportThumbnails = true;
 
@@ -339,15 +340,15 @@ function loadCode(editor) {
 function openBreakoutWindow(width = 1280, height = 720) {
   // Default options for the window
   const options = `width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes`;
-  
+
   // Open a blank window first
   const breakoutWindow = window.open('', 'HydraBreakout', options);
-  
+
   if (!breakoutWindow) {
     showErrorNotification('Could not open breakout window. Please check your popup blocker settings.');
     return null;
   }
-  
+
   // Add basic HTML structure to the new window
   breakoutWindow.document.write(`
     <!DOCTYPE html>
@@ -380,10 +381,10 @@ function openBreakoutWindow(width = 1280, height = 720) {
     </body>
     </html>
   `);
-  
+
   // Close the document to finish writing
   breakoutWindow.document.close();
-  
+
   return breakoutWindow;
 }
 
@@ -393,7 +394,7 @@ async function initBreakoutHydra(breakoutWindow, mainHydra) {
     if (!breakoutWindow || !breakoutWindow.document) {
       throw new Error("Invalid breakout window");
     }
-    
+
     // Get or create the canvas element in the breakout window
     let canvasContainer = breakoutWindow.document.getElementById('hydra-canvas-breakout');
     let canvas = breakoutWindow.document.createElement('canvas');
@@ -420,9 +421,9 @@ async function initBreakoutHydra(breakoutWindow, mainHydra) {
       numSources: 4, // Limit sources for better performance
       precision: 'mediump' // Better performance
     });
-    
+
     // Define loadScript function in breakout window
-    breakoutWindow.loadScript = function(url) {
+    breakoutWindow.loadScript = function (url) {
       return new Promise((resolve, reject) => {
         const script = breakoutWindow.document.createElement('script');
         script.src = url;
@@ -431,19 +432,19 @@ async function initBreakoutHydra(breakoutWindow, mainHydra) {
         breakoutWindow.document.head.appendChild(script);
       });
     };
-    
+
     // Copy existing global variables and functions to breakout window
     if (window.hydraText) {
       breakoutWindow.hydraText = window.hydraText;
     }
-    
+
     // Listen for window resize events
     breakoutWindow.addEventListener('resize', () => {
       // Adjust canvas size when window is resized
       canvas.width = breakoutWindow.innerWidth;
       canvas.height = breakoutWindow.innerHeight;
     });
-    
+
     // Listen for window close events
     breakoutWindow.addEventListener('beforeunload', () => {
       // Update UI when breakout window is closed
@@ -453,7 +454,7 @@ async function initBreakoutHydra(breakoutWindow, mainHydra) {
       window.breakoutHydra = null;
       window.breakoutWindow = null;
     });
-    
+
     return breakoutHydra;
   } catch (error) {
     console.error("Error initializing breakout Hydra:", error);
@@ -465,7 +466,7 @@ async function initBreakoutHydra(breakoutWindow, mainHydra) {
 async function runCodeOnAllInstances(editor, mainHydra) {
   // Run on main Hydra instance
   const success = await runCode(editor, mainHydra);
-  
+
   // If breakout window is active, run the same code there
   if (window.breakoutHydra && window.breakoutWindow && !window.breakoutWindow.closed) {
     try {
@@ -474,7 +475,7 @@ async function runCodeOnAllInstances(editor, mainHydra) {
       console.error("Error running Hydra code in breakout window:", error);
     }
   }
-  
+
   return success;
 }
 
@@ -483,7 +484,9 @@ async function init() {
   try {
     const editor = initEditor(); // No longer async
     const hydra = await initHydra();
-    
+
+    window.P5 = P5; // Expose P5 globally for use in the editor
+
     // Store references to these globally
     window.mainHydra = hydra;
     window.breakoutHydra = null;
@@ -681,7 +684,7 @@ async function init() {
     statsPanel.export.thumbnailCheckbox.addEventListener('change', (e) => {
       window.includeExportThumbnails = e.target.checked;
     });
-    
+
     // Update the stats panel with MIDI info if supported
     if (midiSupported) {
       statsPanel.midi.statusText.textContent = 'MIDI: Initializing...';
@@ -821,29 +824,29 @@ async function init() {
     window.slotsPanel = slotsPanel;
     window.midiManager = midiManager;
     window._editorProxy = editor; // Expose editor proxy for focus etc.
-    
+
     // Set up size buttons functionality
     statsPanel.display.sizeButtons.forEach(button => {
       button.addEventListener('click', () => {
         const width = parseInt(button.dataset.width);
         const height = parseInt(button.dataset.height);
         const label = button.dataset.label;
-        
+
         if (isNaN(width) || isNaN(height)) {
           return;
         }
-        
+
         // Store the selected size
         statsPanel.display.selectedSize = { width, height, label };
-        
+
         // Update the selected size indicator
         statsPanel.display.selectedSizeIndicator.textContent = `Selected: ${label}`;
-        
+
         // Enable the breakout button
         statsPanel.display.breakoutButton.disabled = false;
         statsPanel.display.breakoutButton.style.opacity = '1';
         statsPanel.display.breakoutButton.title = `Open breakout window at ${width}×${height}`;
-        
+
         // Highlight the selected button and unhighlight others
         statsPanel.display.sizeButtons.forEach(btn => {
           if (btn === button) {
@@ -854,7 +857,7 @@ async function init() {
         });
       });
     });
-    
+
     // Set up breakout button functionality
     statsPanel.display.breakoutButton.addEventListener('click', async () => {
       // If window is already open, close it
@@ -862,71 +865,71 @@ async function init() {
         window.breakoutWindow.close();
         window.breakoutHydra = null;
         window.breakoutWindow = null;
-        
+
         // Reset button
         statsPanel.display.breakoutButton.textContent = 'Breakout View';
         statsPanel.display.breakoutButton.style.backgroundColor = '';
         return;
       }
-      
+
       // Check if a size is selected
       if (!statsPanel.display.selectedSize) {
         showErrorNotification('Please select a window size first');
         return;
       }
-      
+
       const { width, height } = statsPanel.display.selectedSize;
-      
+
       // Open a new breakout window with the selected size
       const breakoutWindow = openBreakoutWindow(width, height);
       if (!breakoutWindow) {
         return; // Error already shown by openBreakoutWindow
       }
-      
+
       // Store reference to window
       window.breakoutWindow = breakoutWindow;
-      
+
       try {
         // Initialize Hydra in the breakout window
         window.breakoutHydra = await initBreakoutHydra(breakoutWindow, hydra);
-        
+
         // Update the breakout window title to include size
         const { label } = statsPanel.display.selectedSize;
         breakoutWindow.document.title = `HYDRACTRL Breakout - ${label}`;
-        
+
         // Run the current code in the breakout window
         await runCode(editor, window.breakoutHydra);
-        
+
         // Update button text and style
         statsPanel.display.breakoutButton.textContent = 'Close Breakout';
         statsPanel.display.breakoutButton.style.backgroundColor = 'rgba(255, 120, 120, 0.3)';
-        
+
         // Event handler for window close
         window.breakoutWindow.addEventListener('beforeunload', () => {
           // Reset button
           statsPanel.display.breakoutButton.textContent = 'Breakout View';
           statsPanel.display.breakoutButton.style.backgroundColor = '';
-          
+
           window.breakoutHydra = null;
           window.breakoutWindow = null;
         });
       } catch (error) {
         console.error("Error initializing breakout view:", error);
         showErrorNotification(`Failed to initialize breakout view: ${error.message}`);
-        
+
         // Clean up on failure
         if (window.breakoutWindow) {
           window.breakoutWindow.close();
           window.breakoutWindow = null;
         }
         window.breakoutHydra = null;
-        
+
         // Reset button
         statsPanel.display.breakoutButton.textContent = 'Breakout View';
         statsPanel.display.breakoutButton.style.backgroundColor = '';
       }
     });
-    
+
   } catch (error) {
     console.error("Error initializing application:", error);
   }
