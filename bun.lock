@@ -4,6 +4,7 @@
     "": {
       "name": "hydractrl",
       "dependencies": {
+        "@babel/runtime": "^7.24.1",
         "@codemirror/commands": "^6.3.0",
         "@codemirror/lang-javascript": "^6.2.1",
         "@codemirror/state": "^6.3.3",
@@ -13,9 +14,6 @@
         "@uiw/codemirror-theme-github": "^4.21.21",
         "@uiw/codemirror-theme-material": "^4.21.21",
         "@uiw/codemirror-theme-nord": "^4.21.21",
-        "@uiw/codemirror-theme-okaidia": "^4.21.21",
-        "@uiw/codemirror-theme-solarized": "^4.21.21",
-        "@uiw/codemirror-theme-xcode": "^4.21.21",
         "codemirror": "^6.0.1",
         "elysia": "^0.8.17",
         "hydra-synth": "^1.3.25",
@@ -28,6 +26,8 @@
     },
   },
   "packages": {
+    "@babel/runtime": ["@babel/runtime@7.27.1", "", {}, "sha512-1x3D2xEk2fRo3PAhwQwu5UubzgiVWSXTBfWpVd2Mx2AzRqJuDJCsgaDVZ7HB5iGzDW1Hl1sWN2mFyKjmR9uAog=="],
+
     "@biomejs/biome": ["@biomejs/biome@1.9.4", "", { "optionalDependencies": { "@biomejs/cli-darwin-arm64": "1.9.4", "@biomejs/cli-darwin-x64": "1.9.4", "@biomejs/cli-linux-arm64": "1.9.4", "@biomejs/cli-linux-arm64-musl": "1.9.4", "@biomejs/cli-linux-x64": "1.9.4", "@biomejs/cli-linux-x64-musl": "1.9.4", "@biomejs/cli-win32-arm64": "1.9.4", "@biomejs/cli-win32-x64": "1.9.4" }, "bin": { "biome": "bin/biome" } }, "sha512-1rkd7G70+o9KkTn5KLmDYXihGoTaIGO9PIIN2ZB7UJxFrWw04CZHPYiMRjYsaDvVV7hP1dYNRLxSANLaBFGpog=="],
 
     "@biomejs/cli-darwin-arm64": ["@biomejs/cli-darwin-arm64@1.9.4", "", { "os": "darwin", "cpu": "arm64" }, "sha512-bFBsPWrNvkdKrNCYeAp+xo2HecOGPAy9WyNyB/jKnnedgzl4W4Hb9ZMzYNbf8dMCGmUdSavlYHiR01QaYR58cw=="],
@@ -95,12 +95,6 @@
     "@uiw/codemirror-theme-material": ["@uiw/codemirror-theme-material@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-M7yo5mE0QDKjWm02sN6Sw3Ld4/3XvAuJZcEdKYgqmiGI7GKL/nAV8HDfD8iMNm0HGnyozK402WLzb84oB57gAg=="],
 
     "@uiw/codemirror-theme-nord": ["@uiw/codemirror-theme-nord@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-U8w3VIuim9H1lEzReeNyv1+uwnPO+gc3gLXCFwxpwF/XDrTQf5TjQFL+c1AGVCYM/Ywf5sflUcF96C3z634r6g=="],
-
-    "@uiw/codemirror-theme-okaidia": ["@uiw/codemirror-theme-okaidia@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-iunSHnMoCxJMUX1usfEQFIFzKhv807aMArMJ324y49nZLkmwZDuGNLYg2x4MUvdGyD9Ksa9N5eujoq++SekfGg=="],
-
-    "@uiw/codemirror-theme-solarized": ["@uiw/codemirror-theme-solarized@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-qAh5jS7P/qwLAJ93OP9r4Z3DdZh0SFq0uhwYXckSVVYtuypiYf3ZSpQLuiSQ7I/B9BMPtENt7GgthFIun21PYA=="],
-
-    "@uiw/codemirror-theme-xcode": ["@uiw/codemirror-theme-xcode@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-9KnTjhXFqwGphQl18CGRzRc6yB8SZkyv4L7u+j1QOq/nFmk3i44HKuHiuKY+J+XfFq3Cmxg629o3CK4ecMsvUQ=="],
 
     "@uiw/codemirror-themes": ["@uiw/codemirror-themes@4.23.12", "", { "dependencies": { "@codemirror/language": "^6.0.0", "@codemirror/state": "^6.0.0", "@codemirror/view": "^6.0.0" } }, "sha512-8etEByfS9yttFZW0rcWhdZc7/JXJKRWlU5lHmJCI3GydZNGCzydNA+HtK9nWKpJUndVc58Q2sqSC5OIcwq8y6A=="],
 

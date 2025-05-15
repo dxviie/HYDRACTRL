@@ -11,12 +11,9 @@ import { oneDark } from "@codemirror/theme-one-dark";
 
 // Import themes from @uiw packages - Note: first run bun install to install these
 import { dracula } from "@uiw/codemirror-theme-dracula";
-import { material, materialDark, materialLight } from "@uiw/codemirror-theme-material";
+import { materialLight } from "@uiw/codemirror-theme-material";
 import { nord } from "@uiw/codemirror-theme-nord";
-import { solarizedLight, solarizedDark } from "@uiw/codemirror-theme-solarized";
-import { xcode, xcodeLight, xcodeDark } from "@uiw/codemirror-theme-xcode";
-import { okaidia } from "@uiw/codemirror-theme-okaidia";
-import { githubLight, githubDark } from "@uiw/codemirror-theme-github";
+import { githubLight } from "@uiw/codemirror-theme-github";
 
 // Language compartment for JavaScript with Hydra extensions
 const languageCompartment = new Compartment();
@@ -28,16 +25,16 @@ const themeCompartment = new Compartment();
 const themeMapping = {
   // Default (no theme class) uses oneDark (Dracula-inspired)
   "default": oneDark,
-  
+
   // Light theme
   "theme-light": githubLight,
-  
+
   // Dark theme (high contrast)
   "theme-dark": dracula,
-  
+
   // Neon Eighties theme
   "theme-neon-eighties": nord,
-  
+
   // Nineties Pop theme
   "theme-nineties-pop": materialLight
 };
@@ -164,7 +161,7 @@ export function createCodeMirrorEditor(container, initialCode = '') {
     // Default to the default theme if no matching class is found
     return themeMapping["default"];
   }
-  
+
   // Create initial editor state
   const startState = EditorState.create({
     doc: initialCode,
@@ -194,7 +191,7 @@ export function createCodeMirrorEditor(container, initialCode = '') {
 
   // Add custom class for additional styling
   view.dom.classList.add('cm-editor');
-  
+
   // Set up theme change observer
   const themeObserver = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
@@ -207,7 +204,7 @@ export function createCodeMirrorEditor(container, initialCode = '') {
       }
     }
   });
-  
+
   // Start observing the body element for class changes
   themeObserver.observe(document.body, { attributes: true });
 
