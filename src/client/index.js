@@ -568,6 +568,18 @@ async function init() {
           window.slotsPanel.setActiveSlot(num - 1); // Convert to 0-based index
         }
 
+        // Ctrl+X to export scene bank
+        if (e.key === "x" && window.slotsPanel && window.slotsPanel.exportAllSlots) {
+          e.preventDefault();
+          window.slotsPanel.exportAllSlots();
+        }
+
+        // Ctrl+I to import scene bank
+        if (e.key === "i" && window.slotsPanel && window.slotsPanel.importSlots) {
+          e.preventDefault();
+          window.slotsPanel.importSlots();
+        }
+
         // Ctrl+Left/Right arrow keys to cycle between banks (only when no MIDI device is connected)
         if (e.key === "ArrowLeft" && window.slotsPanel && window.slotsPanel.cycleBank) {
           // Check if MIDI device is connected
