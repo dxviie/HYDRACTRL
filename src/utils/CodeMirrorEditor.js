@@ -12,7 +12,7 @@ import { oneDark } from "@codemirror/theme-one-dark";
 // Language compartment for JavaScript with Hydra extensions
 const languageCompartment = new Compartment();
 
-// Create a custom theme that's similar to our existing editor's theme
+// Create a custom theme that uses CSS variables for theming
 const hydraTheme = EditorView.theme({
   "&": {
     backgroundColor: "transparent !important", // Force transparent background
@@ -25,27 +25,29 @@ const hydraTheme = EditorView.theme({
     backgroundColor: "transparent !important", // Force transparent background
   },
   ".cm-content": {
-    caretColor: "#f8f8f2",
+    caretColor: "var(--color-text-editor)",
     backgroundColor: "transparent !important", // Force transparent background
   },
   ".cm-line": {
     padding: "0 8px",
-    color: "#f8f8f2",
+    color: "var(--color-text-editor)",
     backgroundColor: "transparent !important", // Force transparent background
   },
   ".cm-cursor": {
-    borderLeftColor: "#f8f8f2",
+    borderLeftColor: "var(--color-text-editor)",
   },
   ".cm-activeLine": {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "var(--color-bg-tertiary)",
+    opacity: "0.7",
   },
   ".cm-gutters": {
-    backgroundColor: "rgba(40, 42, 54, 0.7)",
-    color: "#6272a4",
+    backgroundColor: "var(--color-bg-editor)",
+    color: "var(--color-syntax-comment)",
     border: "none",
   },
   ".cm-activeLineGutter": {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "var(--color-bg-tertiary)",
+    opacity: "0.7",
   },
 });
 
