@@ -31,7 +31,7 @@
 .theme-light {
   /* Base colors */
   --color-bg-primary: #f5f5f5;
-  --color-bg-secondary: rgba(220, 220, 220, 0.8);
+  --color-bg-secondary: rgba(220, 220, 220, 0.9);
   --color-bg-tertiary: rgba(200, 200, 200, 0.8);
   --color-bg-editor: rgba(240, 240, 240, 0.8);
   --color-text-primary: #333333;
@@ -60,7 +60,7 @@
 .theme-dark {
   /* Base colors */
   --color-bg-primary: #121212;
-  --color-bg-secondary: rgba(25, 25, 25, 0.8);
+  --color-bg-secondary: rgba(25, 25, 25, 0.9);
   --color-bg-tertiary: rgba(35, 35, 35, 0.8);
   --color-bg-editor: rgba(18, 18, 18, 0.9);
   --color-text-primary: #ffffff;
@@ -89,7 +89,7 @@
 .theme-neon-eighties {
   /* Base colors */
   --color-bg-primary: #0b0b2b;
-  --color-bg-secondary: rgba(30, 30, 60, 0.8);
+  --color-bg-secondary: rgba(30, 30, 60, 0.9);
   --color-bg-tertiary: rgba(45, 45, 80, 0.8);
   --color-bg-editor: rgba(20, 20, 40, 0.85);
   --color-text-primary: #ff00ff;

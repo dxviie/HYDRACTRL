@@ -130,35 +130,35 @@ export function createStatsPanel() {
 
   // Define themes with primary, secondary, tertiary background colors and text colors
   const themes = [
-    { 
-      name: "default", 
-      label: "Default", 
-      bgPrimary: "#1e1e1e", 
+    {
+      name: "default",
+      label: "Default",
+      bgPrimary: "#1e1e1e",
       bgSecondary: "rgba(37, 37, 37, 0.9)",
       bgTertiary: "rgba(60, 60, 60, 0.7)",
-      textPrimary: "#f5f5f5", 
+      textPrimary: "#f5f5f5",
       textSecondary: "#aaa",
-      className: "" 
+      className: ""
     },
-    { 
-      name: "light", 
-      label: "Light", 
-      bgPrimary: "#f5f5f5", 
+    {
+      name: "light",
+      label: "Light",
+      bgPrimary: "#f5f5f5",
       bgSecondary: "rgba(220, 220, 220, 0.8)",
       bgTertiary: "rgba(200, 200, 200, 0.8)",
-      textPrimary: "#333333", 
+      textPrimary: "#333333",
       textSecondary: "#666666",
-      className: "theme-light" 
+      className: "theme-light"
     },
-    { 
-      name: "dark", 
-      label: "Dark", 
-      bgPrimary: "#121212", 
+    {
+      name: "dark",
+      label: "Dark",
+      bgPrimary: "#121212",
       bgSecondary: "rgba(25, 25, 25, 0.8)",
       bgTertiary: "rgba(35, 35, 35, 0.8)",
-      textPrimary: "#ffffff", 
+      textPrimary: "#ffffff",
       textSecondary: "#cccccc",
-      className: "theme-dark" 
+      className: "theme-dark"
     },
     {
       name: "neon-eighties",
@@ -170,15 +170,15 @@ export function createStatsPanel() {
       textSecondary: "#00ffff",
       className: "theme-neon-eighties",
     },
-    { 
-      name: "nineties-pop", 
-      label: "Pop 90s", 
-      bgPrimary: "#ffc0cb", 
+    {
+      name: "nineties-pop",
+      label: "Pop 90s",
+      bgPrimary: "#ffc0cb",
       bgSecondary: "rgba(162, 130, 255, 0.9)",
       bgTertiary: "rgba(255, 215, 0, 0.7)",
-      textPrimary: "#333333", 
+      textPrimary: "#333333",
       textSecondary: "#222222",
-      className: "theme-nineties-pop" 
+      className: "theme-nineties-pop"
     },
   ];
 
@@ -189,15 +189,15 @@ export function createStatsPanel() {
     swatch.title = theme.label;
     swatch.dataset.theme = theme.name;
     swatch.dataset.className = theme.className;
-    swatch.style.width = "40px";
-    swatch.style.height = "40px";
+    swatch.style.width = "30px";
+    swatch.style.height = "30px";
     swatch.style.borderRadius = "4px";
     swatch.style.cursor = "pointer";
     swatch.style.transition = "all 0.2s";
     swatch.style.position = "relative";
     swatch.style.overflow = "hidden";
     swatch.style.boxShadow = "0 0 3px rgba(0, 0, 0, 0.2)";
-    
+
     // Create a more complex pattern showing all theme colors
     swatch.style.background = `
       linear-gradient(135deg, 
@@ -212,7 +212,7 @@ export function createStatsPanel() {
         ${theme.textSecondary} 85%,
         ${theme.textSecondary} 100%)
     `;
-    
+
     // Add directly to theme selector
     themeSelector.appendChild(swatch);
 
