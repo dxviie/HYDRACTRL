@@ -128,41 +128,92 @@ export function createStatsPanel() {
   themeSelector.style.marginTop = "6px";
   themeSelector.style.justifyContent = "center";
 
-  // Define themes with background and text colors
+  // Define themes with primary, secondary, tertiary background colors and text colors
   const themes = [
-    { name: "default", label: "Default", color: "#1e1e1e", textColor: "#f5f5f5", className: "" },
-    { name: "light", label: "Light", color: "#f5f5f5", textColor: "#333333", className: "theme-light" },
-    { name: "dark", label: "Dark", color: "#121212", textColor: "#ffffff", className: "theme-dark" },
+    { 
+      name: "default", 
+      label: "Default", 
+      bgPrimary: "#1e1e1e", 
+      bgSecondary: "rgba(37, 37, 37, 0.9)",
+      bgTertiary: "rgba(60, 60, 60, 0.7)",
+      textPrimary: "#f5f5f5", 
+      textSecondary: "#aaa",
+      className: "" 
+    },
+    { 
+      name: "light", 
+      label: "Light", 
+      bgPrimary: "#f5f5f5", 
+      bgSecondary: "rgba(220, 220, 220, 0.8)",
+      bgTertiary: "rgba(200, 200, 200, 0.8)",
+      textPrimary: "#333333", 
+      textSecondary: "#666666",
+      className: "theme-light" 
+    },
+    { 
+      name: "dark", 
+      label: "Dark", 
+      bgPrimary: "#121212", 
+      bgSecondary: "rgba(25, 25, 25, 0.8)",
+      bgTertiary: "rgba(35, 35, 35, 0.8)",
+      textPrimary: "#ffffff", 
+      textSecondary: "#cccccc",
+      className: "theme-dark" 
+    },
     {
       name: "neon-eighties",
       label: "Neon 80s",
-      color: "#0b0b2b",
-      textColor: "#ff00ff",
+      bgPrimary: "#0b0b2b",
+      bgSecondary: "rgba(30, 30, 60, 0.8)",
+      bgTertiary: "rgba(45, 45, 80, 0.8)",
+      textPrimary: "#ff00ff",
+      textSecondary: "#00ffff",
       className: "theme-neon-eighties",
     },
-    { name: "nineties-pop", label: "Pop 90s", color: "#ffc0cb", textColor: "#333333", className: "theme-nineties-pop" },
+    { 
+      name: "nineties-pop", 
+      label: "Pop 90s", 
+      bgPrimary: "#ffc0cb", 
+      bgSecondary: "rgba(162, 130, 255, 0.9)",
+      bgTertiary: "rgba(255, 215, 0, 0.7)",
+      textPrimary: "#333333", 
+      textSecondary: "#222222",
+      className: "theme-nineties-pop" 
+    },
   ];
 
-  // Create diagonal theme swatches showing both bg and text colors
+  // Create theme swatches showing all theme colors
   themes.forEach((theme) => {
     const swatch = document.createElement("div");
     swatch.className = "theme-swatch";
     swatch.title = theme.label;
     swatch.dataset.theme = theme.name;
     swatch.dataset.className = theme.className;
-    swatch.style.width = "36px";
-    swatch.style.height = "36px";
-    swatch.style.border = "2px solid transparent";
+    swatch.style.width = "40px";
+    swatch.style.height = "40px";
     swatch.style.borderRadius = "4px";
     swatch.style.cursor = "pointer";
     swatch.style.transition = "all 0.2s";
     swatch.style.position = "relative";
     swatch.style.overflow = "hidden";
-
-    // Create diagonal split with background and text colors
-    swatch.style.background = `linear-gradient(to top right, ${theme.color} 49.5%, ${theme.textColor} 50.5%)`;
+    swatch.style.boxShadow = "0 0 3px rgba(0, 0, 0, 0.2)";
     
-    // Add directly to theme selector without label
+    // Create a more complex pattern showing all theme colors
+    swatch.style.background = `
+      linear-gradient(135deg, 
+        ${theme.bgPrimary} 0%, 
+        ${theme.bgPrimary} 30%, 
+        ${theme.bgSecondary} 30%, 
+        ${theme.bgSecondary} 50%, 
+        ${theme.bgTertiary} 50%, 
+        ${theme.bgTertiary} 70%, 
+        ${theme.textPrimary} 70%, 
+        ${theme.textPrimary} 85%,
+        ${theme.textSecondary} 85%,
+        ${theme.textSecondary} 100%)
+    `;
+    
+    // Add directly to theme selector
     themeSelector.appendChild(swatch);
 
     // Mark default theme as selected
@@ -176,8 +227,8 @@ export function createStatsPanel() {
     swatch.addEventListener("click", () => {
       // Remove selection styling from all swatches
       document.querySelectorAll(".theme-swatch").forEach((s) => {
-        s.style.border = "2px solid transparent";
-        s.style.boxShadow = "none";
+        s.style.border = "none";
+        s.style.boxShadow = "0 0 3px rgba(0, 0, 0, 0.2)";
         s.style.transform = "scale(1)";
       });
 
@@ -473,8 +524,8 @@ export function createStatsPanel() {
           swatch.style.boxShadow = "0 0 8px var(--color-text-primary)";
           swatch.style.transform = "scale(1.1)";
         } else {
-          swatch.style.border = "2px solid transparent";
-          swatch.style.boxShadow = "none";
+          swatch.style.border = "none";
+          swatch.style.boxShadow = "0 0 3px rgba(0, 0, 0, 0.2)";
           swatch.style.transform = "scale(1)";
         }
       });
