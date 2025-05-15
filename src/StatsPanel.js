@@ -121,28 +121,29 @@ export function createStatsPanel() {
   themeTitle.style.fontWeight = "bold";
   themeTitle.textContent = "THEME";
 
-  // Theme selector container
+  // Theme selector container - compact row of swatches
   const themeSelector = document.createElement("div");
   themeSelector.style.display = "flex";
-  themeSelector.style.flexWrap = "wrap";
-  themeSelector.style.gap = "8px";
-  themeSelector.style.marginTop = "4px";
+  themeSelector.style.gap = "10px";
+  themeSelector.style.marginTop = "6px";
+  themeSelector.style.justifyContent = "center";
 
-  // Define themes
+  // Define themes with background and text colors
   const themes = [
-    { name: "default", label: "Default", color: "#1e1e1e", className: "" },
-    { name: "light", label: "Light", color: "#f5f5f5", className: "theme-light" },
-    { name: "dark", label: "Dark", color: "#121212", className: "theme-dark" },
+    { name: "default", label: "Default", color: "#1e1e1e", textColor: "#f5f5f5", className: "" },
+    { name: "light", label: "Light", color: "#f5f5f5", textColor: "#333333", className: "theme-light" },
+    { name: "dark", label: "Dark", color: "#121212", textColor: "#ffffff", className: "theme-dark" },
     {
       name: "neon-eighties",
       label: "Neon 80s",
       color: "#0b0b2b",
+      textColor: "#ff00ff",
       className: "theme-neon-eighties",
     },
-    { name: "nineties-pop", label: "Pop 90s", color: "#ffc0cb", className: "theme-nineties-pop" },
+    { name: "nineties-pop", label: "Pop 90s", color: "#ffc0cb", textColor: "#333333", className: "theme-nineties-pop" },
   ];
 
-  // Create theme swatches
+  // Create diagonal theme swatches showing both bg and text colors
   themes.forEach((theme) => {
     const swatch = document.createElement("div");
     swatch.className = "theme-swatch";
@@ -151,36 +152,24 @@ export function createStatsPanel() {
     swatch.dataset.className = theme.className;
     swatch.style.width = "36px";
     swatch.style.height = "36px";
-    swatch.style.backgroundColor = theme.color;
     swatch.style.border = "2px solid transparent";
     swatch.style.borderRadius = "4px";
     swatch.style.cursor = "pointer";
     swatch.style.transition = "all 0.2s";
     swatch.style.position = "relative";
+    swatch.style.overflow = "hidden";
 
-    // Add label below swatch
-    const label = document.createElement("div");
-    label.textContent = theme.label;
-    label.style.fontSize = "10px";
-    label.style.color = "var(--color-text-secondary)";
-    label.style.textAlign = "center";
-    label.style.marginTop = "2px";
-    label.style.whiteSpace = "nowrap";
-
-    // Wrap swatch and label
-    const swatchContainer = document.createElement("div");
-    swatchContainer.style.display = "flex";
-    swatchContainer.style.flexDirection = "column";
-    swatchContainer.style.alignItems = "center";
-
-    swatchContainer.appendChild(swatch);
-    swatchContainer.appendChild(label);
-    themeSelector.appendChild(swatchContainer);
+    // Create diagonal split with background and text colors
+    swatch.style.background = `linear-gradient(to top right, ${theme.color} 49.5%, ${theme.textColor} 50.5%)`;
+    
+    // Add directly to theme selector without label
+    themeSelector.appendChild(swatch);
 
     // Mark default theme as selected
     if (theme.name === "default") {
       swatch.style.border = "2px solid var(--color-text-primary)";
-      swatch.style.boxShadow = "0 0 5px rgba(255, 255, 255, 0.5)";
+      swatch.style.boxShadow = "0 0 8px var(--color-text-primary)";
+      swatch.style.transform = "scale(1.1)";
     }
 
     // Theme selection
@@ -189,11 +178,13 @@ export function createStatsPanel() {
       document.querySelectorAll(".theme-swatch").forEach((s) => {
         s.style.border = "2px solid transparent";
         s.style.boxShadow = "none";
+        s.style.transform = "scale(1)";
       });
 
       // Add selection styling to clicked swatch
       swatch.style.border = "2px solid var(--color-text-primary)";
-      swatch.style.boxShadow = "0 0 5px rgba(255, 255, 255, 0.5)";
+      swatch.style.boxShadow = "0 0 8px var(--color-text-primary)";
+      swatch.style.transform = "scale(1.1)";
 
       // Apply the theme
       document.body.className = theme.className;
@@ -479,10 +470,12 @@ export function createStatsPanel() {
       document.querySelectorAll(".theme-swatch").forEach((swatch) => {
         if (swatch.dataset.theme === savedTheme) {
           swatch.style.border = "2px solid var(--color-text-primary)";
-          swatch.style.boxShadow = "0 0 5px rgba(255, 255, 255, 0.5)";
+          swatch.style.boxShadow = "0 0 8px var(--color-text-primary)";
+          swatch.style.transform = "scale(1.1)";
         } else {
           swatch.style.border = "2px solid transparent";
           swatch.style.boxShadow = "none";
+          swatch.style.transform = "scale(1)";
         }
       });
     }, 100);
