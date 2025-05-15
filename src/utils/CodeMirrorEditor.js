@@ -94,7 +94,7 @@ const hydraKeywords = [
 export function createCodeMirrorEditor(container, initialCode = '') {
   // Custom key handler for Ctrl+Enter
   // We need to use a combination of approaches to ensure it's captured
-  
+
   // Direct DOM event handler
   const preventCtrlEnterHandler = EditorView.domEventHandlers({
     keydown: (event, view) => {
@@ -109,7 +109,7 @@ export function createCodeMirrorEditor(container, initialCode = '') {
       return false;
     }
   });
-  
+
   // Custom keymap that takes priority over the default keymap
   const ctrlEnterKeymap = keymap.of([{
     key: "Ctrl-Enter",
@@ -148,7 +148,7 @@ export function createCodeMirrorEditor(container, initialCode = '') {
     state: startState,
     parent: container,
   });
-  
+
   // Add custom class for additional styling
   view.dom.classList.add('cm-editor');
 
