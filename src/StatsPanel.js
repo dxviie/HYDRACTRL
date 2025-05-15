@@ -24,10 +24,10 @@ export function createStatsPanel() {
     panel.style.right = '20px';
   }
 
-  panel.style.backgroundColor = 'rgba(37, 37, 37, 0.7)';
+  panel.style.backgroundColor = 'var(--color-bg-secondary)';
   panel.style.borderRadius = '8px';
-  panel.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
-  panel.style.backdropFilter = 'blur(5px)';
+  panel.style.boxShadow = '0 4px 15px var(--color-panel-shadow)';
+  panel.style.backdropFilter = 'blur(var(--color-panel-blur))';
   panel.style.zIndex = '100';
   panel.style.overflow = 'hidden';
   panel.style.width = 'auto';
@@ -37,7 +37,7 @@ export function createStatsPanel() {
   const handle = document.createElement('div');
   handle.className = 'stats-handle';
   handle.style.height = '24px';
-  handle.style.backgroundColor = 'rgba(60, 60, 60, 0.7)';
+  handle.style.backgroundColor = 'var(--color-bg-tertiary)';
   handle.style.display = 'flex';
   handle.style.justifyContent = 'space-between';
   handle.style.alignItems = 'center';
@@ -51,14 +51,14 @@ export function createStatsPanel() {
   title.style.fontSize = '12px';
   title.style.fontWeight = 'bold';
   title.style.textTransform = 'uppercase';
-  title.style.color = '#aaa';
+  title.style.color = 'var(--color-text-secondary)';
   title.textContent = 'SYSTEM';
 
   // Create the toggle button
   const toggle = document.createElement('div');
   toggle.className = 'stats-toggle';
   toggle.style.fontSize = '10px';
-  toggle.style.color = '#aaa';
+  toggle.style.color = 'var(--color-text-secondary)';
   toggle.style.padding = '2px 4px';
   toggle.style.borderRadius = '2px';
   toggle.style.cursor = 'pointer';
@@ -80,7 +80,7 @@ export function createStatsPanel() {
   midiSection.className = 'stats-midi';
   midiSection.style.marginTop = '8px';
   midiSection.style.paddingTop = '8px';
-  midiSection.style.borderTop = '1px solid rgba(100, 100, 100, 0.3)';
+  midiSection.style.borderTop = '1px solid var(--color-bg-tertiary)';
   midiSection.style.display = 'none';  // Initially hidden
   midiSection.style.flexDirection = 'column';
   midiSection.style.gap = '6px';
@@ -89,7 +89,7 @@ export function createStatsPanel() {
   const midiStatusText = document.createElement('div');
   midiStatusText.className = 'midi-status-text';
   midiStatusText.style.fontSize = '12px';
-  midiStatusText.style.color = '#aaa';
+  midiStatusText.style.color = 'var(--color-text-secondary)';
   midiStatusText.style.fontWeight = 'bold';
   midiStatusText.textContent = 'MIDI: Not initialized';
 
@@ -108,7 +108,7 @@ export function createStatsPanel() {
   themeSection.className = 'stats-theme';
   themeSection.style.marginTop = '8px';
   themeSection.style.paddingTop = '8px';
-  themeSection.style.borderTop = '1px solid rgba(100, 100, 100, 0.3)';
+  themeSection.style.borderTop = '1px solid var(--color-bg-tertiary)';
   themeSection.style.display = 'none';  // Initially hidden
   themeSection.style.flexDirection = 'column';
   themeSection.style.gap = '6px';
@@ -207,7 +207,7 @@ export function createStatsPanel() {
   displaySection.className = 'stats-display';
   displaySection.style.marginTop = '8px';
   displaySection.style.paddingTop = '8px';
-  displaySection.style.borderTop = '1px solid rgba(100, 100, 100, 0.3)';
+  displaySection.style.borderTop = '1px solid var(--color-bg-tertiary)';
   displaySection.style.display = 'none';  // Initially hidden
   displaySection.style.flexDirection = 'column';
   displaySection.style.gap = '6px';
@@ -217,7 +217,7 @@ export function createStatsPanel() {
   exportSection.className = 'stats-export';
   exportSection.style.marginTop = '8px';
   exportSection.style.paddingTop = '8px';
-  exportSection.style.borderTop = '1px solid rgba(100, 100, 100, 0.3)';
+  exportSection.style.borderTop = '1px solid var(--color-bg-tertiary)';
   exportSection.style.display = 'none';  // Initially hidden
   exportSection.style.flexDirection = 'column';
   exportSection.style.gap = '6px';
@@ -226,7 +226,7 @@ export function createStatsPanel() {
   const displayTitle = document.createElement('div');
   displayTitle.className = 'display-title';
   displayTitle.style.fontSize = '12px';
-  displayTitle.style.color = '#aaa';
+  displayTitle.style.color = 'var(--color-text-secondary)';
   displayTitle.style.fontWeight = 'bold';
   displayTitle.textContent = 'DISPLAY';
 
@@ -249,7 +249,7 @@ export function createStatsPanel() {
   // Size options
   const sizeLabel = document.createElement('div');
   sizeLabel.style.fontSize = '10px';
-  sizeLabel.style.color = '#aaa';
+  sizeLabel.style.color = 'var(--color-text-secondary)';
   sizeLabel.textContent = 'Select Size:';
 
   // Size buttons container
@@ -272,7 +272,7 @@ export function createStatsPanel() {
   // Selected size indicator and variable to track selection
   const selectedSizeIndicator = document.createElement('div');
   selectedSizeIndicator.style.fontSize = '10px';
-  selectedSizeIndicator.style.color = '#50fa7b';
+  selectedSizeIndicator.style.color = 'var(--color-perf-good)';
   selectedSizeIndicator.style.marginTop = '2px';
   selectedSizeIndicator.style.fontWeight = 'bold';
   selectedSizeIndicator.textContent = 'No size selected';
@@ -312,7 +312,7 @@ export function createStatsPanel() {
   const exportTitle = document.createElement('div');
   exportTitle.className = 'export-title';
   exportTitle.style.fontSize = '12px';
-  exportTitle.style.color = '#aaa';
+  exportTitle.style.color = 'var(--color-text-secondary)';
   exportTitle.style.fontWeight = 'bold';
   exportTitle.textContent = 'EXPORT';
   
@@ -335,7 +335,7 @@ export function createStatsPanel() {
   thumbnailLabel.htmlFor = 'include-thumbnails';
   thumbnailLabel.textContent = 'Include thumbnails in exports';
   thumbnailLabel.style.fontSize = '11px';
-  thumbnailLabel.style.color = '#ddd';
+  thumbnailLabel.style.color = 'var(--color-text-primary)';
   thumbnailLabel.style.cursor = 'pointer';
   
   // Add checkbox and label to option container
@@ -359,7 +359,7 @@ export function createStatsPanel() {
   fpsLabel.className = 'stats-label';
   fpsLabel.style.fontSize = '12px';
   fpsLabel.style.fontWeight = 'bold';
-  fpsLabel.style.color = '#aaa';
+  fpsLabel.style.color = 'var(--color-text-secondary)';
   fpsLabel.style.whiteSpace = 'nowrap';
   fpsLabel.textContent = 'FPS:';
 
@@ -377,7 +377,7 @@ export function createStatsPanel() {
   details.className = 'stats-details';
   details.style.marginTop = '8px';
   details.style.paddingTop = '8px';
-  details.style.borderTop = '1px solid rgba(100, 100, 100, 0.3)';
+  details.style.borderTop = '1px solid var(--color-bg-tertiary)';
   details.style.display = 'none';
   details.style.flexDirection = 'column';
   details.style.gap = '6px';
@@ -394,7 +394,7 @@ export function createStatsPanel() {
   avgFpsLabel.className = 'stats-label';
   avgFpsLabel.style.fontSize = '12px';
   avgFpsLabel.style.fontWeight = 'bold';
-  avgFpsLabel.style.color = '#aaa';
+  avgFpsLabel.style.color = 'var(--color-text-secondary)';
   avgFpsLabel.textContent = 'AVG FPS:';
 
   const avgFpsValue = document.createElement('span');
@@ -417,7 +417,7 @@ export function createStatsPanel() {
   frameCountLabel.className = 'stats-label';
   frameCountLabel.style.fontSize = '12px';
   frameCountLabel.style.fontWeight = 'bold';
-  frameCountLabel.style.color = '#aaa';
+  frameCountLabel.style.color = 'var(--color-text-secondary)';
   frameCountLabel.textContent = 'FRAMES:';
 
   const frameCountValue = document.createElement('span');
@@ -548,11 +548,11 @@ export function createStatsPanel() {
 
     // Update color based on FPS
     if (fps > 50) {
-      fpsValue.style.color = 'rgb(100, 255, 100)';
+      fpsValue.style.color = 'var(--color-perf-good)';
     } else if (fps > 30) {
-      fpsValue.style.color = 'rgb(255, 200, 0)';
+      fpsValue.style.color = 'var(--color-perf-medium)';
     } else {
-      fpsValue.style.color = 'rgb(255, 100, 100)';
+      fpsValue.style.color = 'var(--color-perf-poor)';
     }
 
     // Request next frame

@@ -22,10 +22,10 @@ export function createSlotsPanel(editor, hydra, runCode) {
     panel.style.top = '20px';
   }
 
-  panel.style.backgroundColor = 'rgba(37, 37, 37, 0.7)';
+  panel.style.backgroundColor = 'var(--color-bg-secondary)';
   panel.style.borderRadius = '8px';
-  panel.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.3)';
-  panel.style.backdropFilter = 'blur(5px)';
+  panel.style.boxShadow = '0 4px 15px var(--color-panel-shadow)';
+  panel.style.backdropFilter = 'blur(var(--color-panel-blur))';
   panel.style.zIndex = '100';
   panel.style.overflow = 'hidden';
   panel.style.width = 'auto';
@@ -35,7 +35,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   const handle = document.createElement('div');
   handle.className = 'slots-handle';
   handle.style.height = '24px';
-  handle.style.backgroundColor = 'rgba(60, 60, 60, 0.7)';
+  handle.style.backgroundColor = 'var(--color-bg-tertiary)';
   handle.style.display = 'flex';
   handle.style.justifyContent = 'space-between';
   handle.style.alignItems = 'center';
@@ -58,7 +58,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   title.style.fontSize = '12px';
   title.style.fontWeight = 'bold';
   title.style.textTransform = 'uppercase';
-  title.style.color = '#aaa';
+  title.style.color = 'var(--color-text-secondary)';
   title.textContent = 'SCENE ';
 
   // Create bank selector dots container
@@ -173,7 +173,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   const clearBtn = document.createElement('div');
   clearBtn.className = 'slots-clear';
   clearBtn.style.fontSize = '14px';
-  clearBtn.style.color = '#ff4444';
+  clearBtn.style.color = 'var(--color-error)';
   clearBtn.style.padding = '0px 6px';
   clearBtn.style.cursor = 'pointer';
   clearBtn.style.fontWeight = 'bold';
@@ -226,7 +226,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
     const slot = document.createElement('div');
     slot.className = 'slot';
     slot.dataset.index = i;
-    slot.style.backgroundColor = 'rgba(30, 30, 30, 0.7)';
+    slot.style.backgroundColor = 'var(--color-bg-editor)';
     slot.style.borderRadius = '4px';
     slot.style.cursor = 'pointer';
     slot.style.height = '40px';
@@ -236,7 +236,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
     slot.style.alignItems = 'center';
     slot.style.position = 'relative';
     slot.style.overflow = 'hidden';
-    slot.style.border = '1px solid rgba(80, 80, 80, 0.3)';
+    slot.style.border = '1px solid var(--color-bg-tertiary)';
 
     // Add index overlay
     const index = document.createElement('div');
@@ -246,7 +246,8 @@ export function createSlotsPanel(editor, hydra, runCode) {
     index.style.right = '2px';
     index.style.fontSize = '8px';
     index.style.fontWeight = 'bold';
-    index.style.color = 'rgba(255, 255, 255, 0.7)';
+    index.style.color = 'var(--color-text-primary)';
+    index.style.opacity = '0.7';
     index.textContent = (i + 1).toString();
 
     // Thumbnail container for preview images
@@ -330,13 +331,13 @@ export function createSlotsPanel(editor, hydra, runCode) {
   // Function to update active slot styling
   async function setActiveSlot(index, loadContent = true) {
     // Remove active class from previous active slot
-    slotElements[activeSlotIndex].style.border = '1px solid rgba(80, 80, 80, 0.3)';
+    slotElements[activeSlotIndex].style.border = '1px solid var(--color-bg-tertiary)';
 
     // Update active slot index
     activeSlotIndex = index;
 
     // Add active class to new active slot
-    slotElements[activeSlotIndex].style.border = '2px solid rgba(255, 200, 0, 0.8)';
+    slotElements[activeSlotIndex].style.border = '2px solid var(--color-perf-medium)';
 
     // Load code from storage if requested
     if (loadContent) {
@@ -454,7 +455,8 @@ export function createSlotsPanel(editor, hydra, runCode) {
         thumbnailElement.style.backgroundImage = `url(${thumbnail})`;
       } else if (hasCode) {
         // If we have code but no thumbnail, show a colored background
-        thumbnailElement.style.backgroundColor = 'rgba(255, 0, 234, 0.3)'; // Light pink/purple
+        thumbnailElement.style.backgroundColor = 'var(--color-syntax-function)'; 
+        thumbnailElement.style.opacity = '0.3';
       }
     }
   }
@@ -515,7 +517,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
       // Show notification
       const clearedNotification = document.createElement('div');
       clearedNotification.className = 'saved-notification';
-      clearedNotification.style.backgroundColor = 'rgba(220, 50, 50, 0.8)';
+      clearedNotification.style.backgroundColor = 'var(--color-error)';
       clearedNotification.textContent = 'Cleared All Banks!';
       document.body.appendChild(clearedNotification);
 
@@ -545,7 +547,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
       // Show notification
       const clearedNotification = document.createElement('div');
       clearedNotification.className = 'saved-notification';
-      clearedNotification.style.backgroundColor = 'rgba(220, 50, 50, 0.8)';
+      clearedNotification.style.backgroundColor = 'var(--color-error)';
       clearedNotification.textContent = `Cleared Bank ${currentBank + 1}!`;
       document.body.appendChild(clearedNotification);
 
