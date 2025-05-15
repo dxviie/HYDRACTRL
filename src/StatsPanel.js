@@ -7,6 +7,9 @@ import { loadPanelPosition, savePanelPosition } from './utils/PanelStorage.js';
 export function createStatsPanel() {
   // Load saved position or use defaults
   const savedPosition = loadPanelPosition('stats-panel');
+  
+  // Load saved theme from localStorage
+  const savedTheme = localStorage.getItem('hydractrl-theme') || 'default';
 
   // Create the panel container
   const panel = document.createElement('div');
@@ -99,6 +102,105 @@ export function createStatsPanel() {
   // Add to MIDI section
   midiSection.appendChild(midiStatusText);
   midiSection.appendChild(midiDeviceContainer);
+
+  // Create a theme settings section
+  const themeSection = document.createElement('div');
+  themeSection.className = 'stats-theme';
+  themeSection.style.marginTop = '8px';
+  themeSection.style.paddingTop = '8px';
+  themeSection.style.borderTop = '1px solid rgba(100, 100, 100, 0.3)';
+  themeSection.style.display = 'none';  // Initially hidden
+  themeSection.style.flexDirection = 'column';
+  themeSection.style.gap = '6px';
+  
+  // Theme section title
+  const themeTitle = document.createElement('div');
+  themeTitle.className = 'theme-title';
+  themeTitle.style.fontSize = '12px';
+  themeTitle.style.color = 'var(--color-text-secondary)';
+  themeTitle.style.fontWeight = 'bold';
+  themeTitle.textContent = 'THEME';
+  
+  // Theme selector container
+  const themeSelector = document.createElement('div');
+  themeSelector.style.display = 'flex';
+  themeSelector.style.flexWrap = 'wrap';
+  themeSelector.style.gap = '8px';
+  themeSelector.style.marginTop = '4px';
+  
+  // Define themes
+  const themes = [
+    { name: 'default', label: 'Default', color: '#1e1e1e', className: '' },
+    { name: 'light', label: 'Light', color: '#f5f5f5', className: 'theme-light' },
+    { name: 'dark', label: 'Dark', color: '#121212', className: 'theme-dark' },
+    { name: 'neon-eighties', label: 'Neon 80s', color: '#0b0b2b', className: 'theme-neon-eighties' },
+    { name: 'nineties-pop', label: 'Pop 90s', color: '#ffc0cb', className: 'theme-nineties-pop' }
+  ];
+  
+  // Create theme swatches
+  themes.forEach(theme => {
+    const swatch = document.createElement('div');
+    swatch.className = 'theme-swatch';
+    swatch.title = theme.label;
+    swatch.dataset.theme = theme.name;
+    swatch.dataset.className = theme.className;
+    swatch.style.width = '36px';
+    swatch.style.height = '36px';
+    swatch.style.backgroundColor = theme.color;
+    swatch.style.border = '2px solid transparent';
+    swatch.style.borderRadius = '4px';
+    swatch.style.cursor = 'pointer';
+    swatch.style.transition = 'all 0.2s';
+    swatch.style.position = 'relative';
+    
+    // Add label below swatch
+    const label = document.createElement('div');
+    label.textContent = theme.label;
+    label.style.fontSize = '10px';
+    label.style.color = 'var(--color-text-secondary)';
+    label.style.textAlign = 'center';
+    label.style.marginTop = '2px';
+    label.style.whiteSpace = 'nowrap';
+    
+    // Wrap swatch and label
+    const swatchContainer = document.createElement('div');
+    swatchContainer.style.display = 'flex';
+    swatchContainer.style.flexDirection = 'column';
+    swatchContainer.style.alignItems = 'center';
+    
+    swatchContainer.appendChild(swatch);
+    swatchContainer.appendChild(label);
+    themeSelector.appendChild(swatchContainer);
+    
+    // Mark default theme as selected
+    if (theme.name === 'default') {
+      swatch.style.border = '2px solid var(--color-text-primary)';
+      swatch.style.boxShadow = '0 0 5px rgba(255, 255, 255, 0.5)';
+    }
+    
+    // Theme selection
+    swatch.addEventListener('click', () => {
+      // Remove selection styling from all swatches
+      document.querySelectorAll('.theme-swatch').forEach(s => {
+        s.style.border = '2px solid transparent';
+        s.style.boxShadow = 'none';
+      });
+      
+      // Add selection styling to clicked swatch
+      swatch.style.border = '2px solid var(--color-text-primary)';
+      swatch.style.boxShadow = '0 0 5px rgba(255, 255, 255, 0.5)';
+      
+      // Apply the theme
+      document.body.className = theme.className;
+      
+      // Store the selected theme in localStorage
+      localStorage.setItem('hydractrl-theme', theme.name);
+    });
+  });
+  
+  // Add elements to theme section
+  themeSection.appendChild(themeTitle);
+  themeSection.appendChild(themeSelector);
 
   // Create a section for display settings
   const displaySection = document.createElement('div');
@@ -343,6 +445,7 @@ export function createStatsPanel() {
 
   content.appendChild(metrics);
   content.appendChild(details);
+  content.appendChild(themeSection);
   content.appendChild(midiSection);
   content.appendChild(displaySection);
   content.appendChild(exportSection);
@@ -355,6 +458,30 @@ export function createStatsPanel() {
 
   // Add to document
   document.body.appendChild(panel);
+  
+  // Apply saved theme
+  if (savedTheme !== 'default') {
+    const themeClassMap = {
+      'light': 'theme-light',
+      'dark': 'theme-dark',
+      'neon-eighties': 'theme-neon-eighties',
+      'nineties-pop': 'theme-nineties-pop'
+    };
+    document.body.className = themeClassMap[savedTheme] || '';
+    
+    // Update the visual selection for the theme swatches
+    setTimeout(() => {
+      document.querySelectorAll('.theme-swatch').forEach(swatch => {
+        if (swatch.dataset.theme === savedTheme) {
+          swatch.style.border = '2px solid var(--color-text-primary)';
+          swatch.style.boxShadow = '0 0 5px rgba(255, 255, 255, 0.5)';
+        } else {
+          swatch.style.border = '2px solid transparent';
+          swatch.style.boxShadow = 'none';
+        }
+      });
+    }, 100);
+  }
   
   // Add window resize event listener to ensure panel stays on screen
   window.addEventListener('resize', () => {
@@ -383,6 +510,7 @@ export function createStatsPanel() {
   toggle.addEventListener('click', () => {
     isExpanded = !isExpanded;
     details.style.display = isExpanded ? 'flex' : 'none';
+    themeSection.style.display = isExpanded ? 'flex' : 'none';
     midiSection.style.display = isExpanded ? 'flex' : 'none';
     displaySection.style.display = isExpanded ? 'flex' : 'none';
     exportSection.style.display = isExpanded ? 'flex' : 'none';
@@ -437,6 +565,10 @@ export function createStatsPanel() {
   // Return the panel with additional API
   return {
     panel,
+    theme: {
+      section: themeSection,
+      selector: themeSelector
+    },
     midi: {
       statusText: midiStatusText,
       deviceContainer: midiDeviceContainer,

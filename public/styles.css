@@ -1,3 +1,203 @@
+/* Theme Variables - Default (Dark Dracula-inspired) */
+:root {
+  /* Base colors */
+  --color-bg-primary: #1e1e1e;
+  --color-bg-secondary: rgba(37, 37, 37, 0.7);
+  --color-bg-tertiary: rgba(60, 60, 60, 0.7);
+  --color-bg-editor: rgba(40, 42, 54, 0.7);
+  --color-text-primary: #f5f5f5;
+  --color-text-secondary: #aaa;
+  --color-text-editor: #f8f8f2;
+  
+  /* UI Elements */
+  --color-button-bg: #2d2d2d;
+  --color-button-hover: #3d3d3d;
+  --color-button-active: #4d4d4d;
+  --color-panel-shadow: rgba(0, 0, 0, 0.3);
+  --color-panel-blur: 5px;
+  
+  /* Notifications */
+  --color-success: rgba(60, 180, 100, 0.8);
+  --color-error: rgba(220, 50, 50, 0.85);
+  
+  /* Performance indicators */
+  --color-perf-good: rgb(100, 255, 100);
+  --color-perf-medium: rgb(255, 200, 0);
+  --color-perf-poor: rgb(255, 100, 100);
+  
+  /* Syntax highlighting */
+  --color-syntax-function: #ff79c6;
+  --color-syntax-transform: #50fa7b;
+  --color-syntax-math: #8be9fd;
+  --color-syntax-control: #ff5555;
+  --color-syntax-keyword: #bd93f9;
+  --color-syntax-string: #f1fa8c;
+  --color-syntax-number: #bd93f9;
+  --color-syntax-comment: #6272a4;
+  --color-syntax-operator: #ff79c6;
+  --color-syntax-bracket: #f8f8f2;
+}
+
+/* Light Theme */
+.theme-light {
+  /* Base colors */
+  --color-bg-primary: #f5f5f5;
+  --color-bg-secondary: rgba(220, 220, 220, 0.8);
+  --color-bg-tertiary: rgba(200, 200, 200, 0.8);
+  --color-bg-editor: rgba(240, 240, 240, 0.8);
+  --color-text-primary: #333333;
+  --color-text-secondary: #666666;
+  --color-text-editor: #222222;
+  
+  /* UI Elements */
+  --color-button-bg: #dddddd;
+  --color-button-hover: #cccccc;
+  --color-button-active: #bbbbbb;
+  --color-panel-shadow: rgba(0, 0, 0, 0.1);
+  --color-panel-blur: 5px;
+  
+  /* Notifications */
+  --color-success: rgba(40, 167, 69, 0.9);
+  --color-error: rgba(220, 53, 69, 0.9);
+  
+  /* Performance indicators */
+  --color-perf-good: rgb(40, 167, 69);
+  --color-perf-medium: rgb(255, 193, 7);
+  --color-perf-poor: rgb(220, 53, 69);
+  
+  /* Syntax highlighting */
+  --color-syntax-function: #d6409d;
+  --color-syntax-transform: #2a9d8f;
+  --color-syntax-math: #0077cc;
+  --color-syntax-control: #e63946;
+  --color-syntax-keyword: #6610f2;
+  --color-syntax-string: #6a994e;
+  --color-syntax-number: #6610f2;
+  --color-syntax-comment: #6c757d;
+  --color-syntax-operator: #d6409d;
+  --color-syntax-bracket: #333333;
+}
+
+/* Dark Theme (High Contrast) */
+.theme-dark {
+  /* Base colors */
+  --color-bg-primary: #121212;
+  --color-bg-secondary: rgba(25, 25, 25, 0.8);
+  --color-bg-tertiary: rgba(35, 35, 35, 0.8);
+  --color-bg-editor: rgba(18, 18, 18, 0.9);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #cccccc;
+  --color-text-editor: #ffffff;
+  
+  /* UI Elements */
+  --color-button-bg: #1e1e1e;
+  --color-button-hover: #2a2a2a;
+  --color-button-active: #333333;
+  --color-panel-shadow: rgba(0, 0, 0, 0.5);
+  --color-panel-blur: 5px;
+  
+  /* Notifications */
+  --color-success: rgba(0, 200, 83, 1);
+  --color-error: rgba(255, 50, 50, 1);
+  
+  /* Performance indicators */
+  --color-perf-good: rgb(0, 255, 83);
+  --color-perf-medium: rgb(255, 200, 0);
+  --color-perf-poor: rgb(255, 50, 50);
+  
+  /* Syntax highlighting */
+  --color-syntax-function: #ff55bb;
+  --color-syntax-transform: #00ff9d;
+  --color-syntax-math: #00ccff;
+  --color-syntax-control: #ff5555;
+  --color-syntax-keyword: #d580ff;
+  --color-syntax-string: #ffff87;
+  --color-syntax-number: #d580ff;
+  --color-syntax-comment: #7f848e;
+  --color-syntax-operator: #ff55bb;
+  --color-syntax-bracket: #ffffff;
+}
+
+/* Neon Eighties Theme */
+.theme-neon-eighties {
+  /* Base colors */
+  --color-bg-primary: #0b0b2b;
+  --color-bg-secondary: rgba(30, 30, 60, 0.8);
+  --color-bg-tertiary: rgba(45, 45, 80, 0.8);
+  --color-bg-editor: rgba(20, 20, 40, 0.85);
+  --color-text-primary: #ff00ff;
+  --color-text-secondary: #00ffff;
+  --color-text-editor: #ffffff;
+  
+  /* UI Elements */
+  --color-button-bg: #6600cc;
+  --color-button-hover: #8800ee;
+  --color-button-active: #aa00ff;
+  --color-panel-shadow: rgba(255, 0, 255, 0.3);
+  --color-panel-blur: 8px;
+  
+  /* Notifications */
+  --color-success: rgba(0, 255, 180, 0.9);
+  --color-error: rgba(255, 50, 150, 0.9);
+  
+  /* Performance indicators */
+  --color-perf-good: rgb(0, 255, 180);
+  --color-perf-medium: rgb(255, 255, 0);
+  --color-perf-poor: rgb(255, 0, 128);
+  
+  /* Syntax highlighting */
+  --color-syntax-function: #ff00ff;
+  --color-syntax-transform: #00ff99;
+  --color-syntax-math: #00ffff;
+  --color-syntax-control: #ff0066;
+  --color-syntax-keyword: #bb00ff;
+  --color-syntax-string: #ffff00;
+  --color-syntax-number: #bb00ff;
+  --color-syntax-comment: #7d9eff;
+  --color-syntax-operator: #ff00ff;
+  --color-syntax-bracket: #ffffff;
+}
+
+/* Nineties Pop Theme */
+.theme-nineties-pop {
+  /* Base colors */
+  --color-bg-primary: #ffc0cb; /* Pink */
+  --color-bg-secondary: rgba(255, 165, 0, 0.7); /* Orange */
+  --color-bg-tertiary: rgba(255, 215, 0, 0.7); /* Gold */
+  --color-bg-editor: rgba(255, 182, 193, 0.8); /* Light Pink */
+  --color-text-primary: #333333;
+  --color-text-secondary: #222222;
+  --color-text-editor: #000000;
+  
+  /* UI Elements */
+  --color-button-bg: #87cefa; /* Light Sky Blue */
+  --color-button-hover: #00bfff; /* Deep Sky Blue */
+  --color-button-active: #1e90ff; /* Dodger Blue */
+  --color-panel-shadow: rgba(0, 0, 0, 0.2);
+  --color-panel-blur: 5px;
+  
+  /* Notifications */
+  --color-success: rgba(50, 205, 50, 0.8); /* Lime Green */
+  --color-error: rgba(255, 0, 0, 0.8); /* Red */
+  
+  /* Performance indicators */
+  --color-perf-good: rgb(50, 205, 50);
+  --color-perf-medium: rgb(255, 165, 0);
+  --color-perf-poor: rgb(255, 0, 0);
+  
+  /* Syntax highlighting */
+  --color-syntax-function: #ff1493; /* Deep Pink */
+  --color-syntax-transform: #2e8b57; /* Sea Green */
+  --color-syntax-math: #4169e1; /* Royal Blue */
+  --color-syntax-control: #dc143c; /* Crimson */
+  --color-syntax-keyword: #9932cc; /* Dark Orchid */
+  --color-syntax-string: #8b4513; /* Saddle Brown */
+  --color-syntax-number: #9932cc; /* Dark Orchid */
+  --color-syntax-comment: #696969; /* Dim Gray */
+  --color-syntax-operator: #ff1493; /* Deep Pink */
+  --color-syntax-bracket: #000000; /* Black */
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -6,8 +206,8 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background-color: #1e1e1e;
-  color: #f5f5f5;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -37,12 +237,12 @@ body {
   left: 20px;
   width: 500px;
   height: 400px;
-  background-color: rgba(37, 37, 37, 0.7);
+  background-color: var(--color-bg-secondary);
   border-radius: 8px;
   overflow: hidden;
   z-index: 100;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 15px var(--color-panel-shadow);
+  backdrop-filter: blur(var(--color-panel-blur));
   resize: both;
   display: flex;
   flex-direction: column;
@@ -53,8 +253,8 @@ body {
   width: 100%;
   height: 100%;
   flex: 1;
-  background-color: rgba(40, 42, 54, 0.7);
-  color: #f8f8f2;
+  background-color: var(--color-bg-editor);
+  color: var(--color-text-editor);
   font-family: monospace;
   font-size: 14px;
   padding: 8px;
@@ -81,8 +281,8 @@ body {
   margin: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(40, 42, 54, 0.7);
-  color: #f8f8f2;
+  background-color: var(--color-bg-editor);
+  color: var(--color-text-editor);
   font-family: monospace;
   font-size: 14px;
   padding: 8px;
@@ -128,8 +328,8 @@ body {
 }
 
 button {
-  background-color: #2d2d2d;
-  color: #f5f5f5;
+  background-color: var(--color-button-bg);
+  color: var(--color-text-primary);
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
@@ -139,12 +339,12 @@ button {
 }
 
 button:hover {
-  background-color: #3d3d3d;
+  background-color: var(--color-button-hover);
   transform: translateY(-1px);
 }
 
 button:active {
-  background-color: #4d4d4d;
+  background-color: var(--color-button-active);
   transform: translateY(1px);
 }
 
@@ -153,7 +353,7 @@ button:active {
   position: fixed;
   top: 20px;
   right: 20px;
-  background-color: rgba(60, 180, 100, 0.8);
+  background-color: var(--color-success);
   color: white;
   padding: 8px 16px;
   border-radius: 4px;
@@ -172,7 +372,7 @@ button:active {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background-color: rgba(220, 50, 50, 0.85);
+  background-color: var(--color-error);
   color: white;
   padding: 10px 16px;
   border-radius: 4px;
@@ -233,60 +433,60 @@ button:active {
 
 /* Hydra Syntax Highlighting */
 .hydra-core {
-  color: #ff79c6 !important;
+  color: var(--color-syntax-function) !important;
   /* Pink */
 }
 
 .hydra-transform {
-  color: #50fa7b !important;
+  color: var(--color-syntax-transform) !important;
   /* Green */
 }
 
 .hydra-math {
-  color: #8be9fd !important;
+  color: var(--color-syntax-math) !important;
   /* Cyan */
 }
 
 .hydra-control {
-  color: #ff5555 !important;
+  color: var(--color-syntax-control) !important;
   /* Red */
   font-weight: bold;
 }
 
 .hydra-keyword {
-  color: #bd93f9 !important;
+  color: var(--color-syntax-keyword) !important;
   /* Purple */
   font-weight: bold;
 }
 
 .hydra-string {
-  color: #f1fa8c !important;
+  color: var(--color-syntax-string) !important;
   /* Yellow */
 }
 
 .hydra-number {
-  color: #bd93f9 !important;
+  color: var(--color-syntax-number) !important;
   /* Purple */
 }
 
 .hydra-comment {
-  color: #6272a4 !important;
+  color: var(--color-syntax-comment) !important;
   /* Comment Gray */
   font-style: italic;
 }
 
 .hydra-operator {
-  color: #ff79c6 !important;
+  color: var(--color-syntax-operator) !important;
   /* Pink */
 }
 
 .hydra-bracket {
-  color: #f8f8f2 !important;
+  color: var(--color-syntax-bracket) !important;
   /* White */
 }
 
 .hydra-semicolon {
-  color: #f8f8f2 !important;
+  color: var(--color-syntax-bracket) !important;
   /* White */
 }
 
@@ -317,7 +517,7 @@ button:active {
 /* Editor handle for drag indicator */
 .editor-handle {
   height: 30px;
-  background-color: rgba(60, 60, 60, 0.7);
+  background-color: var(--color-bg-tertiary);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -344,7 +544,7 @@ button:active {
   justify-content: flex-end;
   gap: 10px;
   padding: 0 10px;
-  background-color: rgba(50, 50, 50, 0.7);
+  background-color: var(--color-bg-tertiary);
   flex-shrink: 0;
 }
 
