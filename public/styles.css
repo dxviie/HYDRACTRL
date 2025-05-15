@@ -8,50 +8,23 @@
   --color-text-primary: #f5f5f5;
   --color-text-secondary: #aaa;
   --color-text-editor: #f8f8f2;
-  
+
   /* UI Elements */
   --color-button-bg: #2d2d2d;
   --color-button-hover: #3d3d3d;
   --color-button-active: #4d4d4d;
   --color-panel-shadow: rgba(0, 0, 0, 0.3);
   --color-panel-blur: 5px;
-  
+
   /* Notifications */
   --color-success: rgba(60, 180, 100, 0.8);
   --color-error: rgba(220, 50, 50, 0.85);
-  
+
   /* Performance indicators */
   --color-perf-good: rgb(100, 255, 100);
   --color-perf-medium: rgb(255, 200, 0);
   --color-perf-poor: rgb(255, 100, 100);
-  
-  /* Syntax highlighting */
-  --color-syntax-function: #ff79c6;
-  --color-syntax-transform: #50fa7b;
-  --color-syntax-math: #8be9fd;
-  --color-syntax-control: #ff5555;
-  --color-syntax-keyword: #bd93f9;
-  --color-syntax-string: #f1fa8c;
-  --color-syntax-number: #bd93f9;
-  --color-syntax-comment: #6272a4;
-  --color-syntax-operator: #ff79c6;
-  --color-syntax-bracket: #f8f8f2;
 
-  /* CodeMirror specific */
-  --cm-text: var(--color-text-editor);
-  --cm-cursor: var(--color-text-editor);
-  --cm-active-line-bg: rgba(255, 255, 255, 0.1);
-  --cm-selection-bg: rgba(255, 255, 255, 0.2);
-  --cm-keyword: var(--color-syntax-keyword);
-  --cm-definition: var(--color-syntax-transform);
-  --cm-variable: var(--color-text-editor);
-  --cm-function: var(--color-syntax-function);
-  --cm-number: var(--color-syntax-number);
-  --cm-string: var(--color-syntax-string);
-  --cm-comment: var(--color-syntax-comment);
-  --cm-property: var(--color-syntax-math);
-  --cm-operator: var(--color-syntax-operator);
-  --cm-punctuation: var(--color-syntax-bracket);
 }
 
 /* Light Theme */
@@ -64,50 +37,23 @@
   --color-text-primary: #333333;
   --color-text-secondary: #666666;
   --color-text-editor: #222222;
-  
+
   /* UI Elements */
   --color-button-bg: #dddddd;
   --color-button-hover: #cccccc;
   --color-button-active: #bbbbbb;
   --color-panel-shadow: rgba(0, 0, 0, 0.1);
   --color-panel-blur: 5px;
-  
+
   /* Notifications */
   --color-success: rgba(40, 167, 69, 0.9);
   --color-error: rgba(220, 53, 69, 0.9);
-  
+
   /* Performance indicators */
   --color-perf-good: rgb(40, 167, 69);
   --color-perf-medium: rgb(255, 193, 7);
   --color-perf-poor: rgb(220, 53, 69);
-  
-  /* Syntax highlighting */
-  --color-syntax-function: #d6409d;
-  --color-syntax-transform: #2a9d8f;
-  --color-syntax-math: #0077cc;
-  --color-syntax-control: #e63946;
-  --color-syntax-keyword: #6610f2;
-  --color-syntax-string: #6a994e;
-  --color-syntax-number: #6610f2;
-  --color-syntax-comment: #6c757d;
-  --color-syntax-operator: #d6409d;
-  --color-syntax-bracket: #333333;
-  
-  /* CodeMirror specific */
-  --cm-text: var(--color-text-editor);
-  --cm-cursor: #000000;
-  --cm-active-line-bg: rgba(0, 0, 0, 0.05);
-  --cm-selection-bg: rgba(0, 0, 0, 0.1);
-  --cm-keyword: var(--color-syntax-keyword);
-  --cm-definition: var(--color-syntax-transform);
-  --cm-variable: var(--color-text-editor);
-  --cm-function: var(--color-syntax-function);
-  --cm-number: var(--color-syntax-number);
-  --cm-string: var(--color-syntax-string);
-  --cm-comment: var(--color-syntax-comment);
-  --cm-property: var(--color-syntax-math);
-  --cm-operator: var(--color-syntax-operator);
-  --cm-punctuation: var(--color-syntax-bracket);
+
 }
 
 /* Dark Theme (High Contrast) */
@@ -120,50 +66,23 @@
   --color-text-primary: #ffffff;
   --color-text-secondary: #cccccc;
   --color-text-editor: #ffffff;
-  
+
   /* UI Elements */
   --color-button-bg: #1e1e1e;
   --color-button-hover: #2a2a2a;
   --color-button-active: #333333;
   --color-panel-shadow: rgba(0, 0, 0, 0.5);
   --color-panel-blur: 5px;
-  
+
   /* Notifications */
   --color-success: rgba(0, 200, 83, 1);
   --color-error: rgba(255, 50, 50, 1);
-  
+
   /* Performance indicators */
   --color-perf-good: rgb(0, 255, 83);
   --color-perf-medium: rgb(255, 200, 0);
   --color-perf-poor: rgb(255, 50, 50);
-  
-  /* Syntax highlighting */
-  --color-syntax-function: #ff55bb;
-  --color-syntax-transform: #00ff9d;
-  --color-syntax-math: #00ccff;
-  --color-syntax-control: #ff5555;
-  --color-syntax-keyword: #d580ff;
-  --color-syntax-string: #ffff87;
-  --color-syntax-number: #d580ff;
-  --color-syntax-comment: #7f848e;
-  --color-syntax-operator: #ff55bb;
-  --color-syntax-bracket: #ffffff;
-  
-  /* CodeMirror specific */
-  --cm-text: var(--color-text-editor);
-  --cm-cursor: #ffffff;
-  --cm-active-line-bg: rgba(255, 255, 255, 0.1);
-  --cm-selection-bg: rgba(255, 255, 255, 0.15);
-  --cm-keyword: var(--color-syntax-keyword);
-  --cm-definition: var(--color-syntax-transform);
-  --cm-variable: var(--color-text-editor);
-  --cm-function: var(--color-syntax-function);
-  --cm-number: var(--color-syntax-number);
-  --cm-string: var(--color-syntax-string);
-  --cm-comment: var(--color-syntax-comment);
-  --cm-property: var(--color-syntax-math);
-  --cm-operator: var(--color-syntax-operator);
-  --cm-punctuation: var(--color-syntax-bracket);
+
 }
 
 /* Neon Eighties Theme */
@@ -176,106 +95,61 @@
   --color-text-primary: #ff00ff;
   --color-text-secondary: #00ffff;
   --color-text-editor: #ffffff;
-  
+
   /* UI Elements */
   --color-button-bg: #6600cc;
   --color-button-hover: #8800ee;
   --color-button-active: #aa00ff;
   --color-panel-shadow: rgba(255, 0, 255, 0.3);
   --color-panel-blur: 8px;
-  
+
   /* Notifications */
   --color-success: rgba(0, 255, 180, 0.9);
   --color-error: rgba(255, 50, 150, 0.9);
-  
+
   /* Performance indicators */
   --color-perf-good: rgb(0, 255, 180);
   --color-perf-medium: rgb(255, 255, 0);
   --color-perf-poor: rgb(255, 0, 128);
-  
-  /* Syntax highlighting */
-  --color-syntax-function: #ff00ff;
-  --color-syntax-transform: #00ff99;
-  --color-syntax-math: #00ffff;
-  --color-syntax-control: #ff0066;
-  --color-syntax-keyword: #bb00ff;
-  --color-syntax-string: #ffff00;
-  --color-syntax-number: #bb00ff;
-  --color-syntax-comment: #7d9eff;
-  --color-syntax-operator: #ff00ff;
-  --color-syntax-bracket: #ffffff;
-  
-  /* CodeMirror specific */
-  --cm-text: var(--color-text-editor);
-  --cm-cursor: #00ffff;
-  --cm-active-line-bg: rgba(255, 0, 255, 0.2);
-  --cm-selection-bg: rgba(255, 0, 255, 0.3);
-  --cm-keyword: var(--color-syntax-keyword);
-  --cm-definition: var(--color-syntax-transform);
-  --cm-variable: var(--color-text-editor);
-  --cm-function: var(--color-syntax-function);
-  --cm-number: var(--color-syntax-number);
-  --cm-string: var(--color-syntax-string);
-  --cm-comment: var(--color-syntax-comment);
-  --cm-property: var(--color-syntax-math);
-  --cm-operator: var(--color-syntax-operator);
-  --cm-punctuation: var(--color-syntax-bracket);
+
 }
 
 /* Nineties Pop Theme */
 .theme-nineties-pop {
   /* Base colors */
-  --color-bg-primary: #ffc0cb; /* Pink */
-  --color-bg-secondary: rgba(255, 165, 0, 0.7); /* Orange */
-  --color-bg-tertiary: rgba(255, 215, 0, 0.7); /* Gold */
-  --color-bg-editor: rgba(255, 182, 193, 0.8); /* Light Pink */
+  --color-bg-primary: #ffc0cb;
+  /* Pink */
+  --color-bg-secondary: rgba(255, 165, 0, 0.7);
+  /* Orange */
+  --color-bg-tertiary: rgba(255, 215, 0, 0.7);
+  /* Gold */
+  --color-bg-editor: rgba(255, 182, 193, 0.8);
+  /* Light Pink */
   --color-text-primary: #333333;
   --color-text-secondary: #222222;
   --color-text-editor: #000000;
-  
+
   /* UI Elements */
-  --color-button-bg: #87cefa; /* Light Sky Blue */
-  --color-button-hover: #00bfff; /* Deep Sky Blue */
-  --color-button-active: #1e90ff; /* Dodger Blue */
+  --color-button-bg: #87cefa;
+  /* Light Sky Blue */
+  --color-button-hover: #00bfff;
+  /* Deep Sky Blue */
+  --color-button-active: #1e90ff;
+  /* Dodger Blue */
   --color-panel-shadow: rgba(0, 0, 0, 0.2);
   --color-panel-blur: 5px;
-  
+
   /* Notifications */
-  --color-success: rgba(50, 205, 50, 0.8); /* Lime Green */
-  --color-error: rgba(255, 0, 0, 0.8); /* Red */
-  
+  --color-success: rgba(50, 205, 50, 0.8);
+  /* Lime Green */
+  --color-error: rgba(255, 0, 0, 0.8);
+  /* Red */
+
   /* Performance indicators */
   --color-perf-good: rgb(50, 205, 50);
   --color-perf-medium: rgb(255, 165, 0);
   --color-perf-poor: rgb(255, 0, 0);
-  
-  /* Syntax highlighting */
-  --color-syntax-function: #ff1493; /* Deep Pink */
-  --color-syntax-transform: #2e8b57; /* Sea Green */
-  --color-syntax-math: #4169e1; /* Royal Blue */
-  --color-syntax-control: #dc143c; /* Crimson */
-  --color-syntax-keyword: #9932cc; /* Dark Orchid */
-  --color-syntax-string: #8b4513; /* Saddle Brown */
-  --color-syntax-number: #9932cc; /* Dark Orchid */
-  --color-syntax-comment: #696969; /* Dim Gray */
-  --color-syntax-operator: #ff1493; /* Deep Pink */
-  --color-syntax-bracket: #000000; /* Black */
-  
-  /* CodeMirror specific */
-  --cm-text: var(--color-text-editor);
-  --cm-cursor: #0000ff; /* Blue */
-  --cm-active-line-bg: rgba(135, 206, 250, 0.3); /* Light sky blue */
-  --cm-selection-bg: rgba(0, 191, 255, 0.3); /* Deep sky blue */
-  --cm-keyword: var(--color-syntax-keyword);
-  --cm-definition: var(--color-syntax-transform);
-  --cm-variable: var(--color-text-editor);
-  --cm-function: var(--color-syntax-function);
-  --cm-number: var(--color-syntax-number);
-  --cm-string: var(--color-syntax-string);
-  --cm-comment: var(--color-syntax-comment);
-  --cm-property: var(--color-syntax-math);
-  --cm-operator: var(--color-syntax-operator);
-  --cm-punctuation: var(--color-syntax-bracket);
+
 }
 
 * {
@@ -511,64 +385,7 @@ button:active {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-/* Hydra Syntax Highlighting */
-.hydra-core {
-  color: var(--color-syntax-function) !important;
-  /* Pink */
-}
 
-.hydra-transform {
-  color: var(--color-syntax-transform) !important;
-  /* Green */
-}
-
-.hydra-math {
-  color: var(--color-syntax-math) !important;
-  /* Cyan */
-}
-
-.hydra-control {
-  color: var(--color-syntax-control) !important;
-  /* Red */
-  font-weight: bold;
-}
-
-.hydra-keyword {
-  color: var(--color-syntax-keyword) !important;
-  /* Purple */
-  font-weight: bold;
-}
-
-.hydra-string {
-  color: var(--color-syntax-string) !important;
-  /* Yellow */
-}
-
-.hydra-number {
-  color: var(--color-syntax-number) !important;
-  /* Purple */
-}
-
-.hydra-comment {
-  color: var(--color-syntax-comment) !important;
-  /* Comment Gray */
-  font-style: italic;
-}
-
-.hydra-operator {
-  color: var(--color-syntax-operator) !important;
-  /* Pink */
-}
-
-.hydra-bracket {
-  color: var(--color-syntax-bracket) !important;
-  /* White */
-}
-
-.hydra-semicolon {
-  color: var(--color-syntax-bracket) !important;
-  /* White */
-}
 
 /* CodeMirror Editor Styles */
 .cm-editor {

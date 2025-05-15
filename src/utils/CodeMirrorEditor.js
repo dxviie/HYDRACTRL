@@ -24,7 +24,7 @@ const themeCompartment = new Compartment();
 // Map UI themes to CodeMirror themes
 const themeMapping = {
   // Default (no theme class) uses oneDark (Dracula-inspired)
-  "default": oneDark,
+  default: oneDark,
 
   // Light theme
   "theme-light": githubLight,
@@ -36,80 +36,77 @@ const themeMapping = {
   "theme-neon-eighties": nord,
 
   // Nineties Pop theme
-  "theme-nineties-pop": materialLight
+  "theme-nineties-pop": materialLight,
 };
 
-// Create a custom theme that uses CSS variables for theming
+// Create a minimal base theme for the editor
 const hydraTheme = EditorView.theme({
   "&": {
-    backgroundColor: "transparent !important", // Force transparent background
     height: "100%",
     fontSize: "14px",
   },
   ".cm-scroller": {
     fontFamily: "monospace",
     lineHeight: "1.5",
-    backgroundColor: "transparent !important", // Force transparent background
-  },
-  ".cm-content": {
-    caretColor: "var(--cm-cursor)",
-    backgroundColor: "transparent !important", // Force transparent background
-  },
-  ".cm-line": {
-    padding: "0 8px",
-    color: "var(--cm-text)",
-    backgroundColor: "transparent !important", // Force transparent background
-  },
-  ".cm-cursor": {
-    borderLeftColor: "var(--cm-cursor)",
-  },
-  ".cm-activeLine": {
-    backgroundColor: "var(--cm-active-line-bg)",
   },
   ".cm-gutters": {
     backgroundColor: "var(--color-bg-editor)",
-    color: "var(--cm-comment)",
     border: "none",
   },
-  ".cm-activeLineGutter": {
-    backgroundColor: "var(--cm-active-line-bg)",
-  },
-  ".cm-selectionBackground": {
-    backgroundColor: "var(--cm-selection-bg) !important",
-  },
-  ".cm-searchMatch": {
-    backgroundColor: "var(--cm-selection-bg) !important",
-    outline: "1px solid var(--cm-selection-bg) !important",
-  },
-  // Syntax highlighting
-  ".cm-keyword": { color: "var(--cm-keyword)" },
-  ".cm-definition": { color: "var(--cm-definition)" },
-  ".cm-variable": { color: "var(--cm-variable)" },
-  ".cm-function": { color: "var(--cm-function)" },
-  ".cm-number": { color: "var(--cm-number)" },
-  ".cm-string": { color: "var(--cm-string)" },
-  ".cm-comment": { color: "var(--cm-comment)" },
-  ".cm-property": { color: "var(--cm-property)" },
-  ".cm-operator": { color: "var(--cm-operator)" },
-  ".cm-punctuation": { color: "var(--cm-punctuation)" },
 });
 
 // Create a list of Hydra functions for syntax highlighting
 const hydraKeywords = [
   // Core generator functions
-  "osc", "noise", "voronoi", "shape", "gradient", "src", "solid",
+  "osc",
+  "noise",
+  "voronoi",
+  "shape",
+  "gradient",
+  "src",
+  "solid",
   // Color operations
-  "color", "colorama", "saturate", "hue", "brightness", "contrast", "invert",
+  "color",
+  "colorama",
+  "saturate",
+  "hue",
+  "brightness",
+  "contrast",
+  "invert",
   // Geometry operations
-  "rotate", "repeat", "repeatX", "repeatY", "kaleid", "pixelate", "scale",
+  "rotate",
+  "repeat",
+  "repeatX",
+  "repeatY",
+  "kaleid",
+  "pixelate",
+  "scale",
   // Modulation and blending
-  "modulate", "modulatePixelate", "modulateRotate", "modulateScale", "modulateKaleid",
-  "blend", "mult", "add", "diff", "mask", "thresh",
+  "modulate",
+  "modulatePixelate",
+  "modulateRotate",
+  "modulateScale",
+  "modulateKaleid",
+  "blend",
+  "mult",
+  "add",
+  "diff",
+  "mask",
+  "thresh",
   // Output and system functions
-  "out", "render", "hush", "setFunction", "setResolution",
-  "setBins", "fft",
+  "out",
+  "render",
+  "hush",
+  "setFunction",
+  "setResolution",
+  "setBins",
+  "fft",
   // P5 related
-  "draw", "setup", "mousePressed", "mouseReleased", "mouseMoved"
+  "draw",
+  "setup",
+  "mousePressed",
+  "mouseReleased",
+  "mouseMoved",
 ];
 
 /**
@@ -118,7 +115,7 @@ const hydraKeywords = [
  * @param {string} initialCode - Initial code to display
  * @returns {Object} Editor object with API methods
  */
-export function createCodeMirrorEditor(container, initialCode = '') {
+export function createCodeMirrorEditor(container, initialCode = "") {
   // Custom key handler for Ctrl+Enter
   // We need to use a combination of approaches to ensure it's captured
 
@@ -126,7 +123,7 @@ export function createCodeMirrorEditor(container, initialCode = '') {
   const preventCtrlEnterHandler = EditorView.domEventHandlers({
     keydown: (event, view) => {
       // Check for Ctrl+Enter or Cmd+Enter (code 13 is Enter)
-      if ((event.ctrlKey || event.metaKey) && (event.key === 'Enter' || event.keyCode === 13)) {
+      if ((event.ctrlKey || event.metaKey) && (event.key === "Enter" || event.keyCode === 13)) {
         // Prevent default behavior (adding newline)
         event.preventDefault();
         event.stopPropagation();
@@ -134,25 +131,27 @@ export function createCodeMirrorEditor(container, initialCode = '') {
         return true;
       }
       return false;
-    }
+    },
   });
 
   // Custom keymap that takes priority over the default keymap
-  const ctrlEnterKeymap = keymap.of([{
-    key: "Ctrl-Enter",
-    mac: "Cmd-Enter",
-    run: () => {
-      // Returning true means the key was handled
-      return true;
+  const ctrlEnterKeymap = keymap.of([
+    {
+      key: "Ctrl-Enter",
+      mac: "Cmd-Enter",
+      run: () => {
+        // Returning true means the key was handled
+        return true;
+      },
+      // High priority to override other keymaps
+      preventDefault: true,
     },
-    // High priority to override other keymaps
-    preventDefault: true
-  }]);
+  ]);
 
   // Function to get the appropriate theme based on body class
   function getCurrentTheme() {
     // Check if any theme classes are present on the body
-    const bodyClasses = document.body.className.split(' ');
+    const bodyClasses = document.body.className.split(" ");
     for (const className of bodyClasses) {
       if (themeMapping[className]) {
         return themeMapping[className];
@@ -170,17 +169,14 @@ export function createCodeMirrorEditor(container, initialCode = '') {
       highlightActiveLineGutter(),
       // Our custom Ctrl+Enter keymap comes first for highest priority
       ctrlEnterKeymap,
-      keymap.of([
-        indentWithTab,
-        ...defaultKeymap
-      ]),
+      keymap.of([indentWithTab, ...defaultKeymap]),
       languageCompartment.of(javascript()),
       hydraTheme, // Base editor styling
       themeCompartment.of(getCurrentTheme()), // Theme-specific syntax coloring
       EditorView.lineWrapping,
       EditorState.tabSize.of(2),
       preventCtrlEnterHandler, // Add our custom handler
-    ]
+    ],
   });
 
   // Create the editor view
@@ -190,16 +186,16 @@ export function createCodeMirrorEditor(container, initialCode = '') {
   });
 
   // Add custom class for additional styling
-  view.dom.classList.add('cm-editor');
+  view.dom.classList.add("cm-editor");
 
   // Set up theme change observer
   const themeObserver = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
-      if (mutation.attributeName === 'class') {
+      if (mutation.attributeName === "class") {
         // Body class has changed, check if we need to update the theme
         const newTheme = getCurrentTheme();
         view.dispatch({
-          effects: themeCompartment.reconfigure(newTheme)
+          effects: themeCompartment.reconfigure(newTheme),
         });
       }
     }
@@ -213,7 +209,7 @@ export function createCodeMirrorEditor(container, initialCode = '') {
     getCode: () => view.state.doc.toString(),
     setCode: (code) => {
       view.dispatch({
-        changes: { from: 0, to: view.state.doc.length, insert: code }
+        changes: { from: 0, to: view.state.doc.length, insert: code },
       });
     },
     focus: () => view.focus(),
@@ -222,9 +218,9 @@ export function createCodeMirrorEditor(container, initialCode = '') {
     updateTheme: () => {
       const newTheme = getCurrentTheme();
       view.dispatch({
-        effects: themeCompartment.reconfigure(newTheme)
+        effects: themeCompartment.reconfigure(newTheme),
       });
-    }
+    },
   };
 
   return editor;
