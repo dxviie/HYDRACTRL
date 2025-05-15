@@ -6,6 +6,19 @@ import { createMidiManager } from "../MidiManager.js";
 import { loadPanelPosition, savePanelPosition } from "../utils/PanelStorage.js";
 import P5 from "./p5-wrapper.js";
 
+// Helper function to debounce events
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
 // Default starter code for Hydra
 const DEFAULT_CODE = `// HYDRACTRL Sample
 
@@ -19,16 +32,37 @@ osc(10, 0.1, 1.2)
 // Initialize a CodeMirror editor for Hydra
 function initEditor() {
   const editorContent = document.getElementById("editor-content");
+  const editorContainer = document.getElementById("editor-container");
 
   // Create the hydra editor with CodeMirror
   const editor = createCodeMirrorEditor(editorContent, DEFAULT_CODE);
 
   // Make the editor draggable by the handle with position persistence
   makeDraggable(
-    document.getElementById("editor-container"),
+    editorContainer,
     document.getElementById("editor-handle"),
     "editor-panel",
   );
+
+  // Add a resize observer to save dimensions when resized
+  const resizeObserver = new ResizeObserver(debounce(() => {
+    // Skip saving if editor is being dragged to avoid conflicts
+    if (editorContainer.classList.contains("dragging")) return;
+    
+    // Get the position and dimensions
+    const position = {
+      left: parseInt(editorContainer.style.left || "0"),
+      top: parseInt(editorContainer.style.top || "0"),
+      width: editorContainer.offsetWidth,
+      height: editorContainer.offsetHeight,
+    };
+    
+    // Save to localStorage
+    savePanelPosition("editor-panel", position);
+  }, 100));
+  
+  // Start observing the editor container
+  resizeObserver.observe(editorContainer);
 
   // Create a simplified API that mimics our previous interface
   return {
