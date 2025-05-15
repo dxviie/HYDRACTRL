@@ -11,9 +11,9 @@
         "@codemirror/theme-one-dark": "^6.1.2",
         "@codemirror/view": "^6.22.3",
         "@uiw/codemirror-theme-dracula": "^4.21.21",
-        "@uiw/codemirror-theme-github": "^4.21.21",
-        "@uiw/codemirror-theme-material": "^4.21.21",
-        "@uiw/codemirror-theme-nord": "^4.21.21",
+        "@uiw/codemirror-theme-eclipse": "4.23.12",
+        "@uiw/codemirror-theme-monokai": "4.23.12",
+        "@uiw/codemirror-theme-solarized": "4.23.12",
         "codemirror": "^6.0.1",
         "elysia": "^0.8.17",
         "hydra-synth": "^1.3.25",
@@ -90,11 +90,11 @@
 
     "@uiw/codemirror-theme-dracula": ["@uiw/codemirror-theme-dracula@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-ZTNKHvXCOdvXF62mLOkrumu5UeegK/Iip7lCwzW3ZdV4HgljDbnWshyLY6M8iLrjTI1QbYjVGJzt7J5lg5xgOA=="],
 
-    "@uiw/codemirror-theme-github": ["@uiw/codemirror-theme-github@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-yxgycQxA1fNVdrjIZ7H7pq+9Q+BeKLmD5oq5oOlw7kVJrnToOMBylv5oIWplVd2s2LFo47lIhWrVC9Ay3b6Baw=="],
+    "@uiw/codemirror-theme-eclipse": ["@uiw/codemirror-theme-eclipse@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-SVyvHPtrmS47IAnREuqG3YcAFJziLoFNtXg4dXX1IGjJzrT1ONGAn9vfMx0KNWOdGHpFUUFjiH8G3igI0VhZZA=="],
 
-    "@uiw/codemirror-theme-material": ["@uiw/codemirror-theme-material@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-M7yo5mE0QDKjWm02sN6Sw3Ld4/3XvAuJZcEdKYgqmiGI7GKL/nAV8HDfD8iMNm0HGnyozK402WLzb84oB57gAg=="],
+    "@uiw/codemirror-theme-monokai": ["@uiw/codemirror-theme-monokai@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-axDkBX+txR4NKZLrEkFd+m50UQS579UEqneHz1cTQ8r0z7OYjAZo+7CwdXF5BliJOgaRTC617fyUqEr4X6UCkQ=="],
 
-    "@uiw/codemirror-theme-nord": ["@uiw/codemirror-theme-nord@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-U8w3VIuim9H1lEzReeNyv1+uwnPO+gc3gLXCFwxpwF/XDrTQf5TjQFL+c1AGVCYM/Ywf5sflUcF96C3z634r6g=="],
+    "@uiw/codemirror-theme-solarized": ["@uiw/codemirror-theme-solarized@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-qAh5jS7P/qwLAJ93OP9r4Z3DdZh0SFq0uhwYXckSVVYtuypiYf3ZSpQLuiSQ7I/B9BMPtENt7GgthFIun21PYA=="],
 
     "@uiw/codemirror-themes": ["@uiw/codemirror-themes@4.23.12", "", { "dependencies": { "@codemirror/language": "^6.0.0", "@codemirror/state": "^6.0.0", "@codemirror/view": "^6.0.0" } }, "sha512-8etEByfS9yttFZW0rcWhdZc7/JXJKRWlU5lHmJCI3GydZNGCzydNA+HtK9nWKpJUndVc58Q2sqSC5OIcwq8y6A=="],
 

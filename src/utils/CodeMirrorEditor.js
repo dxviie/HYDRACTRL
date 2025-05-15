@@ -8,12 +8,10 @@ import { EditorView, keymap, lineNumbers, highlightActiveLineGutter } from "@cod
 import { defaultKeymap, indentWithTab } from "@codemirror/commands";
 import { javascript } from "@codemirror/lang-javascript";
 import { oneDark } from "@codemirror/theme-one-dark";
-
-// Import themes from @uiw packages - Note: first run bun install to install these
 import { dracula } from "@uiw/codemirror-theme-dracula";
-import { materialLight } from "@uiw/codemirror-theme-material";
-import { nord } from "@uiw/codemirror-theme-nord";
-import { githubLight } from "@uiw/codemirror-theme-github";
+import { monokai } from "@uiw/codemirror-theme-monokai";
+import { eclipse } from "@uiw/codemirror-theme-eclipse";
+import { solarizedDark } from "@uiw/codemirror-theme-solarized";
 
 // Language compartment for JavaScript with Hydra extensions
 const languageCompartment = new Compartment();
@@ -27,16 +25,16 @@ const themeMapping = {
   default: oneDark,
 
   // Light theme
-  "theme-light": githubLight,
+  "theme-light": eclipse,
 
   // Dark theme (high contrast)
-  "theme-dark": dracula,
+  "theme-dark": solarizedDark,
 
   // Neon Eighties theme
-  "theme-neon-eighties": nord,
+  "theme-neon-eighties": monokai,
 
   // Nineties Pop theme
-  "theme-nineties-pop": materialLight,
+  "theme-nineties-pop": dracula,
 };
 
 // Create a minimal base theme for the editor
