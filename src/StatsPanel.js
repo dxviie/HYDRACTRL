@@ -490,12 +490,52 @@ export function createStatsPanel() {
   details.appendChild(avgFpsMetric);
   details.appendChild(frameCountMetric);
 
+  // Create footer section with attribution
+  const footerSection = document.createElement("div");
+  footerSection.className = "stats-footer";
+  footerSection.style.marginTop = "8px";
+  footerSection.style.paddingTop = "8px";
+  footerSection.style.borderTop = "1px solid var(--color-bg-tertiary)";
+  footerSection.style.display = "flex";
+  footerSection.style.justifyContent = "space-between";
+  footerSection.style.alignItems = "center";
+  footerSection.style.fontSize = "10px";
+  footerSection.style.color = "var(--color-text-secondary)";
+
+  // Attribution text with links
+  const attributionText = document.createElement("div");
+  attributionText.innerHTML = 'based on <a href="https://hydra.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">hydra</a> by <a href="https://www.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">Olivia Jack</a>.<br> made with 🧡 by <a href="https://d17e.dev" target="_blank" style="color:inherit;text-decoration:underline">d17e.dev</a>';
+  attributionText.style.lineHeight = "1.2";
+
+  // Info icon button
+  const infoButton = document.createElement("button");
+  infoButton.innerHTML = "ℹ️";
+  infoButton.style.background = "none";
+  infoButton.style.border = "none";
+  infoButton.style.cursor = "pointer";
+  infoButton.style.fontSize = "12px";
+  infoButton.style.padding = "2px";
+  infoButton.style.display = "flex";
+  infoButton.style.alignItems = "center";
+  infoButton.style.justifyContent = "center";
+  infoButton.title = "View project information";
+
+  // Add click event to open project page
+  infoButton.addEventListener("click", () => {
+    window.open("https://dxviie.github.io/HYDRACTRL/", "_blank");
+  });
+
+  // Add elements to footer
+  footerSection.appendChild(attributionText);
+  footerSection.appendChild(infoButton);
+
   content.appendChild(metrics);
   content.appendChild(details);
   content.appendChild(themeSection);
   content.appendChild(midiSection);
   content.appendChild(displaySection);
   content.appendChild(exportSection);
+  content.appendChild(footerSection);
 
   handle.appendChild(title);
   handle.appendChild(toggle);
