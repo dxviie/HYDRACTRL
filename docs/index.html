@@ -47,6 +47,16 @@
             background: linear-gradient(to bottom, var(--color-bg-primary), var(--color-bg-secondary));
         }
 
+        a {
+            color: var(--color-accent-primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: var(--color-accent-secondary);
+        }
+
         .logo {
             font-size: 3rem;
             font-weight: bold;
@@ -352,9 +362,11 @@
     <header>
         <div class="container">
             <h1 class="logo">HYDRACTRL</h1>
-            <p class="subtitle">Advanced Live Coding Visual Performance Tool</p>
+            <p class="subtitle">A Performance Wrapper around <a href="https://hydra.ojack.xyz"
+                    aria-label="Hydra by Olivia Jack">Hydra</a> by <a href="https://www.d17e.dev"
+                    aria-label="David Vandenbogaerde">d17e.dev</a></p>
             <div class="cta-buttons">
-                <a href="index.html" class="btn btn-primary"><i class="fas fa-play"></i> Launch App</a>
+                <a href="https://hydractrl.d17e.dev" class="btn btn-primary"><i class="fas fa-play"></i> Launch App</a>
                 <a href="https://github.com/dxviie/HYDRACTRL" class="btn"><i class="fab fa-github"></i> GitHub</a>
             </div>
             <img src="assets/hydractrl-preview.jpg" alt="HYDRACTRL Interface Preview" class="preview">
@@ -365,11 +377,10 @@
         <div class="container">
             <h2>Overview</h2>
             <p>HYDRACTRL is a specialized tool for live visual performances built on top of <a
-                    href="https://hydra.ojack.xyz/" style="color: var(--color-accent-primary);">Hydra-Synth</a>, a
+                    href="https://hydra.ojack.xyz/">Hydra-Synth</a>, a
                 JavaScript library created by <a href="https://ojack.xyz/"
                     style="color: var(--color-accent-primary);">Olivia Jack</a>. HYDRACTRL enhances the Hydra experience
-                with a performance-oriented interface, scene management, MIDI integration, and more features designed
-                specifically for live coding situations.</p>
+                with a performance-oriented interface, scene management, MIDI integration, and more.</p>
 
             <p>Hydra allows you to create stunning visual patterns and animations through code. By combining
                 oscillators, geometry transformations, and color manipulations, you can create complex, hypnotic visuals
@@ -381,18 +392,17 @@
                     <h3>Scene Management</h3>
                     <p>Store and recall up to 64 scenes (4 banks of 16 slots) for quick access during performances.</p>
                 </div>
-
                 <div class="feature-card">
                     <i class="fas fa-music"></i>
                     <h3>MIDI Integration</h3>
-                    <p>Control your visuals using MIDI controllers with native support for devices like Korg nanoPAD.
+                    <p>Control your visuals using Korg nanoPad MIDI controller.
                     </p>
                 </div>
 
                 <div class="feature-card">
                     <i class="fas fa-code"></i>
                     <h3>Code Editor</h3>
-                    <p>Syntax highlighting, code completion, and customizable themes for easier live coding.</p>
+                    <p>Syntax highlighting and customizable themes for easier live coding.</p>
                 </div>
 
                 <div class="feature-card">
@@ -426,7 +436,7 @@
             <p>HYDRACTRL provides a comprehensive scene management system with 4 banks of 16 slots each, giving you
                 quick access to 64 different visual presets during your performance. Each scene stores:</p>
             <ul>
-                <li>The complete Hydra code that generates your visuals</li>
+                <li>The complete Hydra code that generates your visuals (Base64 encoded)</li>
                 <li>A visual thumbnail for easy recognition</li>
                 <li>Automatic persistence between sessions</li>
             </ul>
@@ -532,8 +542,8 @@
             <div class="credits">
                 <div class="credit-item">
                     <h3>Hydra-Synth</h3>
-                    <p>The foundation of HYDRACTRL is <a href="https://hydra.ojack.xyz/"
-                            style="color: var(--color-accent-primary);">Hydra-Synth</a>, a powerful JavaScript library
+                    <p>The foundation of HYDRACTRL is <a href="https://hydra.ojack.xyz/">Hydra-Synth</a>, a powerful
+                        JavaScript library
                         for live coding visuals created by Olivia Jack. Hydra uses WebGL to create stunning visual
                         patterns and is inspired by analog modular synthesizers.</p>
                 </div>
@@ -616,13 +626,14 @@ osc(10, 0.1, 1.2)
     <footer>
         <div class="container">
             <p>HYDRACTRL is an open-source project built on top of <a href="https://hydra.ojack.xyz/"
-                    style="color: var(--color-accent-primary);">Hydra-Synth</a> by Olivia Jack</p>
+                    style="color: var(--color-accent-primary);">Hydra-Synth</a> by <a href="https://ojack.xyz/">Olivia
+                    Jack</a></p>
 
             <div class="social-links">
                 <a href="https://github.com/dxviie/HYDRACTRL"><i class="fab fa-github"></i></a>
             </div>
 
-            <p>Created with ❤️ for the live coding community</p>
+            <p>Made with 🧡 by <a href="https://www.d17e.dev" aria-label="David Vandenbogaerde">d17e.dev</a> </p>
         </div>
     </footer>
 </body>

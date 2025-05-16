@@ -1,6 +1,8 @@
+![HYDRACTRL screenshot](./docs/assets/hydractrl-preview.jpg)
+
 # HYDRACTRL
 
-A performant tool built around [hydra-synth](https://hydra.ojack.xyz/) designed for live visual performances.
+A wrapper around [hydra](https://hydra.ojack.xyz/) designed for live visual performances.
 
 ## Features
 
