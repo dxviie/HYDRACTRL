@@ -47,18 +47,6 @@ bun run build:exe
 
 The `bun run build:exe` command creates a single executable file that can be distributed and run without installing Bun or any dependencies.
 
-## GitHub Pages
-
-To deploy the project landing page:
-
-1. Rename `public/index-page.html` to `public/landing.html`
-2. Add a screenshot of the interface to `public/assets/hydractrl-preview.jpg`
-3. Configure GitHub Pages to deploy from your repository:
-   - Go to your repository's Settings > Pages
-   - Select your main branch and the `/public` folder as the source
-   - The main app will be accessible at `https://username.github.io/HYDRACTRL/`
-   - The landing page will be at `https://username.github.io/HYDRACTRL/landing.html`
-
 ## Credits
 
 HYDRACTRL is built on top of [Hydra-Synth](https://hydra.ojack.xyz/) by [Olivia Jack](https://ojack.xyz/). It uses CodeMirror 6 for the editor and Web MIDI API for controller support.
