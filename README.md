@@ -3,6 +3,7 @@
 # HYDRACTRL
 
 A wrapper around [hydra](https://hydra.ojack.xyz/) designed for live visual performances.
+Check out the [project page](https://dxviie.github.io/HYDRACTRL/) or go [play around](https://hydractrl.d17e.dev)
 
 ## Features
 
@@ -42,10 +43,6 @@ bun run build:exe
 | Escape | Toggle editor visibility |
 | Ctrl + 1-9 | Select slots 1-9 in current bank |
 | Ctrl + ←/→ | Cycle between banks |
-
-## Distribution
-
-The `bun run build:exe` command creates a single executable file that can be distributed and run without installing Bun or any dependencies.
 
 ## Credits
 
