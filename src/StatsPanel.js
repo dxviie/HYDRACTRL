@@ -518,11 +518,15 @@ export function createStatsPanel() {
   infoButton.style.display = "flex";
   infoButton.style.alignItems = "center";
   infoButton.style.justifyContent = "center";
-  infoButton.title = "View project information";
+  infoButton.title = "Show application information and shortcuts";
 
-  // Add click event to open project page
+  // Add click event to show info panel
   infoButton.addEventListener("click", () => {
-    window.open("https://dxviie.github.io/HYDRACTRL/", "_blank");
+    if (window.showInfoPanel) {
+      window.showInfoPanel();
+    } else {
+      window.open("https://dxviie.github.io/HYDRACTRL/", "_blank");
+    }
   });
 
   // Add elements to footer

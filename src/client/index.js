@@ -269,6 +269,241 @@ function showErrorNotification(errorMessage) {
   }, 10000);
 }
 
+// Create info panel with app information and keyboard shortcuts
+function createInfoPanel() {
+  // Check if panel already exists
+  if (document.getElementById("info-panel")) {
+    return document.getElementById("info-panel");
+  }
+
+  // Create the panel container
+  const panel = document.createElement("div");
+  panel.id = "info-panel";
+  panel.className = "info-panel";
+  panel.style.position = "fixed";
+  panel.style.top = "50%";
+  panel.style.left = "50%";
+  panel.style.transform = "translate(-50%, -50%)";
+  panel.style.backgroundColor = "var(--color-bg-secondary)";
+  panel.style.borderRadius = "8px";
+  panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
+  panel.style.backdropFilter = "blur(var(--color-panel-blur))";
+  panel.style.zIndex = "1000";
+  panel.style.overflow = "hidden";
+  panel.style.width = "500px";
+  panel.style.maxWidth = "90vw";
+  panel.style.maxHeight = "80vh";
+  panel.style.display = "flex";
+  panel.style.flexDirection = "column";
+
+  // Create the header with title and close button
+  const header = document.createElement("div");
+  header.className = "info-panel-header";
+  header.style.backgroundColor = "var(--color-bg-tertiary)";
+  header.style.padding = "12px 16px";
+  header.style.display = "flex";
+  header.style.justifyContent = "space-between";
+  header.style.alignItems = "center";
+  
+  const title = document.createElement("h2");
+  title.textContent = "About HYDRACTRL";
+  title.style.margin = "0";
+  title.style.fontSize = "16px";
+  title.style.fontWeight = "bold";
+  title.style.color = "var(--color-text-primary)";
+  
+  const closeButton = document.createElement("button");
+  closeButton.textContent = "×";
+  closeButton.style.background = "none";
+  closeButton.style.border = "none";
+  closeButton.style.fontSize = "20px";
+  closeButton.style.color = "var(--color-text-primary)";
+  closeButton.style.cursor = "pointer";
+  closeButton.style.padding = "0 5px";
+  closeButton.title = "Close";
+  
+  header.appendChild(title);
+  header.appendChild(closeButton);
+  
+  // Create the content container
+  const content = document.createElement("div");
+  content.className = "info-panel-content";
+  content.style.padding = "20px";
+  content.style.overflowY = "auto";
+  
+  // Create sections
+  // About section
+  const aboutSection = document.createElement("div");
+  aboutSection.className = "info-section";
+  
+  const aboutTitle = document.createElement("h3");
+  aboutTitle.textContent = "About";
+  aboutTitle.style.fontSize = "14px";
+  aboutTitle.style.marginTop = "0";
+  aboutTitle.style.marginBottom = "10px";
+  aboutTitle.style.color = "var(--color-text-primary)";
+  
+  const aboutText = document.createElement("p");
+  aboutText.innerHTML = `HYDRACTRL is a tool built around <a href="https://hydra.ojack.xyz" target="_blank" style="color:var(--color-text-secondary);text-decoration:underline">hydra-synth</a> designed for live performances. It provides an enhanced code editor with features like scene slots, MIDI controller support, and performance optimization.`;
+  aboutText.style.margin = "0 0 15px 0";
+  aboutText.style.fontSize = "13px";
+  aboutText.style.lineHeight = "1.4";
+  aboutText.style.color = "var(--color-text-secondary)";
+  
+  aboutSection.appendChild(aboutTitle);
+  aboutSection.appendChild(aboutText);
+  
+  // Keyboard shortcuts section
+  const shortcutsSection = document.createElement("div");
+  shortcutsSection.className = "info-section";
+  shortcutsSection.style.marginTop = "20px";
+  
+  const shortcutsTitle = document.createElement("h3");
+  shortcutsTitle.textContent = "Keyboard Shortcuts";
+  shortcutsTitle.style.fontSize = "14px";
+  shortcutsTitle.style.marginTop = "0";
+  shortcutsTitle.style.marginBottom = "10px";
+  shortcutsTitle.style.color = "var(--color-text-primary)";
+  
+  // Create table for shortcuts
+  const shortcutsTable = document.createElement("table");
+  shortcutsTable.style.width = "100%";
+  shortcutsTable.style.borderCollapse = "collapse";
+  shortcutsTable.style.fontSize = "13px";
+  
+  // Define shortcuts
+  const shortcuts = [
+    { keys: "Ctrl/Cmd + Enter", action: "Run code" },
+    { keys: "Ctrl/Cmd + S", action: "Save code" },
+    { keys: "Escape", action: "Toggle editor visibility" },
+    { keys: "Ctrl/Cmd + 1-9", action: "Select slot 1-9" },
+    { keys: "Ctrl/Cmd + X", action: "Export all slots" },
+    { keys: "Ctrl/Cmd + I", action: "Import slots file" },
+    { keys: "Ctrl/Cmd + ←/→", action: "Cycle between banks (when no MIDI device is connected)" }
+  ];
+  
+  // Add shortcuts to table
+  shortcuts.forEach(shortcut => {
+    const row = document.createElement("tr");
+    row.style.borderBottom = "1px solid var(--color-bg-tertiary)";
+    
+    const keysCell = document.createElement("td");
+    keysCell.textContent = shortcut.keys;
+    keysCell.style.padding = "8px 16px 8px 0";
+    keysCell.style.fontFamily = "monospace";
+    keysCell.style.whiteSpace = "nowrap";
+    keysCell.style.color = "var(--color-text-primary)";
+    
+    const actionCell = document.createElement("td");
+    actionCell.textContent = shortcut.action;
+    actionCell.style.padding = "8px 0";
+    actionCell.style.color = "var(--color-text-secondary)";
+    
+    row.appendChild(keysCell);
+    row.appendChild(actionCell);
+    shortcutsTable.appendChild(row);
+  });
+  
+  shortcutsSection.appendChild(shortcutsTitle);
+  shortcutsSection.appendChild(shortcutsTable);
+  
+  // Show on startup option
+  const startupSection = document.createElement("div");
+  startupSection.className = "startup-section";
+  startupSection.style.marginTop = "20px";
+  startupSection.style.display = "flex";
+  startupSection.style.alignItems = "center";
+  
+  const showOnStartupCheckbox = document.createElement("input");
+  showOnStartupCheckbox.type = "checkbox";
+  showOnStartupCheckbox.id = "show-on-startup";
+  showOnStartupCheckbox.checked = localStorage.getItem("hydractrl-show-info-on-startup") !== "false"; // Default to true
+  
+  const showOnStartupLabel = document.createElement("label");
+  showOnStartupLabel.htmlFor = "show-on-startup";
+  showOnStartupLabel.textContent = "Show on startup";
+  showOnStartupLabel.style.marginLeft = "8px";
+  showOnStartupLabel.style.fontSize = "13px";
+  showOnStartupLabel.style.color = "var(--color-text-secondary)";
+  
+  showOnStartupCheckbox.addEventListener("change", (e) => {
+    localStorage.setItem("hydractrl-show-info-on-startup", e.target.checked);
+  });
+  
+  startupSection.appendChild(showOnStartupCheckbox);
+  startupSection.appendChild(showOnStartupLabel);
+  
+  // Version info
+  const versionInfo = document.createElement("div");
+  versionInfo.className = "version-info";
+  versionInfo.textContent = "Made with 🧡 by d17e.dev";
+  versionInfo.style.marginTop = "20px";
+  versionInfo.style.fontSize = "12px";
+  versionInfo.style.textAlign = "center";
+  versionInfo.style.color = "var(--color-text-secondary)";
+  
+  // Add everything to content
+  content.appendChild(aboutSection);
+  content.appendChild(shortcutsSection);
+  content.appendChild(startupSection);
+  content.appendChild(versionInfo);
+  
+  // Add header and content to panel
+  panel.appendChild(header);
+  panel.appendChild(content);
+  
+  // Add to body
+  document.body.appendChild(panel);
+  
+  // Close button functionality
+  closeButton.addEventListener("click", () => {
+    hideInfoPanel();
+  });
+  
+  // Allow clicking outside to close
+  document.addEventListener("mousedown", (e) => {
+    if (panel.parentNode && !panel.contains(e.target)) {
+      hideInfoPanel();
+    }
+  });
+  
+  // Allow pressing ESC to close
+  document.addEventListener("keydown", (e) => {
+    if (panel.parentNode && e.key === "Escape") {
+      hideInfoPanel();
+      e.stopPropagation(); // Prevent editor toggle
+    }
+  });
+  
+  return panel;
+}
+
+// Show the info panel
+function showInfoPanel() {
+  const panel = createInfoPanel();
+  panel.style.display = "flex";
+  
+  // Add a fade-in effect
+  panel.style.opacity = "0";
+  setTimeout(() => {
+    panel.style.opacity = "1";
+    panel.style.transition = "opacity 0.3s ease-in-out";
+  }, 10);
+}
+
+// Hide the info panel
+function hideInfoPanel() {
+  const panel = document.getElementById("info-panel");
+  if (panel) {
+    panel.style.opacity = "0";
+    panel.style.transition = "opacity 0.3s ease-in-out";
+    
+    setTimeout(() => {
+      panel.style.display = "none";
+    }, 300);
+  }
+}
+
 // Run hydra code
 async function runCode(editor, hydra) {
   try {
@@ -566,6 +801,11 @@ async function init() {
 
       editor.focus(); // Return focus to editor after saving
     });
+    
+    // Add info button click handler
+    document.getElementById("info-btn").addEventListener("click", () => {
+      showInfoPanel();
+    });
 
     // Add keyboard shortcuts
     document.addEventListener("keydown", (e) => {
@@ -594,27 +834,28 @@ async function init() {
         toggleEditor();
       }
 
-      // Number keys 1-9 to select slots 1-9 (when holding Ctrl)
-      if (e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+      // Check for either Ctrl or Cmd (metaKey) for the following shortcuts
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey) {
+        // Number keys 1-9 to select slots 1-9
         const num = parseInt(e.key);
         if (!isNaN(num) && num >= 1 && num <= 9 && window.slotsPanel) {
           e.preventDefault();
           window.slotsPanel.setActiveSlot(num - 1); // Convert to 0-based index
         }
 
-        // Ctrl+X to export scene bank
+        // Ctrl/Cmd+X to export scene bank
         if (e.key === "x" && window.slotsPanel && window.slotsPanel.exportAllSlots) {
           e.preventDefault();
           window.slotsPanel.exportAllSlots();
         }
 
-        // Ctrl+I to import scene bank
+        // Ctrl/Cmd+I to import scene bank
         if (e.key === "i" && window.slotsPanel && window.slotsPanel.importSlots) {
           e.preventDefault();
           window.slotsPanel.importSlots();
         }
 
-        // Ctrl+Left/Right arrow keys to cycle between banks (only when no MIDI device is connected)
+        // Ctrl/Cmd+Left/Right arrow keys to cycle between banks (only when no MIDI device is connected)
         if (e.key === "ArrowLeft" && window.slotsPanel && window.slotsPanel.cycleBank) {
           // Check if MIDI device is connected
           const midiConnected =
@@ -881,6 +1122,16 @@ async function init() {
     window.slotsPanel = slotsPanel;
     window.midiManager = midiManager;
     window._editorProxy = editor; // Expose editor proxy for focus etc.
+    window.showInfoPanel = showInfoPanel; // Expose info panel functions
+    window.hideInfoPanel = hideInfoPanel;
+    
+    // Check if we should show the info panel on startup
+    if (localStorage.getItem("hydractrl-show-info-on-startup") !== "false") {
+      // Slight delay to allow UI to initialize
+      setTimeout(() => {
+        showInfoPanel();
+      }, 500);
+    }
 
     // Set up size buttons functionality
     statsPanel.display.sizeButtons.forEach((button) => {
