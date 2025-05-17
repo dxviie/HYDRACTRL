@@ -477,17 +477,43 @@ button:active {
   height: 40px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
+  justify-content: space-between;
   padding: 0 10px;
   background-color: rgba(var(--color-bg-tertiary-rgb), var(--panel-opacity));
   flex-shrink: 0;
+}
+
+.editor-footer-left {
+  display: flex;
+  align-items: center;
+}
+
+.editor-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .editor-footer button {
   padding: 6px 12px;
   font-size: 12px;
   border-radius: 3px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.checkbox-container input[type="checkbox"] {
+  margin-right: 2px;
+}
+
+.checkbox-container span {
+  user-select: none;
 }
 
 /* Custom form elements styling */

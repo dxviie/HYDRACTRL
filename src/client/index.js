@@ -367,6 +367,7 @@ function createInfoPanel() {
   const shortcuts = [
     { keys: "Ctrl/Cmd + Enter", action: "Run code" },
     { keys: "Ctrl/Cmd + S", action: "Save code" },
+    { keys: "Ctrl/Cmd + Y", action: "Toggle Auto Run" },
     { keys: "Escape", action: "Toggle editor visibility" },
     { keys: "Ctrl/Cmd + 1-9", action: "Select slot 1-9" },
     { keys: "Ctrl/Cmd + X", action: "Export all slots" },
@@ -774,6 +775,47 @@ async function init() {
     window.breakoutHydra = null;
     window.breakoutWindow = null;
 
+    // Auto-run timer
+    let autoRunTimer = null;
+    let autoRunEnabled = localStorage.getItem("hydractrl-auto-run") === "true";
+    
+    // Auto-run function
+    const setupAutoRun = () => {
+      const autoRunCheckbox = document.getElementById("auto-run-checkbox");
+      
+      // Set initial state from localStorage
+      autoRunCheckbox.checked = autoRunEnabled;
+      
+      // Function to toggle auto-run state
+      const toggleAutoRun = () => {
+        autoRunEnabled = !autoRunEnabled;
+        autoRunCheckbox.checked = autoRunEnabled;
+        localStorage.setItem("hydractrl-auto-run", autoRunEnabled);
+      };
+      
+      // Listen for checkbox changes
+      autoRunCheckbox.addEventListener("change", (e) => {
+        autoRunEnabled = e.target.checked;
+        localStorage.setItem("hydractrl-auto-run", autoRunEnabled);
+      });
+      
+      // Set up simplified global keydown handler for auto-run
+      window.addEventListener("keydown", () => {
+        if (autoRunEnabled) {
+          // Clear existing timer
+          clearTimeout(autoRunTimer);
+          // Set new timer
+          autoRunTimer = setTimeout(async () => {
+            await runCodeOnAllInstances(editor, hydra);
+          }, 250);
+        }
+      });
+      
+      return { toggleAutoRun };
+    };
+    
+    const { toggleAutoRun } = setupAutoRun();
+
     // Set up event listeners
     document.getElementById("run-btn").addEventListener("click", async () => {
       const success = await runCodeOnAllInstances(editor, hydra);
@@ -829,6 +871,13 @@ async function init() {
         if (window.slotsPanel) {
           window.slotsPanel.saveToActiveSlot();
         }
+      }
+      
+      // Ctrl+Y or Cmd+Y to toggle auto-run
+      if ((e.ctrlKey || e.metaKey) && e.key === "y") {
+        e.preventDefault();
+        toggleAutoRun();
+        editor.focus();
       }
 
       // ESC to toggle editor visibility
