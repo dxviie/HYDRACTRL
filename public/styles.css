@@ -489,3 +489,114 @@ button:active {
   font-size: 12px;
   border-radius: 3px;
 }
+
+/* Custom form elements styling */
+/* Checkboxes */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-text-secondary);
+  border-radius: 3px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--color-perf-good);
+  border-color: var(--color-perf-good);
+}
+
+input[type="checkbox"]:checked::after {
+  content: "✓";
+  color: var(--color-bg-primary);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+input[type="checkbox"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--color-bg-secondary-rgb), 0.5);
+}
+
+/* Range sliders */
+input[type="range"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background-color: var(--color-bg-tertiary);
+  border-radius: 3px;
+  outline: none;
+  overflow: hidden;
+}
+
+/* Filled part of the slider track */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, 
+    var(--color-text-secondary) var(--range-progress, 0%), 
+    var(--color-bg-tertiary) var(--range-progress, 0%)
+  );
+}
+
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-bg-tertiary);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background-color: var(--color-text-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background-color: var(--color-text-primary);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+input[type="range"]:focus {
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background-color: var(--color-perf-good);
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  background-color: var(--color-perf-good);
+}
+
+.theme-neon-eighties input[type="range"]::-webkit-slider-thumb {
+  background-color: var(--color-text-secondary);
+}
+
+.theme-neon-eighties input[type="checkbox"]:checked {
+  background-color: var(--color-text-primary);
+}
+
+.theme-nineties-pop input[type="range"]::-webkit-slider-thumb {
+  background: linear-gradient(45deg, #ff66cc, #6666ff);
+}
+
+.theme-nineties-pop input[type="checkbox"]:checked {
+  background: linear-gradient(45deg, #ff66cc, #6666ff);
+}

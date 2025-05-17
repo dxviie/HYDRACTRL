@@ -339,10 +339,25 @@ export function createStatsPanel() {
   // Apply initial opacity
   applyPanelOpacity(parseInt(savedOpacity));
 
+  // Function to update range slider progress visualization
+  function updateRangeProgress(slider) {
+    const min = parseInt(slider.min);
+    const max = parseInt(slider.max);
+    const val = parseInt(slider.value);
+    const percentage = ((val - min) * 100) / (max - min);
+    slider.style.setProperty('--range-progress', `${percentage}%`);
+  }
+  
+  // Set initial progress visualization
+  updateRangeProgress(opacitySlider);
+  
   // Update opacity when slider is changed
   opacitySlider.addEventListener("input", () => {
     const opacity = opacitySlider.value;
     opacityValue.textContent = opacity + "%";
+    
+    // Update visual progress
+    updateRangeProgress(opacitySlider);
 
     // Apply the opacity
     applyPanelOpacity(parseInt(opacity));
