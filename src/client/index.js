@@ -48,7 +48,7 @@ function initEditor() {
   const resizeObserver = new ResizeObserver(debounce(() => {
     // Skip saving if editor is being dragged to avoid conflicts
     if (editorContainer.classList.contains("dragging")) return;
-    
+
     // Get the position and dimensions
     const position = {
       left: parseInt(editorContainer.style.left || "0"),
@@ -56,11 +56,11 @@ function initEditor() {
       width: editorContainer.offsetWidth,
       height: editorContainer.offsetHeight,
     };
-    
+
     // Save to localStorage
     savePanelPosition("editor-panel", position);
   }, 100));
-  
+
   // Start observing the editor container
   resizeObserver.observe(editorContainer);
 
@@ -304,14 +304,14 @@ function createInfoPanel() {
   header.style.display = "flex";
   header.style.justifyContent = "space-between";
   header.style.alignItems = "center";
-  
+
   const title = document.createElement("h2");
-  title.textContent = "About HYDRACTRL";
+  title.textContent = "About";
   title.style.margin = "0";
   title.style.fontSize = "16px";
   title.style.fontWeight = "bold";
   title.style.color = "var(--color-text-primary)";
-  
+
   const closeButton = document.createElement("button");
   closeButton.textContent = "×";
   closeButton.style.background = "none";
@@ -321,56 +321,48 @@ function createInfoPanel() {
   closeButton.style.cursor = "pointer";
   closeButton.style.padding = "0 5px";
   closeButton.title = "Close";
-  
+
   header.appendChild(title);
   header.appendChild(closeButton);
-  
+
   // Create the content container
   const content = document.createElement("div");
   content.className = "info-panel-content";
   content.style.padding = "20px";
   content.style.overflowY = "auto";
-  
+
   // Create sections
   // About section
   const aboutSection = document.createElement("div");
   aboutSection.className = "info-section";
-  
-  const aboutTitle = document.createElement("h3");
-  aboutTitle.textContent = "About";
-  aboutTitle.style.fontSize = "14px";
-  aboutTitle.style.marginTop = "0";
-  aboutTitle.style.marginBottom = "10px";
-  aboutTitle.style.color = "var(--color-text-primary)";
-  
+
   const aboutText = document.createElement("p");
-  aboutText.innerHTML = `HYDRACTRL is a tool built around <a href="https://hydra.ojack.xyz" target="_blank" style="color:var(--color-text-secondary);text-decoration:underline">hydra-synth</a> designed for live performances. It provides an enhanced code editor with features like scene slots, MIDI controller support, and performance optimization.`;
+  aboutText.innerHTML = `HYDRACTRL is a tool built around <a href="https://hydra.ojack.xyz" target="_blank" style="color:var(--color-text-secondary);text-decoration:underline">hydra</a> designed for live performances. Save up to 64 slots of hydra goodness across 4 scenes. Unlimited banks with the import/export option. Korg Nanopad2 support. Breakout view to easily send your output over the network with OBS or NDI Studio.`;
   aboutText.style.margin = "0 0 15px 0";
   aboutText.style.fontSize = "13px";
   aboutText.style.lineHeight = "1.4";
   aboutText.style.color = "var(--color-text-secondary)";
-  
-  aboutSection.appendChild(aboutTitle);
+
   aboutSection.appendChild(aboutText);
-  
+
   // Keyboard shortcuts section
   const shortcutsSection = document.createElement("div");
   shortcutsSection.className = "info-section";
   shortcutsSection.style.marginTop = "20px";
-  
+
   const shortcutsTitle = document.createElement("h3");
   shortcutsTitle.textContent = "Keyboard Shortcuts";
   shortcutsTitle.style.fontSize = "14px";
   shortcutsTitle.style.marginTop = "0";
   shortcutsTitle.style.marginBottom = "10px";
   shortcutsTitle.style.color = "var(--color-text-primary)";
-  
+
   // Create table for shortcuts
   const shortcutsTable = document.createElement("table");
   shortcutsTable.style.width = "100%";
   shortcutsTable.style.borderCollapse = "collapse";
   shortcutsTable.style.fontSize = "13px";
-  
+
   // Define shortcuts
   const shortcuts = [
     { keys: "Ctrl/Cmd + Enter", action: "Run code" },
@@ -381,100 +373,101 @@ function createInfoPanel() {
     { keys: "Ctrl/Cmd + I", action: "Import slots file" },
     { keys: "Ctrl/Cmd + ←/→", action: "Cycle between banks (when no MIDI device is connected)" }
   ];
-  
+
   // Add shortcuts to table
   shortcuts.forEach(shortcut => {
     const row = document.createElement("tr");
     row.style.borderBottom = "1px solid var(--color-bg-tertiary)";
-    
+
     const keysCell = document.createElement("td");
     keysCell.textContent = shortcut.keys;
     keysCell.style.padding = "8px 16px 8px 0";
     keysCell.style.fontFamily = "monospace";
     keysCell.style.whiteSpace = "nowrap";
     keysCell.style.color = "var(--color-text-primary)";
-    
+
     const actionCell = document.createElement("td");
     actionCell.textContent = shortcut.action;
     actionCell.style.padding = "8px 0";
     actionCell.style.color = "var(--color-text-secondary)";
-    
+
     row.appendChild(keysCell);
     row.appendChild(actionCell);
     shortcutsTable.appendChild(row);
   });
-  
+
   shortcutsSection.appendChild(shortcutsTitle);
   shortcutsSection.appendChild(shortcutsTable);
-  
+
   // Show on startup option
   const startupSection = document.createElement("div");
   startupSection.className = "startup-section";
   startupSection.style.marginTop = "20px";
   startupSection.style.display = "flex";
   startupSection.style.alignItems = "center";
-  
+
   const showOnStartupCheckbox = document.createElement("input");
   showOnStartupCheckbox.type = "checkbox";
   showOnStartupCheckbox.id = "show-on-startup";
   showOnStartupCheckbox.checked = localStorage.getItem("hydractrl-show-info-on-startup") !== "false"; // Default to true
-  
+
   const showOnStartupLabel = document.createElement("label");
   showOnStartupLabel.htmlFor = "show-on-startup";
   showOnStartupLabel.textContent = "Show on startup";
   showOnStartupLabel.style.marginLeft = "8px";
   showOnStartupLabel.style.fontSize = "13px";
   showOnStartupLabel.style.color = "var(--color-text-secondary)";
-  
+
   showOnStartupCheckbox.addEventListener("change", (e) => {
     localStorage.setItem("hydractrl-show-info-on-startup", e.target.checked);
   });
-  
+
   startupSection.appendChild(showOnStartupCheckbox);
   startupSection.appendChild(showOnStartupLabel);
-  
-  // Version info
-  const versionInfo = document.createElement("div");
-  versionInfo.className = "version-info";
-  versionInfo.textContent = "Made with 🧡 by d17e.dev";
-  versionInfo.style.marginTop = "20px";
-  versionInfo.style.fontSize = "12px";
-  versionInfo.style.textAlign = "center";
-  versionInfo.style.color = "var(--color-text-secondary)";
-  
+
   // Add everything to content
   content.appendChild(aboutSection);
   content.appendChild(shortcutsSection);
   content.appendChild(startupSection);
-  content.appendChild(versionInfo);
-  
+
   // Add header and content to panel
   panel.appendChild(header);
   panel.appendChild(content);
-  
+
   // Add to body
   document.body.appendChild(panel);
-  
+
   // Close button functionality
   closeButton.addEventListener("click", () => {
     hideInfoPanel();
   });
-  
-  // Allow clicking outside to close
-  document.addEventListener("mousedown", (e) => {
+
+  // Add one-time event listeners to close the panel
+  const outsideClickHandler = (e) => {
+    // Only close if click is outside the panel
     if (panel.parentNode && !panel.contains(e.target)) {
       hideInfoPanel();
+      document.removeEventListener("mousedown", outsideClickHandler);
     }
+  };
+
+  // Prevent clicks inside the panel from bubbling to document
+  panel.addEventListener("mousedown", (e) => {
+    e.stopPropagation();
   });
-  
-  // Allow pressing ESC to close
-  document.addEventListener("keydown", (e) => {
+
+  const escKeyHandler = (e) => {
     if (panel.parentNode && e.key === "Escape") {
       hideInfoPanel();
       e.stopPropagation(); // Prevent editor toggle
+      document.removeEventListener("keydown", escKeyHandler);
     }
-  });
-  
+  };
+
+  // We'll add these listeners when the panel is shown
+  panel.outsideClickHandler = outsideClickHandler;
+  panel.escKeyHandler = escKeyHandler;
+
   return panel;
 }
 
@@ -482,22 +475,36 @@ function createInfoPanel() {
 function showInfoPanel() {
   const panel = createInfoPanel();
   panel.style.display = "flex";
-  
+
   // Add a fade-in effect
   panel.style.opacity = "0";
   setTimeout(() => {
     panel.style.opacity = "1";
     panel.style.transition = "opacity 0.3s ease-in-out";
   }, 10);
+
+  // Add event listeners to close when clicking outside or pressing ESC
+  // First remove any existing listeners to avoid duplicates
+  document.removeEventListener("mousedown", panel.outsideClickHandler);
+  document.removeEventListener("keydown", panel.escKeyHandler);
+
+  // Then add the listeners
+  document.addEventListener("mousedown", panel.outsideClickHandler);
+  document.addEventListener("keydown", panel.escKeyHandler);
 }
 
 // Hide the info panel
 function hideInfoPanel() {
   const panel = document.getElementById("info-panel");
   if (panel) {
+    // Remove event listeners
+    document.removeEventListener("mousedown", panel.outsideClickHandler);
+    document.removeEventListener("keydown", panel.escKeyHandler);
+
+    // Fade out and hide
     panel.style.opacity = "0";
     panel.style.transition = "opacity 0.3s ease-in-out";
-    
+
     setTimeout(() => {
       panel.style.display = "none";
     }, 300);
@@ -522,7 +529,7 @@ async function runCode(editor, hydra) {
 
     // Create an async function to execute the code with hydra in scope
     // This allows top-level await support
-    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+    const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
 
     const fn = new AsyncFunction(
       "hydra",
@@ -800,11 +807,6 @@ async function init() {
       }
 
       editor.focus(); // Return focus to editor after saving
-    });
-    
-    // Add info button click handler
-    document.getElementById("info-btn").addEventListener("click", () => {
-      showInfoPanel();
     });
 
     // Add keyboard shortcuts
@@ -1124,7 +1126,7 @@ async function init() {
     window._editorProxy = editor; // Expose editor proxy for focus etc.
     window.showInfoPanel = showInfoPanel; // Expose info panel functions
     window.hideInfoPanel = hideInfoPanel;
-    
+
     // Check if we should show the info panel on startup
     if (localStorage.getItem("hydractrl-show-info-on-startup") !== "false") {
       // Slight delay to allow UI to initialize

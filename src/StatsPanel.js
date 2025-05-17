@@ -504,7 +504,7 @@ export function createStatsPanel() {
 
   // Attribution text with links
   const attributionText = document.createElement("div");
-  attributionText.innerHTML = 'based on <a href="https://hydra.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">hydra</a> by <a href="https://www.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">Olivia Jack</a>.<br> made with 🧡 by <a href="https://d17e.dev" target="_blank" style="color:inherit;text-decoration:underline">d17e.dev</a>';
+  attributionText.innerHTML = 'based on <a href="https://hydra.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">hydra</a> by <a href="https://www.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">Olivia Jack</a>.<br> made with 🧡 by <a href="https://d17e.dev" target="_blank" style="color:inherit;text-decoration:underline">D17E</a>';
   attributionText.style.lineHeight = "1.2";
 
   // Info icon button
@@ -521,7 +521,8 @@ export function createStatsPanel() {
   infoButton.title = "Show application information and shortcuts";
 
   // Add click event to show info panel
-  infoButton.addEventListener("click", () => {
+  infoButton.addEventListener("click", (e) => {
+    e.stopPropagation(); // Stop event from bubbling up to document
     if (window.showInfoPanel) {
       window.showInfoPanel();
     } else {

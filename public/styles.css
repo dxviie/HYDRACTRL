@@ -173,6 +173,13 @@ body {
   height: 100vh;
 }
 
+.shortcut {
+  color: var(--color-text-secondary);
+  font-size: small;
+  font-family: monospace;
+  font-weight: bold;
+}
+
 /* Fullscreen Hydra canvas */
 .preview-container {
   position: fixed;
