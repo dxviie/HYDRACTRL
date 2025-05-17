@@ -46,7 +46,7 @@ export function createStatsPanel() {
   const handle = document.createElement("div");
   handle.className = "stats-handle";
   handle.style.height = "24px";
-  handle.style.backgroundColor = "var(--color-bg-tertiary)";
+  handle.style.backgroundColor = "rgba(var(--color-bg-tertiary-rgb), var(--panel-opacity))";
   handle.style.display = "flex";
   handle.style.justifyContent = "space-between";
   handle.style.alignItems = "center";
@@ -251,6 +251,15 @@ export function createStatsPanel() {
 
       // Store the selected theme in localStorage
       localStorage.setItem("hydractrl-theme", theme.name);
+      
+      // Get the current opacity value
+      const currentOpacity = localStorage.getItem("hydractrl-panel-opacity") || "90";
+      const opacityDecimal = parseInt(currentOpacity) / 100;
+      
+      // Re-apply the opacity to all panels with the new theme colors
+      setTimeout(() => {
+        applyPanelOpacity(parseInt(currentOpacity));
+      }, 50);
     });
   });
 
@@ -301,33 +310,30 @@ export function createStatsPanel() {
   function applyPanelOpacity(opacity) {
     // Convert opacity to decimal
     const opacityDecimal = opacity / 100;
-
+    
     // Apply to CSS variables using custom property
     document.documentElement.style.setProperty('--panel-opacity', opacityDecimal);
-
-    // Also directly apply to existing panels
-    const panels = document.querySelectorAll('.stats-panel, .editor-container, .slots-panel, .info-panel');
-    panels.forEach(panel => {
-      // Get current background color
-      const style = window.getComputedStyle(panel);
-      const bgColor = style.backgroundColor;
-
-      // If it's a rgba color, update the alpha value
-      if (bgColor.startsWith('rgba')) {
-        const parts = bgColor.match(/rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*[\d.]+\s*\)/);
-        if (parts) {
-          // Update with new opacity
-          panel.style.backgroundColor = `rgba(${parts[1]}, ${parts[2]}, ${parts[3]}, ${opacityDecimal})`;
-        }
-      } else if (bgColor.startsWith('rgb')) {
-        // If it's rgb, convert to rgba
-        const parts = bgColor.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
-        if (parts) {
-          // Convert to rgba with new opacity
-          panel.style.backgroundColor = `rgba(${parts[1]}, ${parts[2]}, ${parts[3]}, ${opacityDecimal})`;
-        }
+    
+    // Add or update style element for global panel styling
+    let styleEl = document.getElementById('panel-opacity-styles');
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'panel-opacity-styles';
+      document.head.appendChild(styleEl);
+    }
+    
+    // Update the CSS rules with !important to override inline styles
+    styleEl.textContent = `
+      .stats-panel, .editor-container, .slots-panel, .info-panel {
+        background-color: rgba(var(--color-bg-secondary-rgb), ${opacityDecimal}) !important;
       }
-    });
+      .stats-handle, .editor-handle {
+        background-color: rgba(var(--color-bg-tertiary-rgb), ${opacityDecimal}) !important;
+      }
+      .editor-footer {
+        background-color: rgba(var(--color-bg-tertiary-rgb), ${opacityDecimal}) !important;
+      }
+    `;
   }
 
   // Apply initial opacity
