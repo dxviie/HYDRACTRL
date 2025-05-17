@@ -24,7 +24,16 @@ export function createStatsPanel() {
     panel.style.right = "20px";
   }
 
-  panel.style.backgroundColor = "var(--color-bg-secondary)";
+  // Load saved opacity or use default
+  const panelOpacity = localStorage.getItem("hydractrl-panel-opacity") || "90";
+  const opacityDecimal = parseInt(panelOpacity) / 100;
+  
+  // Add panel opacity CSS variable if it doesn't exist
+  if (!document.documentElement.style.getPropertyValue('--panel-opacity')) {
+    document.documentElement.style.setProperty('--panel-opacity', opacityDecimal);
+  }
+  
+  panel.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity))";
   panel.style.borderRadius = "8px";
   panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
   panel.style.backdropFilter = "blur(var(--color-panel-blur))";
@@ -245,9 +254,109 @@ export function createStatsPanel() {
     });
   });
 
+  // Create opacity slider section
+  const opacitySection = document.createElement("div");
+  opacitySection.style.marginTop = "15px";
+  opacitySection.style.display = "flex";
+  opacitySection.style.flexDirection = "column";
+  opacitySection.style.gap = "8px";
+  
+  // Opacity section title
+  const opacityTitle = document.createElement("div");
+  opacityTitle.style.fontSize = "12px";
+  opacityTitle.style.color = "var(--color-text-secondary)";
+  opacityTitle.style.fontWeight = "bold";
+  opacityTitle.textContent = "PANEL OPACITY";
+  
+  // Slider container with value display
+  const sliderContainer = document.createElement("div");
+  sliderContainer.style.display = "flex";
+  sliderContainer.style.alignItems = "center";
+  sliderContainer.style.gap = "10px";
+  sliderContainer.style.width = "100%";
+  
+  // Opacity slider
+  const opacitySlider = document.createElement("input");
+  opacitySlider.type = "range";
+  opacitySlider.min = "30";
+  opacitySlider.max = "100";
+  opacitySlider.step = "5";
+  
+  // Load saved opacity or use default
+  const savedOpacity = localStorage.getItem("hydractrl-panel-opacity") || "90";
+  opacitySlider.value = savedOpacity;
+  opacitySlider.style.width = "100%";
+  opacitySlider.style.margin = "0";
+  
+  // Opacity value display
+  const opacityValue = document.createElement("span");
+  opacityValue.style.fontSize = "12px";
+  opacityValue.style.fontFamily = "monospace";
+  opacityValue.style.color = "var(--color-text-primary)";
+  opacityValue.style.minWidth = "30px";
+  opacityValue.style.textAlign = "center";
+  opacityValue.textContent = savedOpacity + "%";
+  
+  // Function to apply opacity to all panels
+  function applyPanelOpacity(opacity) {
+    // Convert opacity to decimal
+    const opacityDecimal = opacity / 100;
+    
+    // Apply to CSS variables using custom property
+    document.documentElement.style.setProperty('--panel-opacity', opacityDecimal);
+    
+    // Also directly apply to existing panels
+    const panels = document.querySelectorAll('.stats-panel, .editor-container, .slots-panel, .info-panel');
+    panels.forEach(panel => {
+      // Get current background color
+      const style = window.getComputedStyle(panel);
+      const bgColor = style.backgroundColor;
+      
+      // If it's a rgba color, update the alpha value
+      if (bgColor.startsWith('rgba')) {
+        const parts = bgColor.match(/rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*[\d.]+\s*\)/);
+        if (parts) {
+          // Update with new opacity
+          panel.style.backgroundColor = `rgba(${parts[1]}, ${parts[2]}, ${parts[3]}, ${opacityDecimal})`;
+        }
+      } else if (bgColor.startsWith('rgb')) {
+        // If it's rgb, convert to rgba
+        const parts = bgColor.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
+        if (parts) {
+          // Convert to rgba with new opacity
+          panel.style.backgroundColor = `rgba(${parts[1]}, ${parts[2]}, ${parts[3]}, ${opacityDecimal})`;
+        }
+      }
+    });
+  }
+  
+  // Apply initial opacity
+  applyPanelOpacity(parseInt(savedOpacity));
+  
+  // Update opacity when slider is changed
+  opacitySlider.addEventListener("input", () => {
+    const opacity = opacitySlider.value;
+    opacityValue.textContent = opacity + "%";
+    
+    // Apply the opacity
+    applyPanelOpacity(parseInt(opacity));
+    
+    // Save to localStorage
+    localStorage.setItem("hydractrl-panel-opacity", opacity);
+  });
+  
+  // Add elements to slider container
+  sliderContainer.appendChild(opacitySlider);
+  sliderContainer.appendChild(opacityValue);
+  
+  // Add elements to opacity section
+  opacitySection.appendChild(opacityTitle);
+  opacitySection.appendChild(sliderContainer);
+  
   // Add elements to theme section
   themeSection.appendChild(themeTitle);
   themeSection.appendChild(themeSelector);
+  themeSection.appendChild(opacitySection);
 
   // Create a section for display settings
   const displaySection = document.createElement("div");

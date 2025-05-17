@@ -284,7 +284,7 @@ function createInfoPanel() {
   panel.style.top = "50%";
   panel.style.left = "50%";
   panel.style.transform = "translate(-50%, -50%)";
-  panel.style.backgroundColor = "var(--color-bg-secondary)";
+  panel.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity))";
   panel.style.borderRadius = "8px";
   panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
   panel.style.backdropFilter = "blur(var(--color-panel-blur))";
@@ -299,7 +299,7 @@ function createInfoPanel() {
   // Create the header with title and close button
   const header = document.createElement("div");
   header.className = "info-panel-header";
-  header.style.backgroundColor = "var(--color-bg-tertiary)";
+  header.style.backgroundColor = "rgba(var(--color-bg-tertiary-rgb), var(--panel-opacity))";
   header.style.padding = "12px 16px";
   header.style.display = "flex";
   header.style.justifyContent = "space-between";
