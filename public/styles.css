@@ -3,15 +3,19 @@
   /* Base colors */
   --color-bg-primary: #1e1e1e;
   --color-bg-secondary: rgba(37, 37, 37, 0.9);
-  --color-bg-secondary-rgb: 37, 37, 37; /* RGB values for opacity control */
+  --color-bg-secondary-rgb: 37, 37, 37;
+  /* RGB values for opacity control */
   --color-bg-tertiary: rgba(60, 60, 60, 0.7);
-  --color-bg-tertiary-rgb: 60, 60, 60; /* RGB values for opacity control */
+  --color-bg-tertiary-rgb: 60, 60, 60;
+  /* RGB values for opacity control */
   --color-bg-editor: rgba(40, 42, 54, 0.7);
-  --color-bg-editor-rgb: 40, 42, 54; /* RGB values for opacity control */
+  --color-bg-editor-rgb: 40, 42, 54;
+  /* RGB values for opacity control */
   --color-text-primary: #f5f5f5;
   --color-text-secondary: #aaa;
   --color-text-editor: #f8f8f2;
-  --panel-opacity: 0.9; /* Default panel opacity */
+  --panel-opacity: 0.9;
+  /* Default panel opacity */
 
   /* UI Elements */
   --color-button-bg: #2d2d2d;
@@ -36,11 +40,14 @@
   /* Base colors */
   --color-bg-primary: #f5f5f5;
   --color-bg-secondary: rgba(220, 220, 220, 0.9);
-  --color-bg-secondary-rgb: 220, 220, 220; /* RGB values for opacity control */
+  --color-bg-secondary-rgb: 220, 220, 220;
+  /* RGB values for opacity control */
   --color-bg-tertiary: rgba(200, 200, 200, 0.8);
-  --color-bg-tertiary-rgb: 200, 200, 200; /* RGB values for opacity control */
+  --color-bg-tertiary-rgb: 200, 200, 200;
+  /* RGB values for opacity control */
   --color-bg-editor: rgba(240, 240, 240, 0.8);
-  --color-bg-editor-rgb: 240, 240, 240; /* RGB values for opacity control */
+  --color-bg-editor-rgb: 240, 240, 240;
+  /* RGB values for opacity control */
   --color-text-primary: #333333;
   --color-text-secondary: #666666;
   --color-text-editor: #222222;
@@ -68,11 +75,14 @@
   /* Base colors */
   --color-bg-primary: #121212;
   --color-bg-secondary: rgba(25, 25, 25, 0.9);
-  --color-bg-secondary-rgb: 25, 25, 25; /* RGB values for opacity control */
+  --color-bg-secondary-rgb: 25, 25, 25;
+  /* RGB values for opacity control */
   --color-bg-tertiary: rgba(35, 35, 35, 0.8);
-  --color-bg-tertiary-rgb: 35, 35, 35; /* RGB values for opacity control */
+  --color-bg-tertiary-rgb: 35, 35, 35;
+  /* RGB values for opacity control */
   --color-bg-editor: rgba(18, 18, 18, 0.9);
-  --color-bg-editor-rgb: 18, 18, 18; /* RGB values for opacity control */
+  --color-bg-editor-rgb: 18, 18, 18;
+  /* RGB values for opacity control */
   --color-text-primary: #ffffff;
   --color-text-secondary: #cccccc;
   --color-text-editor: #ffffff;
@@ -100,11 +110,14 @@
   /* Base colors */
   --color-bg-primary: #0b0b2b;
   --color-bg-secondary: rgba(30, 30, 60, 0.9);
-  --color-bg-secondary-rgb: 30, 30, 60; /* RGB values for opacity control */
+  --color-bg-secondary-rgb: 30, 30, 60;
+  /* RGB values for opacity control */
   --color-bg-tertiary: rgba(45, 45, 80, 0.8);
-  --color-bg-tertiary-rgb: 45, 45, 80; /* RGB values for opacity control */
+  --color-bg-tertiary-rgb: 45, 45, 80;
+  /* RGB values for opacity control */
   --color-bg-editor: rgba(20, 20, 40, 0.85);
-  --color-bg-editor-rgb: 20, 20, 40; /* RGB values for opacity control */
+  --color-bg-editor-rgb: 20, 20, 40;
+  /* RGB values for opacity control */
   --color-text-primary: #ff00ff;
   --color-text-secondary: #00ffff;
   --color-text-editor: #ffffff;
@@ -130,13 +143,20 @@
 /* Nineties Pop Theme */
 .theme-nineties-pop {
   /* Base colors */
-  --color-bg-primary: #ffc0cb; /* Pink */
-  --color-bg-secondary: rgba(162, 130, 255, 0.9); /* Purple */
-  --color-bg-secondary-rgb: 162, 130, 255; /* RGB values for opacity control */
-  --color-bg-tertiary: rgba(255, 215, 0, 0.7); /* Gold */
-  --color-bg-tertiary-rgb: 255, 215, 0; /* RGB values for opacity control */
-  --color-bg-editor: rgba(255, 182, 193, 0.8); /* Light Pink */
-  --color-bg-editor-rgb: 255, 182, 193; /* RGB values for opacity control */
+  --color-bg-primary: #ffc0cb;
+  /* Pink */
+  --color-bg-secondary: rgba(162, 130, 255, 0.9);
+  /* Purple */
+  --color-bg-secondary-rgb: 162, 130, 255;
+  /* RGB values for opacity control */
+  --color-bg-tertiary: rgba(255, 215, 0, 0.7);
+  /* Gold */
+  --color-bg-tertiary-rgb: 255, 215, 0;
+  /* RGB values for opacity control */
+  --color-bg-editor: rgba(255, 182, 193, 0.8);
+  /* Light Pink */
+  --color-bg-editor-rgb: 255, 182, 193;
+  /* RGB values for opacity control */
   --color-text-primary: #333333;
   --color-text-secondary: #222222;
   --color-text-editor: #000000;
@@ -210,7 +230,7 @@ body {
   left: 20px;
   width: 500px;
   height: 400px;
-  background-color: rgba(var(--color-bg-secondary-rgb), var(--panel-opacity));
+  background-color: rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important;
   border-radius: 8px;
   overflow: hidden;
   z-index: 100;

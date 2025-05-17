@@ -284,7 +284,7 @@ function createInfoPanel() {
   panel.style.top = "50%";
   panel.style.left = "50%";
   panel.style.transform = "translate(-50%, -50%)";
-  panel.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity))";
+  panel.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important";
   panel.style.borderRadius = "8px";
   panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
   panel.style.backdropFilter = "blur(var(--color-panel-blur))";
