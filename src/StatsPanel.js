@@ -251,11 +251,11 @@ export function createStatsPanel() {
 
       // Store the selected theme in localStorage
       localStorage.setItem("hydractrl-theme", theme.name);
-      
+
       // Get the current opacity value
       const currentOpacity = localStorage.getItem("hydractrl-panel-opacity") || "90";
       const opacityDecimal = parseInt(currentOpacity) / 100;
-      
+
       // Re-apply the opacity to all panels with the new theme colors
       setTimeout(() => {
         applyPanelOpacity(parseInt(currentOpacity));
@@ -310,10 +310,10 @@ export function createStatsPanel() {
   function applyPanelOpacity(opacity) {
     // Convert opacity to decimal
     const opacityDecimal = opacity / 100;
-    
+
     // Apply to CSS variables using custom property
     document.documentElement.style.setProperty('--panel-opacity', opacityDecimal);
-    
+
     // Add or update style element for global panel styling
     let styleEl = document.getElementById('panel-opacity-styles');
     if (!styleEl) {
@@ -321,7 +321,7 @@ export function createStatsPanel() {
       styleEl.id = 'panel-opacity-styles';
       document.head.appendChild(styleEl);
     }
-    
+
     // Update the CSS rules with !important to override inline styles
     styleEl.textContent = `
       .stats-panel, .editor-container, .slots-panel, .info-panel {
@@ -347,15 +347,15 @@ export function createStatsPanel() {
     const percentage = ((val - min) * 100) / (max - min);
     slider.style.setProperty('--range-progress', `${percentage}%`);
   }
-  
+
   // Set initial progress visualization
   updateRangeProgress(opacitySlider);
-  
+
   // Update opacity when slider is changed
   opacitySlider.addEventListener("input", () => {
     const opacity = opacitySlider.value;
     opacityValue.textContent = opacity + "%";
-    
+
     // Update visual progress
     updateRangeProgress(opacitySlider);
 
@@ -436,16 +436,6 @@ export function createStatsPanel() {
   // Add elements to slots section
   slotsSection.appendChild(slotsTitle);
   slotsSection.appendChild(moveToNextSlotOption);
-
-  // Create export settings section
-  const exportSection = document.createElement("div");
-  exportSection.className = "stats-export";
-  exportSection.style.marginTop = "8px";
-  exportSection.style.paddingTop = "8px";
-  exportSection.style.borderTop = "1px solid var(--color-bg-tertiary)";
-  exportSection.style.display = "none"; // Initially hidden
-  exportSection.style.flexDirection = "column";
-  exportSection.style.gap = "6px";
 
   // Display section title
   const displayTitle = document.createElement("div");
@@ -533,17 +523,6 @@ export function createStatsPanel() {
   displaySection.appendChild(sizeSelectionContainer);
   displaySection.appendChild(breakoutButton);
 
-  // Export section title
-  const exportTitle = document.createElement("div");
-  exportTitle.className = "export-title";
-  exportTitle.style.fontSize = "12px";
-  exportTitle.style.color = "var(--color-text-secondary)";
-  exportTitle.style.fontWeight = "bold";
-  exportTitle.textContent = "EXPORT";
-
-  // Add elements to export section
-  exportSection.appendChild(exportTitle);
-
   // Create the FPS metric
   const fpsMetric = document.createElement("div");
   fpsMetric.className = "stats-metric";
@@ -569,7 +548,7 @@ export function createStatsPanel() {
   fpsValue.style.fontWeight = "bold";
   fpsValue.style.color = "white";
   fpsValue.textContent = "0";
-  
+
 
   // Detailed metrics
   const details = document.createElement("div");
@@ -692,7 +671,6 @@ export function createStatsPanel() {
   content.appendChild(midiSection);
   content.appendChild(displaySection);
   content.appendChild(slotsSection);
-  content.appendChild(exportSection);
   content.appendChild(footerSection);
 
   handle.appendChild(title);
@@ -761,7 +739,6 @@ export function createStatsPanel() {
     midiSection.style.display = isExpanded ? "flex" : "none";
     displaySection.style.display = isExpanded ? "flex" : "none";
     slotsSection.style.display = isExpanded ? "flex" : "none";
-    exportSection.style.display = isExpanded ? "flex" : "none";
     toggle.textContent = isExpanded ? "▼" : "▲";
   });
 
@@ -802,7 +779,7 @@ export function createStatsPanel() {
     } else {
       fpsValue.style.color = "var(--color-perf-poor)";
     }
-    
+
 
     // Request next frame
     requestAnimationFrame(updateStats);
@@ -834,10 +811,7 @@ export function createStatsPanel() {
     slots: {
       section: slotsSection,
       moveToNextSlotCheckbox: moveToNextSlotCheckbox,
-    },
-    export: {
-      section: exportSection
-    },
+    }
   };
 }
 
