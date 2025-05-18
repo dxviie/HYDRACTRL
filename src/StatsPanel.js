@@ -198,8 +198,8 @@ export function createStatsPanel() {
     swatch.title = theme.label;
     swatch.dataset.theme = theme.name;
     swatch.dataset.className = theme.className;
-    swatch.style.width = "30px";
-    swatch.style.height = "30px";
+    swatch.style.width = "25px";
+    swatch.style.height = "25px";
     swatch.style.borderRadius = "4px";
     swatch.style.cursor = "pointer";
     swatch.style.transition = "all 0.2s";
@@ -751,41 +751,64 @@ export function createStatsPanel() {
   let avgFps = 0;
   let totalFrameTime = 0;
   let lastTime = performance.now();
+  let lastUpdateTime = 0;
+  // Get update interval from performance settings or use default
+  let updateInterval = window.hydraPerformanceSettings?.statsUpdateInterval || 500;
+  let frameTimeSum = 0;
+  let frameTimeSamples = 0;
 
-  function updateStats() {
+  function updateStats(timestamp) {
+    // Calculate frame time and FPS
     const now = performance.now();
     const frameTime = now - lastTime;
     const currentFps = frameTime > 0 ? 1000 / frameTime : 0;
 
-    // Update running average
-    frameCount++;
-    totalFrameTime += frameTime;
-    avgFps = totalFrameTime > 0 ? 1000 / (totalFrameTime / frameCount) : 0;
+    // Accumulate frame time data
+    frameTimeSum += frameTime;
+    frameTimeSamples++;
 
-    // Update display
-    fps = Math.round(currentFps);
-    lastTime = now;
+    // Only update display at the specified interval to reduce overhead
+    if (now - lastUpdateTime >= updateInterval) {
+      // Calculate average FPS since last update
+      const avgCurrentFps = frameTimeSamples > 0 ? 1000 / (frameTimeSum / frameTimeSamples) : 0;
 
-    // Update UI
-    fpsValue.textContent = fps.toString();
-    avgFpsValue.textContent = Math.round(avgFps * 10) / 10;
-    frameCountValue.textContent = frameCount.toString();
+      // Update running total stats
+      frameCount += frameTimeSamples;
+      totalFrameTime += frameTimeSum;
+      avgFps = totalFrameTime > 0 ? 1000 / (totalFrameTime / frameCount) : 0;
 
-    // Update color based on FPS
-    if (fps > 50) {
-      fpsValue.style.color = "var(--color-perf-good)";
-    } else if (fps > 30) {
-      fpsValue.style.color = "var(--color-perf-medium)";
-    } else {
-      fpsValue.style.color = "var(--color-perf-poor)";
+      // Update display with the average since last update
+      fps = Math.round(avgCurrentFps);
+
+      // Update UI
+      fpsValue.textContent = fps.toString();
+      avgFpsValue.textContent = Math.round(avgFps * 10) / 10;
+      frameCountValue.textContent = frameCount.toString();
+
+      // Update color based on FPS
+      if (fps > 50) {
+        fpsValue.style.color = "var(--color-perf-good)";
+      } else if (fps > 30) {
+        fpsValue.style.color = "var(--color-perf-medium)";
+      } else {
+        fpsValue.style.color = "var(--color-perf-poor)";
+      }
+
+      // Reset accumulators
+      frameTimeSum = 0;
+      frameTimeSamples = 0;
+      lastUpdateTime = now;
     }
 
+    // Save current time for next frame's calculation
+    lastTime = now;
 
     // Request next frame
     requestAnimationFrame(updateStats);
   }
 
   // Start update loop
+  lastUpdateTime = performance.now();
   requestAnimationFrame(updateStats);
 
   // Return the panel with additional API
