@@ -389,6 +389,54 @@ export function createStatsPanel() {
   displaySection.style.flexDirection = "column";
   displaySection.style.gap = "6px";
 
+  // Create slots settings section
+  const slotsSection = document.createElement("div");
+  slotsSection.className = "stats-slots";
+  slotsSection.style.marginTop = "8px";
+  slotsSection.style.paddingTop = "8px";
+  slotsSection.style.borderTop = "1px solid var(--color-bg-tertiary)";
+  slotsSection.style.display = "none"; // Initially hidden
+  slotsSection.style.flexDirection = "column";
+  slotsSection.style.gap = "6px";
+
+  // Slots section title
+  const slotsTitle = document.createElement("div");
+  slotsTitle.className = "slots-settings-title";
+  slotsTitle.style.fontSize = "12px";
+  slotsTitle.style.color = "var(--color-text-secondary)";
+  slotsTitle.style.fontWeight = "bold";
+  slotsTitle.textContent = "SLOTS";
+
+  // Create move to next slot option
+  const moveToNextSlotOption = document.createElement("div");
+  moveToNextSlotOption.style.display = "flex";
+  moveToNextSlotOption.style.alignItems = "center";
+  moveToNextSlotOption.style.gap = "8px";
+  moveToNextSlotOption.style.marginTop = "4px";
+
+  // Checkbox for move to next slot
+  const moveToNextSlotCheckbox = document.createElement("input");
+  moveToNextSlotCheckbox.type = "checkbox";
+  moveToNextSlotCheckbox.id = "move-to-next-slot";
+  moveToNextSlotCheckbox.checked = false; // Default to not checked
+  moveToNextSlotCheckbox.style.cursor = "pointer";
+
+  // Label for move to next slot checkbox
+  const moveToNextSlotLabel = document.createElement("label");
+  moveToNextSlotLabel.htmlFor = "move-to-next-slot";
+  moveToNextSlotLabel.textContent = "Move to next slot on save";
+  moveToNextSlotLabel.style.fontSize = "11px";
+  moveToNextSlotLabel.style.color = "var(--color-text-primary)";
+  moveToNextSlotLabel.style.cursor = "pointer";
+
+  // Add checkbox and label to option container
+  moveToNextSlotOption.appendChild(moveToNextSlotCheckbox);
+  moveToNextSlotOption.appendChild(moveToNextSlotLabel);
+
+  // Add elements to slots section
+  slotsSection.appendChild(slotsTitle);
+  slotsSection.appendChild(moveToNextSlotOption);
+
   // Create export settings section
   const exportSection = document.createElement("div");
   exportSection.className = "stats-export";
@@ -669,6 +717,7 @@ export function createStatsPanel() {
   content.appendChild(themeSection);
   content.appendChild(midiSection);
   content.appendChild(displaySection);
+  content.appendChild(slotsSection);
   content.appendChild(exportSection);
   content.appendChild(footerSection);
 
@@ -737,6 +786,7 @@ export function createStatsPanel() {
     themeSection.style.display = isExpanded ? "flex" : "none";
     midiSection.style.display = isExpanded ? "flex" : "none";
     displaySection.style.display = isExpanded ? "flex" : "none";
+    slotsSection.style.display = isExpanded ? "flex" : "none";
     exportSection.style.display = isExpanded ? "flex" : "none";
     toggle.textContent = isExpanded ? "▼" : "▲";
   });
@@ -805,6 +855,10 @@ export function createStatsPanel() {
       sizeButtons: Array.from(sizeButtonsContainer.querySelectorAll("button")),
       selectedSizeIndicator: selectedSizeIndicator,
       selectedSize: selectedSize,
+    },
+    slots: {
+      section: slotsSection,
+      moveToNextSlotCheckbox: moveToNextSlotCheckbox,
     },
     export: {
       section: exportSection,

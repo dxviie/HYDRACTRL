@@ -373,7 +373,6 @@ function createInfoPanel() {
     { keys: "Ctrl/Cmd + ←/→", action: "Cycle between banks (only when no MIDI connected)" },
     { keys: "Ctrl/Cmd + X", action: "Export all slots" },
     { keys: "Ctrl/Cmd + I", action: "Import slots file" }
-
   ];
 
   // Add shortcuts to table
@@ -832,6 +831,11 @@ async function init() {
       // Then save to active slot if slots panel exists
       if (window.slotsPanel) {
         window.slotsPanel.saveToActiveSlot();
+        
+        // Move to next slot if the option is enabled
+        if (window.moveToNextSlotOnSave && window.moveToNextSlot) {
+          window.moveToNextSlot();
+        }
       } else {
         // Show temporary "Saved!" notification only if not using slots
         const savedNotification = document.createElement("div");
@@ -871,6 +875,11 @@ async function init() {
         // Also save to active slot if slots panel exists
         if (window.slotsPanel) {
           window.slotsPanel.saveToActiveSlot();
+          
+          // Move to next slot if the option is enabled
+          if (window.moveToNextSlotOnSave && window.moveToNextSlot) {
+            window.moveToNextSlot();
+          }
         }
       }
 
@@ -1187,6 +1196,76 @@ async function init() {
       statsPanel.midi.statusText.textContent = "MIDI: Not supported";
       statsPanel.midi.statusText.style.color = "#ff5555"; // Red
     }
+
+    // Create global flag for moving to next slot on save
+    // Load from localStorage or default to false
+    window.moveToNextSlotOnSave = localStorage.getItem("hydractrl-move-to-next-slot") === "true";
+
+    // Set the checkbox state based on saved preference
+    if (statsPanel.slots && statsPanel.slots.moveToNextSlotCheckbox) {
+      statsPanel.slots.moveToNextSlotCheckbox.checked = window.moveToNextSlotOnSave;
+      
+      // Update the flag when checkbox is changed
+      statsPanel.slots.moveToNextSlotCheckbox.addEventListener("change", (e) => {
+        window.moveToNextSlotOnSave = e.target.checked;
+        // Save preference to localStorage
+        localStorage.setItem("hydractrl-move-to-next-slot", e.target.checked);
+      });
+    }
+    
+    // Function to move to the next slot after saving
+    window.moveToNextSlot = function() {
+      if (!window.slotsPanel || !window.moveToNextSlotOnSave) return;
+      
+      const currentBank = window.slotsPanel.getBank();
+      const currentSlot = window.slotsPanel.getActiveSlotIndex();
+      
+      // Calculate next slot index
+      let nextSlot = currentSlot + 1;
+      let nextBank = currentBank;
+      
+      // If we're at the last slot of the current bank, go to the first slot of the next bank
+      if (nextSlot >= 16) {
+        nextSlot = 0;
+        nextBank = (currentBank + 1) % 4;
+      }
+      
+      // If we're wrapping around from the last bank to the first, check if we have room
+      if (nextBank < currentBank) {
+        // We're going back to bank 0 from bank 3, show a warning popup
+        const fullNotification = document.createElement("div");
+        fullNotification.className = "saved-notification";
+        fullNotification.style.backgroundColor = "var(--color-error)";
+        fullNotification.textContent = "All banks full! Can't advance further.";
+        document.body.appendChild(fullNotification);
+        
+        setTimeout(() => {
+          fullNotification.classList.add("fade-out");
+          setTimeout(() => {
+            if (fullNotification.parentNode) {
+              document.body.removeChild(fullNotification);
+            }
+          }, 500);
+        }, 1500);
+        
+        // Don't advance to next slot in this case
+        return false;
+      }
+      
+      // If we need to switch banks
+      if (nextBank !== currentBank) {
+        window.slotsPanel.switchBank(nextBank);
+        
+        // Flash the bank dot for visual feedback
+        if (window.flashActiveBankDot) {
+          window.flashActiveBankDot(nextBank);
+        }
+      }
+      
+      // Switch to the next slot
+      window.slotsPanel.setActiveSlot(nextSlot);
+      return true;
+    };
 
     // Add to window for debugging and access
     window.statsPanel = statsPanel;
