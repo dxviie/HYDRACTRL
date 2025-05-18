@@ -516,6 +516,11 @@ button:active {
   user-select: none;
 }
 
+.slot-index {
+  color: white;
+  mix-blend-mode: difference;
+}
+
 /* Custom form elements styling */
 /* Checkboxes */
 input[type="checkbox"] {

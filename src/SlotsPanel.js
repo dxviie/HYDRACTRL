@@ -248,12 +248,10 @@ export function createSlotsPanel(editor, hydra, runCode) {
     index.className = "slot-index";
     index.style.position = "absolute";
     index.style.bottom = "2px";
-    index.style.right = "2px";
-    index.style.fontSize = "8px";
+    index.style.right = "4px";
+    index.style.fontSize = "12px";
     index.style.fontWeight = "bold";
-    index.style.color = "var(--color-text-primary)";
-    index.style.opacity = "0.7";
-    index.textContent = (i + 1).toString();
+    index.textContent = i.toString(16).toUpperCase(); // Hexadecimal representation
 
     // Thumbnail container for preview images
     const thumbnail = document.createElement("div");
