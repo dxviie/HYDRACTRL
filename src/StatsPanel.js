@@ -596,6 +596,88 @@ export function createStatsPanel() {
   fpsValue.style.fontWeight = "bold";
   fpsValue.style.color = "white";
   fpsValue.textContent = "0";
+  
+  // Create the storage metric
+  const storageMetric = document.createElement("div");
+  storageMetric.className = "stats-metric";
+  storageMetric.style.display = "flex";
+  storageMetric.style.justifyContent = "space-between";
+  storageMetric.style.gap = "12px";
+  storageMetric.style.alignItems = "center";
+  storageMetric.style.marginTop = "4px";
+  
+  // Storage Label
+  const storageLabel = document.createElement("span");
+  storageLabel.className = "stats-label";
+  storageLabel.style.fontSize = "12px";
+  storageLabel.style.fontWeight = "bold";
+  storageLabel.style.color = "var(--color-text-secondary)";
+  storageLabel.style.whiteSpace = "nowrap";
+  storageLabel.textContent = "STORAGE:";
+  
+  // Storage Value
+  const storageValue = document.createElement("span");
+  storageValue.className = "stats-value";
+  storageValue.style.fontFamily = "monospace";
+  storageValue.style.fontSize = "12px";
+  storageValue.style.fontWeight = "bold";
+  storageValue.style.color = "white";
+  storageValue.textContent = "0 MB";
+  
+  // Function to calculate localStorage size
+  function calculateStorageSize() {
+    try {
+      let totalSize = 0;
+      let thumbnailSize = 0;
+      let thumbnailCount = 0;
+      
+      // Iterate through all localStorage keys
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        
+        // Calculate size in bytes (approximate)
+        const size = (key.length + (value ? value.length : 0)) * 2; // UTF-16 uses 2 bytes per character
+        totalSize += size;
+        
+        // Track thumbnail sizes specifically
+        if (key && key.includes('-thumbnail') && !key.includes('-timestamp')) {
+          thumbnailSize += size;
+          thumbnailCount++;
+        }
+      }
+      
+      // Convert to MB
+      const totalSizeMB = totalSize / (1024 * 1024);
+      const thumbnailSizeMB = thumbnailSize / (1024 * 1024);
+      
+      // Update display
+      storageValue.textContent = `${totalSizeMB.toFixed(1)} MB`;
+      storageValue.title = `Total: ${totalSizeMB.toFixed(2)} MB\nThumbnails: ${thumbnailSizeMB.toFixed(2)} MB (${thumbnailCount} thumbnails)`;
+      
+      // Color code based on usage
+      if (totalSizeMB > 4.5) {
+        storageValue.style.color = "var(--color-perf-poor)";
+      } else if (totalSizeMB > 3) {
+        storageValue.style.color = "var(--color-perf-medium)";
+      } else {
+        storageValue.style.color = "var(--color-perf-good)";
+      }
+      
+      return totalSizeMB;
+    } catch (error) {
+      console.error("Error calculating storage size:", error);
+      storageValue.textContent = "Error";
+      return 0;
+    }
+  }
+  
+  // Calculate storage size on init
+  calculateStorageSize();
+  
+  // Add storage metric to visible metrics area
+  storageMetric.appendChild(storageLabel);
+  storageMetric.appendChild(storageValue);
 
   // Detailed metrics
   const details = document.createElement("div");
@@ -664,6 +746,7 @@ export function createStatsPanel() {
   frameCountMetric.appendChild(frameCountValue);
 
   metrics.appendChild(fpsMetric);
+  metrics.appendChild(storageMetric);
 
   details.appendChild(avgFpsMetric);
   details.appendChild(frameCountMetric);
@@ -800,6 +883,7 @@ export function createStatsPanel() {
   let avgFps = 0;
   let totalFrameTime = 0;
   let lastTime = performance.now();
+  let storageUpdateCounter = 0; // Counter to update storage less frequently
 
   function updateStats() {
     const now = performance.now();
@@ -827,6 +911,13 @@ export function createStatsPanel() {
       fpsValue.style.color = "var(--color-perf-medium)";
     } else {
       fpsValue.style.color = "var(--color-perf-poor)";
+    }
+    
+    // Update storage every ~5 seconds (assuming 60fps) to avoid performance impact
+    storageUpdateCounter++;
+    if (storageUpdateCounter >= 300) {
+      calculateStorageSize();
+      storageUpdateCounter = 0;
     }
 
     // Request next frame

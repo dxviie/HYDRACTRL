@@ -425,12 +425,78 @@ export function createSlotsPanel(editor, hydra, runCode) {
     return false;
   }
 
+  // Function to check localStorage size and purge thumbnails if needed
+  function checkAndPurgeLocalStorage() {
+    try {
+      // Calculate total localStorage size
+      let totalSize = 0;
+      let thumbnailKeys = [];
+      
+      // Iterate through all localStorage keys
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        
+        // Calculate size in bytes (approximate)
+        const size = (key.length + value.length) * 2; // UTF-16 uses 2 bytes per character
+        totalSize += size;
+        
+        // Collect thumbnail keys for potential purging
+        if (key.includes('-thumbnail')) {
+          thumbnailKeys.push({
+            key,
+            size,
+            timeStamp: Number(localStorage.getItem(key + '-timestamp') || Date.now())
+          });
+        }
+      }
+      
+      // Convert to MB
+      const totalSizeMB = totalSize / (1024 * 1024);
+      
+      // If we're approaching the 5MB limit, start purging thumbnails
+      // Starting with oldest ones first
+      if (totalSizeMB > 4.5) {
+        console.warn(`LocalStorage usage high (${totalSizeMB.toFixed(2)}MB). Purging old thumbnails.`);
+        
+        // Sort thumbnails by timestamp (oldest first)
+        thumbnailKeys.sort((a, b) => a.timeStamp - b.timeStamp);
+        
+        // Purge thumbnails until we get below 4MB
+        for (const item of thumbnailKeys) {
+          localStorage.removeItem(item.key);
+          localStorage.removeItem(item.key + '-timestamp');
+          
+          totalSize -= item.size;
+          const newSizeMB = totalSize / (1024 * 1024);
+          
+          if (newSizeMB < 4.0) {
+            console.log(`Purged thumbnails, new size: ${newSizeMB.toFixed(2)}MB`);
+            break;
+          }
+        }
+        
+        // Reload thumbnails for current bank after purging
+        loadAllSlotsForCurrentBank();
+        return true; // Thumbnails were purged
+      }
+      
+      return false; // No need to purge
+    } catch (error) {
+      console.error("Error checking localStorage size:", error);
+      return false;
+    }
+  }
+
   // Function to capture screenshot of canvas and set as slot thumbnail
   function captureScreenshot(bankIndex, slotIndex) {
     try {
       // We need to preserve a reference to the exact slot we're capturing for
       const targetBankIndex = bankIndex;
       const targetSlotIndex = slotIndex;
+      
+      // Check and purge localStorage if needed before adding a new thumbnail
+      checkAndPurgeLocalStorage();
       
       // Delay capture to allow rendering to complete
       setTimeout(() => {
@@ -440,12 +506,30 @@ export function createSlotsPanel(editor, hydra, runCode) {
 
         // Force a new animation frame to make sure rendering is complete
         requestAnimationFrame(() => {
-          // Create thumbnail image from canvas
-          const thumbnail = canvas.toDataURL("image/jpeg", 0.7); // Use JPEG with 70% quality for smaller size
+          // Create a tiny temporary canvas for the thumbnail (32x32 pixels)
+          const thumbnailSize = 32;
+          const tmpCanvas = document.createElement("canvas");
+          tmpCanvas.width = thumbnailSize;
+          tmpCanvas.height = thumbnailSize;
+          const ctx = tmpCanvas.getContext("2d");
+          
+          // Apply smoothing for better thumbnail quality
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          
+          // Draw the main canvas scaled down to our tiny canvas
+          ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 
+                        0, 0, thumbnailSize, thumbnailSize);
+
+          // Create thumbnail image from the small canvas with very low quality
+          const thumbnail = tmpCanvas.toDataURL("image/jpeg", 0.4); // Use JPEG with 40% quality for smaller size
 
           // Save thumbnail to localStorage with bank and slot index
           // We use the target indices here to ensure we're saving to the correct slot
           localStorage.setItem(`${getStorageKey(targetBankIndex, targetSlotIndex)}-thumbnail`, thumbnail);
+          
+          // Store timestamp for age-based purging
+          localStorage.setItem(`${getStorageKey(targetBankIndex, targetSlotIndex)}-thumbnail-timestamp`, Date.now());
 
           // Update the slot thumbnail if the target bank is visible
           if (targetBankIndex === currentBank) {
@@ -516,20 +600,75 @@ export function createSlotsPanel(editor, hydra, runCode) {
   // Function to clear all slots
   function clearAllSlots() {
     // Create confirmation options
-    const options = ["Clear Current Bank", "Clear All Banks", "Cancel"];
+    const options = ["Clear Current Bank", "Clear All Banks", "Clear All Thumbnails Only", "Cancel"];
 
-    const choice = confirm("Clear current bank only or all banks?");
+    // Show dialog with options
+    const message = "What would you like to clear?\n\n" +
+                   "1. Clear Current Bank - Removes all slots in the current bank\n" +
+                   "2. Clear All Banks - Removes all slots in all banks\n" +
+                   "3. Clear All Thumbnails Only - Keeps code but removes all thumbnails to save space";
+    
+    const choice = prompt(message, "1");
 
-    if (choice === null) {
+    if (choice === null || choice === "") {
       return; // User canceled
     }
 
-    if (choice) {
+    // Process based on user selection
+    if (choice === "3" || choice.toLowerCase() === "thumbnails") {
+      // Clear all thumbnails only (across all banks)
+      let thumbnailCount = 0;
+      
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.includes('-thumbnail')) {
+          localStorage.removeItem(key);
+          thumbnailCount++;
+        }
+      }
+
+      // Clear current bank's thumbnail display
+      for (let i = 0; i < 16; i++) {
+        const thumbnailElement = slotElements[i].querySelector(".slot-thumbnail");
+        thumbnailElement.style.backgroundImage = "";
+        thumbnailElement.style.backgroundColor = "";
+        
+        // Add colored background for slots that still have code
+        const storageKey = getStorageKey(currentBank, i);
+        const hasCode = localStorage.getItem(storageKey);
+        if (hasCode) {
+          thumbnailElement.style.backgroundColor = "var(--color-syntax-function)";
+          thumbnailElement.style.opacity = "0.3";
+        }
+      }
+
+      // Show notification
+      const clearedNotification = document.createElement("div");
+      clearedNotification.className = "saved-notification";
+      clearedNotification.style.backgroundColor = "var(--color-perf-medium)";
+      clearedNotification.textContent = `Cleared ${thumbnailCount} Thumbnails!`;
+      document.body.appendChild(clearedNotification);
+
+      setTimeout(() => {
+        clearedNotification.classList.add("fade-out");
+        setTimeout(() => {
+          if (clearedNotification.parentNode) {
+            document.body.removeChild(clearedNotification);
+          }
+        }, 500);
+      }, 1500);
+      
+      return;
+    }
+
+    // Handle original clear options
+    if (choice === "2" || choice.toLowerCase() === "all") {
       // Clear all banks
       for (let bank = 0; bank < 4; bank++) {
         for (let slot = 0; slot < 16; slot++) {
           localStorage.removeItem(getStorageKey(bank, slot));
           localStorage.removeItem(`${getStorageKey(bank, slot)}-thumbnail`);
+          localStorage.removeItem(`${getStorageKey(bank, slot)}-thumbnail-timestamp`);
         }
       }
 
@@ -559,10 +698,11 @@ export function createSlotsPanel(editor, hydra, runCode) {
         }, 500);
       }, 1500);
     } else {
-      // Clear only current bank
+      // Clear only current bank (default option)
       for (let i = 0; i < 16; i++) {
         localStorage.removeItem(getStorageKey(currentBank, i));
         localStorage.removeItem(`${getStorageKey(currentBank, i)}-thumbnail`);
+        localStorage.removeItem(`${getStorageKey(currentBank, i)}-thumbnail-timestamp`);
 
         // Clear thumbnail display
         const thumbnailElement = slotElements[i].querySelector(".slot-thumbnail");
@@ -689,7 +829,11 @@ export function createSlotsPanel(editor, hydra, runCode) {
 
           // Only include thumbnail if the option is enabled
           if (window.includeExportThumbnails && thumbnail) {
-            slotData.thumbnail = thumbnail;
+            // Only include thumbnails in export if they're not too large
+            // This prevents localStorage from exceeding 5MB limit
+            if (thumbnail.length < 8000) { // ~8KB limit per thumbnail in exports
+              slotData.thumbnail = thumbnail;
+            }
           }
 
           bankData.slots.push(slotData);
