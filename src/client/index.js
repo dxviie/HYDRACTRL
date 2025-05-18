@@ -830,11 +830,13 @@ async function init() {
 
       // Then save to active slot if slots panel exists
       if (window.slotsPanel) {
-        window.slotsPanel.saveToActiveSlot();
+        const savedSlotInfo = window.slotsPanel.saveToActiveSlot();
         
-        // Move to next slot if the option is enabled
+        // Move to next slot if the option is enabled, passing the slot we just saved to
         if (window.moveToNextSlotOnSave && window.moveToNextSlot) {
-          window.moveToNextSlot();
+          // Add debug to check what's happening
+          console.log("Save button: Moving to next slot with info:", savedSlotInfo);
+          window.moveToNextSlot(savedSlotInfo);
         }
       } else {
         // Show temporary "Saved!" notification only if not using slots
@@ -874,11 +876,13 @@ async function init() {
         saveCode(editor);
         // Also save to active slot if slots panel exists
         if (window.slotsPanel) {
-          window.slotsPanel.saveToActiveSlot();
+          const savedSlotInfo = window.slotsPanel.saveToActiveSlot();
           
-          // Move to next slot if the option is enabled
+          // Move to next slot if the option is enabled, passing the slot we just saved to
           if (window.moveToNextSlotOnSave && window.moveToNextSlot) {
-            window.moveToNextSlot();
+            // Add debug to check what's happening
+            console.log("Moving to next slot with info:", savedSlotInfo);
+            window.moveToNextSlot(savedSlotInfo);
           }
         }
       }
@@ -1214,24 +1218,50 @@ async function init() {
     }
     
     // Function to move to the next slot after saving
-    window.moveToNextSlot = function() {
+    window.moveToNextSlot = function(savedSlotInfo) {
       if (!window.slotsPanel || !window.moveToNextSlotOnSave) return;
       
-      const currentBank = window.slotsPanel.getBank();
-      const currentSlot = window.slotsPanel.getActiveSlotIndex();
+      console.log("moveToNextSlot called with:", savedSlotInfo);
+      
+      // Verify we have valid savedSlotInfo
+      if (!savedSlotInfo || typeof savedSlotInfo !== 'object' || 
+          savedSlotInfo.bank === undefined || savedSlotInfo.slot === undefined) {
+        console.error("Invalid savedSlotInfo:", savedSlotInfo);
+        // Fall back to current slot
+        savedSlotInfo = {
+          bank: window.slotsPanel.getBank(),
+          slot: window.slotsPanel.getActiveSlotIndex()
+        };
+        console.log("Using fallback slot info:", savedSlotInfo);
+      }
+      
+      // Ensure numeric values
+      const currentBank = Number(savedSlotInfo.bank);
+      const currentSlot = Number(savedSlotInfo.slot);
+      
+      console.log(`Moving from bank ${currentBank}, slot ${currentSlot}`);
+      
+      // Validate inputs and calculate next slot index
+      // If values are NaN, default to sensible values
+      if (isNaN(currentBank) || isNaN(currentSlot)) {
+        console.error("Invalid bank or slot (NaN detected):", currentBank, currentSlot);
+        return false;
+      }
       
       // Calculate next slot index
-      let nextSlot = currentSlot + 1;
+      let nextSlot = (currentSlot + 1) % 16;
       let nextBank = currentBank;
       
       // If we're at the last slot of the current bank, go to the first slot of the next bank
-      if (nextSlot >= 16) {
-        nextSlot = 0;
+      if (nextSlot === 0) {
         nextBank = (currentBank + 1) % 4;
       }
       
+      console.log(`Next position: bank ${nextBank}, slot ${nextSlot}`);
+      
       // If we're wrapping around from the last bank to the first, check if we have room
       if (nextBank < currentBank) {
+        console.log("Wrapping around to first bank, showing warning");
         // We're going back to bank 0 from bank 3, show a warning popup
         const fullNotification = document.createElement("div");
         fullNotification.className = "saved-notification";
@@ -1252,18 +1282,29 @@ async function init() {
         return false;
       }
       
-      // If we need to switch banks
-      if (nextBank !== currentBank) {
-        window.slotsPanel.switchBank(nextBank);
-        
-        // Flash the bank dot for visual feedback
-        if (window.flashActiveBankDot) {
-          window.flashActiveBankDot(nextBank);
+      // Wait for any async operations to complete before changing slots
+      // Use a timeout to ensure the screenshot capture has started and we don't lose focus
+      setTimeout(() => {
+        try {
+          // If we need to switch banks
+          if (nextBank !== currentBank) {
+            console.log(`Switching to bank ${nextBank}`);
+            window.slotsPanel.switchBank(nextBank);
+            
+            // Flash the bank dot for visual feedback
+            if (window.flashActiveBankDot) {
+              window.flashActiveBankDot(nextBank);
+            }
+          }
+          
+          // Switch to the next slot
+          console.log(`Setting active slot to ${nextSlot}`);
+          window.slotsPanel.setActiveSlot(nextSlot);
+        } catch (error) {
+          console.error("Error moving to next slot:", error);
         }
-      }
+      }, 500); // Increased to 500ms to ensure more time for screenshot capture
       
-      // Switch to the next slot
-      window.slotsPanel.setActiveSlot(nextSlot);
       return true;
     };
 
