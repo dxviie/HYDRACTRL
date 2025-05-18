@@ -369,7 +369,9 @@ function createInfoPanel() {
     { keys: "Ctrl/Cmd + S", action: "Save code" },
     { keys: "Ctrl/Cmd + Y", action: "Toggle Auto Run" },
     { keys: "Escape", action: "Toggle editor visibility" },
-    { keys: "Ctrl/Cmd + 1-9", action: "Select slot 1-9" },
+    { keys: "Ctrl/Cmd + 0", action: "Select slot 1" },
+    { keys: "Ctrl/Cmd + 1-9", action: "Select slots 2-10" },
+    { keys: "Ctrl/Cmd + A-F", action: "Select slots 11-16" },
     { keys: "Ctrl/Cmd + X", action: "Export all slots" },
     { keys: "Ctrl/Cmd + I", action: "Import slots file" },
     { keys: "Ctrl/Cmd + ←/→", action: "Cycle between banks (when no MIDI device is connected)" }
@@ -887,11 +889,28 @@ async function init() {
 
       // Check for either Ctrl or Cmd (metaKey) for the following shortcuts
       if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey) {
-        // Number keys 1-9 to select slots 1-9
-        const num = parseInt(e.key);
-        if (!isNaN(num) && num >= 1 && num <= 9 && window.slotsPanel) {
+        // Hexadecimal keys 0-F to select slots 1-16
+        // First handle 0-9 keys
+        const numKey = e.key;
+        if (numKey >= '0' && numKey <= '9' && window.slotsPanel) {
           e.preventDefault();
-          window.slotsPanel.setActiveSlot(num - 1); // Convert to 0-based index
+          // For key '0', select slot 1 (index 0)
+          // For keys '1'-'9', select slots 2-10 (index 1-9)
+          const slotIndex = numKey === '0' ? 0 : parseInt(numKey);
+          window.slotsPanel.setActiveSlot(slotIndex);
+        }
+        
+        // Then handle A-F keys for slots 11-16
+        if (numKey >= 'a' && numKey <= 'f' && window.slotsPanel) {
+          e.preventDefault();
+          // Convert a-f to values 10-15
+          const slotIndex = numKey.charCodeAt(0) - 'a'.charCodeAt(0) + 10;
+          window.slotsPanel.setActiveSlot(slotIndex);
+        } else if (numKey >= 'A' && numKey <= 'F' && window.slotsPanel) {
+          e.preventDefault();
+          // Convert A-F to values 10-15
+          const slotIndex = numKey.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+          window.slotsPanel.setActiveSlot(slotIndex);
         }
 
         // Ctrl/Cmd+X to export scene bank

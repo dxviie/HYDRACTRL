@@ -121,13 +121,19 @@ export function createSlotsPanel(editor, hydra, runCode) {
     bankDots.push(dot);
   }
 
+  // Create shortcuts label
+  const shortcutsLabel = document.createElement("div");
+  shortcutsLabel.className = "shortcut";
+  shortcutsLabel.style.marginLeft = "4px";
+  shortcutsLabel.innerHTML = "<span style='font-size: 10px; color: var(--color-text-secondary);'>Ctrl/Cmd + ←/→</span>";
+  dotsContainer.appendChild(shortcutsLabel);
+
   // Create icons container
   const iconsContainer = document.createElement("div");
   iconsContainer.className = "slots-icons";
   iconsContainer.style.display = "flex";
   iconsContainer.style.alignItems = "center";
   iconsContainer.style.marginLeft = "1rem";
-  iconsContainer.style.marginRight = "6px";
   iconsContainer.style.gap = "3px";
 
   // Create export button
@@ -143,7 +149,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   exportBtn.style.cursor = "pointer";
   exportBtn.style.color = "white";
   exportBtn.style.fontWeight = "bold";
-  exportBtn.innerHTML = "↓"; // Simple download arrow
+  exportBtn.innerHTML = "💾"; // Simple download arrow
 
   // Create import button
   const importBtn = document.createElement("div");
@@ -158,7 +164,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   importBtn.style.cursor = "pointer";
   importBtn.style.color = "white";
   importBtn.style.fontWeight = "bold";
-  importBtn.innerHTML = "↑"; // Simple upload arrow
+  importBtn.innerHTML = "📂"; // Simple upload arrow
 
   // Add icons to container
   iconsContainer.appendChild(exportBtn);
@@ -167,7 +173,6 @@ export function createSlotsPanel(editor, hydra, runCode) {
   // Add the title, dots, and icons to the title container
   titleContainer.appendChild(title);
   titleContainer.appendChild(dotsContainer);
-  titleContainer.appendChild(iconsContainer);
 
   // Create the clear button
   const clearBtn = document.createElement("div");
@@ -478,7 +483,9 @@ export function createSlotsPanel(editor, hydra, runCode) {
 
   // Assemble the panel
   handle.appendChild(titleContainer);
-  handle.appendChild(clearBtn);
+  iconsContainer.appendChild(clearBtn);
+  handle.appendChild(iconsContainer);
+  // handle.appendChild(clearBtn);
 
   // Function to clear all slots
   function clearAllSlots() {
