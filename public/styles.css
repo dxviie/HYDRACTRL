@@ -519,6 +519,8 @@ button:active {
 .slot-index {
   color: white;
   mix-blend-mode: difference;
+  vertical-align: middle;
+  font-family: monospace;
 }
 
 /* Custom form elements styling */

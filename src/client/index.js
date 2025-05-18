@@ -370,9 +370,10 @@ function createInfoPanel() {
     { keys: "Ctrl/Cmd + S", action: "Save code" },
     { keys: "Ctrl/Cmd + Y", action: "Toggle Auto Run" },
     { keys: "Alt + 0-9 / A-F", action: "Select slot 1 to 16 (HEX)" },
+    { keys: "Ctrl/Cmd + ←/→", action: "Cycle between banks (only when no MIDI connected)" },
     { keys: "Ctrl/Cmd + X", action: "Export all slots" },
-    { keys: "Ctrl/Cmd + I", action: "Import slots file" },
-    { keys: "Ctrl/Cmd + ←/→", action: "Cycle between banks (when no MIDI device is connected)" }
+    { keys: "Ctrl/Cmd + I", action: "Import slots file" }
+
   ];
 
   // Add shortcuts to table

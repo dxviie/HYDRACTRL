@@ -251,7 +251,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
     index.style.right = "4px";
     index.style.fontSize = "12px";
     index.style.fontWeight = "bold";
-    index.textContent = i.toString(16).toUpperCase(); // Hexadecimal representation
+    index.innerHTML = "<span style='font-size: 8px;'>Alt+</span>" + i.toString(16).toUpperCase();
 
     // Thumbnail container for preview images
     const thumbnail = document.createElement("div");
