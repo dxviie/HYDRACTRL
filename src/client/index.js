@@ -365,13 +365,11 @@ function createInfoPanel() {
 
   // Define shortcuts
   const shortcuts = [
+    { keys: "Escape", action: "Toggle editor visibility" },
     { keys: "Ctrl/Cmd + Enter", action: "Run code" },
     { keys: "Ctrl/Cmd + S", action: "Save code" },
     { keys: "Ctrl/Cmd + Y", action: "Toggle Auto Run" },
-    { keys: "Escape", action: "Toggle editor visibility" },
-    { keys: "Ctrl/Cmd + 0", action: "Select slot 1" },
-    { keys: "Ctrl/Cmd + 1-9", action: "Select slots 2-10" },
-    { keys: "Ctrl/Cmd + A-F", action: "Select slots 11-16" },
+    { keys: "Ctrl/Cmd + 0-9 / A-F", action: "Select slot 1 to 16 (HEX)" },
     { keys: "Ctrl/Cmd + X", action: "Export all slots" },
     { keys: "Ctrl/Cmd + I", action: "Import slots file" },
     { keys: "Ctrl/Cmd + ←/→", action: "Cycle between banks (when no MIDI device is connected)" }
@@ -780,27 +778,27 @@ async function init() {
     // Auto-run timer
     let autoRunTimer = null;
     let autoRunEnabled = localStorage.getItem("hydractrl-auto-run") === "true";
-    
+
     // Auto-run function
     const setupAutoRun = () => {
       const autoRunCheckbox = document.getElementById("auto-run-checkbox");
-      
+
       // Set initial state from localStorage
       autoRunCheckbox.checked = autoRunEnabled;
-      
+
       // Function to toggle auto-run state
       const toggleAutoRun = () => {
         autoRunEnabled = !autoRunEnabled;
         autoRunCheckbox.checked = autoRunEnabled;
         localStorage.setItem("hydractrl-auto-run", autoRunEnabled);
       };
-      
+
       // Listen for checkbox changes
       autoRunCheckbox.addEventListener("change", (e) => {
         autoRunEnabled = e.target.checked;
         localStorage.setItem("hydractrl-auto-run", autoRunEnabled);
       });
-      
+
       // Set up simplified global keydown handler for auto-run
       window.addEventListener("keydown", () => {
         if (autoRunEnabled) {
@@ -812,10 +810,10 @@ async function init() {
           }, 250);
         }
       });
-      
+
       return { toggleAutoRun };
     };
-    
+
     const { toggleAutoRun } = setupAutoRun();
 
     // Set up event listeners
@@ -874,7 +872,7 @@ async function init() {
           window.slotsPanel.saveToActiveSlot();
         }
       }
-      
+
       // Ctrl+Y or Cmd+Y to toggle auto-run
       if ((e.ctrlKey || e.metaKey) && e.key === "y") {
         e.preventDefault();
@@ -899,7 +897,7 @@ async function init() {
           const slotIndex = numKey === '0' ? 0 : parseInt(numKey);
           window.slotsPanel.setActiveSlot(slotIndex);
         }
-        
+
         // Then handle A-F keys for slots 11-16
         if (numKey >= 'a' && numKey <= 'f' && window.slotsPanel) {
           e.preventDefault();
