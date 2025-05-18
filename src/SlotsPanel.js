@@ -827,13 +827,10 @@ export function createSlotsPanel(editor, hydra, runCode) {
             code: btoa(encodeURIComponent(code)), // Safe base64 encoding
           };
 
-          // Only include thumbnail if the option is enabled
-          if (window.includeExportThumbnails && thumbnail) {
-            // Only include thumbnails in export if they're not too large
-            // This prevents localStorage from exceeding 5MB limit
-            if (thumbnail.length < 8000) { // ~8KB limit per thumbnail in exports
-              slotData.thumbnail = thumbnail;
-            }
+          // Always include thumbnails in exports if available
+          // Since we're now using tiny thumbnails, they should be small enough
+          if (thumbnail) {
+            slotData.thumbnail = thumbnail;
           }
 
           bankData.slots.push(slotData);

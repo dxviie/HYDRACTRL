@@ -209,8 +209,8 @@ async function initHydra() {
       precision: "mediump", // Better performance
     });
 
-    // Add global flag for including thumbnails in exports (default: true)
-    window.includeExportThumbnails = true;
+    // Thumbnails are always included in exports (small enough to fit)
+    // We now use tiny 32x32 thumbnails with low quality compression
 
     return hydra;
   } catch (error) {
@@ -1062,10 +1062,6 @@ async function init() {
       });
     };
 
-    // Set up the thumbnails export checkbox
-    statsPanel.export.thumbnailCheckbox.addEventListener("change", (e) => {
-      window.includeExportThumbnails = e.target.checked;
-    });
 
     // Update the stats panel with MIDI info if supported
     if (midiSupported) {
