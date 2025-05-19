@@ -617,6 +617,94 @@ function loadCode(editor) {
   }
 }
 
+// Check if any scenes are stored in localStorage and import default bank if none
+async function importDefaultScenesIfEmpty() {
+  // Check if any scenes exist in localStorage
+  let hasSavedScenes = false;
+  const STORAGE_KEY_PREFIX = "hydractrl-slot-";
+  const getStorageKey = (bank, index) => `${STORAGE_KEY_PREFIX}bank-${bank}-slot-${index}`;
+
+  for (let bank = 0; bank < 4; bank++) {
+    for (let slot = 0; slot < 16; slot++) {
+      if (localStorage.getItem(getStorageKey(bank, slot))) {
+        hasSavedScenes = true;
+        break;
+      }
+    }
+    if (hasSavedScenes) break;
+  }
+
+  // If no scenes found, import the default extension pack
+  if (!hasSavedScenes) {
+    try {
+      console.log("No saved scenes found. Importing default extension pack...");
+
+      // Fetch the default extension pack
+      const response = await fetch('/assets/banks/default-extension-pack.json');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch default extension pack: ${response.status}`);
+      }
+
+      const scenesData = await response.json();
+
+      // Validate format
+      if (!scenesData.version || !Array.isArray(scenesData.banks)) {
+        throw new Error("Invalid scenes data format");
+      }
+
+      // Import all banks and slots
+      scenesData.banks.forEach((bankData) => {
+        const { bankIndex, slots } = bankData;
+
+        if (bankIndex >= 0 && bankIndex < 4 && Array.isArray(slots)) {
+          slots.forEach((slot) => {
+            if (slot.slotIndex >= 0 && slot.slotIndex < 16 && slot.code) {
+              try {
+                // Decode base64 code and handle non-Latin1 characters
+                const decodedCode = decodeURIComponent(atob(slot.code));
+
+                // Save to localStorage using the same key format as SlotsPanel
+                const storageKey = getStorageKey(bankIndex, slot.slotIndex);
+                localStorage.setItem(storageKey, decodedCode);
+
+                // Save thumbnail if available in the imported data
+                if (slot.thumbnail) {
+                  localStorage.setItem(`${storageKey}-thumbnail`, slot.thumbnail);
+                  localStorage.setItem(`${storageKey}-thumbnail-timestamp`, Date.now());
+                }
+              } catch (decodeError) {
+                console.error("Error decoding slot data:", decodeError);
+              }
+            }
+          });
+        }
+      });
+
+      // Show notification
+      const notification = document.createElement("div");
+      notification.className = "saved-notification";
+      notification.textContent = "Default scenes imported successfully!";
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.classList.add("fade-out");
+        setTimeout(() => {
+          if (notification.parentNode) {
+            document.body.removeChild(notification);
+          }
+        }, 500);
+      }, 2000);
+
+      return true;
+    } catch (error) {
+      console.error("Error importing default scenes:", error);
+      return false;
+    }
+  }
+
+  return hasSavedScenes;
+}
+
 // Initialize a new window for breakout view
 function openBreakoutWindow(width = 1280, height = 720) {
   // Default options for the window
@@ -831,7 +919,7 @@ async function init() {
       // Then save to active slot if slots panel exists
       if (window.slotsPanel) {
         const savedSlotInfo = window.slotsPanel.saveToActiveSlot();
-        
+
         // Move to next slot if the option is enabled, passing the slot we just saved to
         if (window.moveToNextSlotOnSave && window.moveToNextSlot) {
           // Add debug to check what's happening
@@ -877,7 +965,7 @@ async function init() {
         // Also save to active slot if slots panel exists
         if (window.slotsPanel) {
           const savedSlotInfo = window.slotsPanel.saveToActiveSlot();
-          
+
           // Move to next slot if the option is enabled, passing the slot we just saved to
           if (window.moveToNextSlotOnSave && window.moveToNextSlot) {
             // Add debug to check what's happening
@@ -991,6 +1079,9 @@ async function init() {
 
     // Create the stats panel using our simple implementation
     const statsPanel = createStatsPanel();
+
+    // Import default scenes if there are no saved scenes in localStorage
+    await importDefaultScenesIfEmpty();
 
     // Create the slots panel
     const slotsPanel = createSlotsPanel(editor, hydra, runCode);
@@ -1204,7 +1295,7 @@ async function init() {
     // Set the checkbox state based on saved preference
     if (statsPanel.slots && statsPanel.slots.moveToNextSlotCheckbox) {
       statsPanel.slots.moveToNextSlotCheckbox.checked = window.moveToNextSlotOnSave;
-      
+
       // Update the flag when checkbox is changed
       statsPanel.slots.moveToNextSlotCheckbox.addEventListener("change", (e) => {
         window.moveToNextSlotOnSave = e.target.checked;
@@ -1212,16 +1303,16 @@ async function init() {
         localStorage.setItem("hydractrl-move-to-next-slot", e.target.checked);
       });
     }
-    
+
     // Function to move to the next slot after saving
-    window.moveToNextSlot = function(savedSlotInfo) {
+    window.moveToNextSlot = function (savedSlotInfo) {
       if (!window.slotsPanel || !window.moveToNextSlotOnSave) return;
-      
+
       console.log("moveToNextSlot called with:", savedSlotInfo);
-      
+
       // Verify we have valid savedSlotInfo
-      if (!savedSlotInfo || typeof savedSlotInfo !== 'object' || 
-          savedSlotInfo.bank === undefined || savedSlotInfo.slot === undefined) {
+      if (!savedSlotInfo || typeof savedSlotInfo !== 'object' ||
+        savedSlotInfo.bank === undefined || savedSlotInfo.slot === undefined) {
         console.error("Invalid savedSlotInfo:", savedSlotInfo);
         // Fall back to current slot
         savedSlotInfo = {
@@ -1230,31 +1321,31 @@ async function init() {
         };
         console.log("Using fallback slot info:", savedSlotInfo);
       }
-      
+
       // Ensure numeric values
       const currentBank = Number(savedSlotInfo.bank);
       const currentSlot = Number(savedSlotInfo.slot);
-      
+
       console.log(`Moving from bank ${currentBank}, slot ${currentSlot}`);
-      
+
       // Validate inputs and calculate next slot index
       // If values are NaN, default to sensible values
       if (isNaN(currentBank) || isNaN(currentSlot)) {
         console.error("Invalid bank or slot (NaN detected):", currentBank, currentSlot);
         return false;
       }
-      
+
       // Calculate next slot index
       let nextSlot = (currentSlot + 1) % 16;
       let nextBank = currentBank;
-      
+
       // If we're at the last slot of the current bank, go to the first slot of the next bank
       if (nextSlot === 0) {
         nextBank = (currentBank + 1) % 4;
       }
-      
+
       console.log(`Next position: bank ${nextBank}, slot ${nextSlot}`);
-      
+
       // If we're wrapping around from the last bank to the first, check if we have room
       if (nextBank < currentBank) {
         console.log("Wrapping around to first bank, showing warning");
@@ -1264,7 +1355,7 @@ async function init() {
         fullNotification.style.backgroundColor = "var(--color-error)";
         fullNotification.textContent = "All banks full! Can't advance further.";
         document.body.appendChild(fullNotification);
-        
+
         setTimeout(() => {
           fullNotification.classList.add("fade-out");
           setTimeout(() => {
@@ -1273,11 +1364,11 @@ async function init() {
             }
           }, 500);
         }, 1500);
-        
+
         // Don't advance to next slot in this case
         return false;
       }
-      
+
       // Wait for any async operations to complete before changing slots
       // Use a timeout to ensure the screenshot capture has started and we don't lose focus
       setTimeout(() => {
@@ -1286,13 +1377,13 @@ async function init() {
           if (nextBank !== currentBank) {
             console.log(`Switching to bank ${nextBank}`);
             window.slotsPanel.switchBank(nextBank);
-            
+
             // Flash the bank dot for visual feedback
             if (window.flashActiveBankDot) {
               window.flashActiveBankDot(nextBank);
             }
           }
-          
+
           // Switch to the next slot
           console.log(`Setting active slot to ${nextSlot}`);
           window.slotsPanel.setActiveSlot(nextSlot);
@@ -1300,7 +1391,7 @@ async function init() {
           console.error("Error moving to next slot:", error);
         }
       }, 500); // Increased to 500ms to ensure more time for screenshot capture
-      
+
       return true;
     };
 
