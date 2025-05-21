@@ -366,13 +366,13 @@ function createInfoPanel() {
   // Define shortcuts
   const shortcuts = [
     { keys: "Escape", action: "Toggle editor visibility" },
-    { keys: "Ctrl/Cmd + Enter", action: "Run code" },
-    { keys: "Ctrl/Cmd + S", action: "Save code" },
-    { keys: "Ctrl/Cmd + Y", action: "Toggle Auto Run" },
+    { keys: "Ctrl/⌘ + Enter", action: "Run code" },
+    { keys: "Ctrl/⌘ + S", action: "Save code" },
+    { keys: "Ctrl/⌘ + Y", action: "Toggle Auto Run" },
     { keys: "Alt + 0-9 / A-F", action: "Select slot 1 to 16 (HEX)" },
-    { keys: "Ctrl/Cmd + ←/→", action: "Cycle between banks (only when no MIDI connected)" },
-    { keys: "Ctrl/Cmd + X", action: "Export all slots" },
-    { keys: "Ctrl/Cmd + I", action: "Import slots file" }
+    { keys: "Ctrl/⌘ + ←/→", action: "Cycle between banks (only when no MIDI connected)" },
+    { keys: "Ctrl/⌘ + X", action: "Export all slots" },
+    { keys: "Ctrl/⌘ + I", action: "Import slots file" }
   ];
 
   // Add shortcuts to table
@@ -1016,18 +1016,18 @@ async function init() {
       // Check for either Ctrl or Cmd (metaKey) for the following shortcuts
       if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey) {
 
-        // Ctrl/Cmd+X to export scene bank
+        // Ctrl/⌘+X to export scene bank
         if (e.key === "x" && window.slotsPanel && window.slotsPanel.exportAllSlots) {
           e.preventDefault();
           window.slotsPanel.exportAllSlots();
         }
-        // Ctrl/Cmd+I to import scene bank
+        // Ctrl/⌘+I to import scene bank
         if (e.key === "i" && window.slotsPanel && window.slotsPanel.importSlots) {
           e.preventDefault();
           window.slotsPanel.importSlots();
         }
 
-        // Ctrl/Cmd+Left/Right arrow keys to cycle between banks (only when no MIDI device is connected)
+        // Ctrl/⌘+Left/Right arrow keys to cycle between banks (only when no MIDI device is connected)
         if (e.key === "ArrowLeft" && window.slotsPanel && window.slotsPanel.cycleBank) {
           // Check if MIDI device is connected
           const midiConnected =

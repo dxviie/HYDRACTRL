@@ -125,7 +125,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   const shortcutsLabel = document.createElement("div");
   shortcutsLabel.className = "shortcut";
   shortcutsLabel.style.marginLeft = "4px";
-  shortcutsLabel.innerHTML = "<span style='font-size: 10px; color: var(--color-text-secondary);'>Ctrl/Cmd + ←/→</span>";
+  shortcutsLabel.innerHTML = "<span style='font-size: 10px; color: var(--color-text-secondary);'>Ctrl/⌘ + ←/→</span>";
   dotsContainer.appendChild(shortcutsLabel);
 
   // Create icons container
@@ -353,21 +353,21 @@ export function createSlotsPanel(editor, hydra, runCode) {
     try {
       // Get code from editor
       const code = editor.state.doc.toString();
-  
+
       // Store the target bank and slot for screenshot capture
       // This ensures the screenshot goes to the correct slot even if we change slots later
       const targetBank = currentBank;
       const targetSlot = activeSlotIndex;
-      
+
       console.log(`Saving to bank ${targetBank}, slot ${targetSlot}`);
-      
+
       // Save to localStorage with bank and slot index
       const storageKey = getStorageKey(targetBank, targetSlot);
       localStorage.setItem(storageKey, code);
-  
+
       // Update bank dots to reflect new content
       updateBankDots();
-  
+
       // Run the code first (to ensure visuals are updated) then capture screenshot
       const success = await runCode(editor, hydra);
       if (success) {
@@ -375,13 +375,13 @@ export function createSlotsPanel(editor, hydra, runCode) {
         // Pass the target bank and slot explicitly to ensure it's saved to the right place
         captureScreenshot(targetBank, targetSlot);
       }
-  
+
       // Show temporary "Saved to Slot!" notification
       const savedNotification = document.createElement("div");
       savedNotification.className = "saved-notification";
       savedNotification.textContent = `Saved to Bank ${targetBank + 1}, Slot ${targetSlot + 1}`;
       document.body.appendChild(savedNotification);
-  
+
       setTimeout(() => {
         savedNotification.classList.add("fade-out");
         setTimeout(() => {
@@ -390,7 +390,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
           }
         }, 500);
       }, 1500);
-      
+
       // Return the target slot info so callers know where we saved
       // Make sure to return a plain object that can be serialized
       const result = { bank: targetBank, slot: targetSlot };
@@ -431,16 +431,16 @@ export function createSlotsPanel(editor, hydra, runCode) {
       // Calculate total localStorage size
       let totalSize = 0;
       let thumbnailKeys = [];
-      
+
       // Iterate through all localStorage keys
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         const value = localStorage.getItem(key);
-        
+
         // Calculate size in bytes (approximate)
         const size = (key.length + value.length) * 2; // UTF-16 uses 2 bytes per character
         totalSize += size;
-        
+
         // Collect thumbnail keys for potential purging
         if (key.includes('-thumbnail')) {
           thumbnailKeys.push({
@@ -450,37 +450,37 @@ export function createSlotsPanel(editor, hydra, runCode) {
           });
         }
       }
-      
+
       // Convert to MB
       const totalSizeMB = totalSize / (1024 * 1024);
-      
+
       // If we're approaching the 5MB limit, start purging thumbnails
       // Starting with oldest ones first
       if (totalSizeMB > 4.5) {
         console.warn(`LocalStorage usage high (${totalSizeMB.toFixed(2)}MB). Purging old thumbnails.`);
-        
+
         // Sort thumbnails by timestamp (oldest first)
         thumbnailKeys.sort((a, b) => a.timeStamp - b.timeStamp);
-        
+
         // Purge thumbnails until we get below 4MB
         for (const item of thumbnailKeys) {
           localStorage.removeItem(item.key);
           localStorage.removeItem(item.key + '-timestamp');
-          
+
           totalSize -= item.size;
           const newSizeMB = totalSize / (1024 * 1024);
-          
+
           if (newSizeMB < 4.0) {
             console.log(`Purged thumbnails, new size: ${newSizeMB.toFixed(2)}MB`);
             break;
           }
         }
-        
+
         // Reload thumbnails for current bank after purging
         loadAllSlotsForCurrentBank();
         return true; // Thumbnails were purged
       }
-      
+
       return false; // No need to purge
     } catch (error) {
       console.error("Error checking localStorage size:", error);
@@ -494,10 +494,10 @@ export function createSlotsPanel(editor, hydra, runCode) {
       // We need to preserve a reference to the exact slot we're capturing for
       const targetBankIndex = bankIndex;
       const targetSlotIndex = slotIndex;
-      
+
       // Check and purge localStorage if needed before adding a new thumbnail
       checkAndPurgeLocalStorage();
-      
+
       // Delay capture to allow rendering to complete
       setTimeout(() => {
         // Get the canvas element
@@ -512,14 +512,14 @@ export function createSlotsPanel(editor, hydra, runCode) {
           tmpCanvas.width = thumbnailSize;
           tmpCanvas.height = thumbnailSize;
           const ctx = tmpCanvas.getContext("2d");
-          
+
           // Apply smoothing for better thumbnail quality
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = "high";
-          
+
           // Draw the main canvas scaled down to our tiny canvas
-          ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 
-                        0, 0, thumbnailSize, thumbnailSize);
+          ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height,
+            0, 0, thumbnailSize, thumbnailSize);
 
           // Create thumbnail image from the small canvas with very low quality
           const thumbnail = tmpCanvas.toDataURL("image/jpeg", 0.4); // Use JPEG with 40% quality for smaller size
@@ -527,7 +527,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
           // Save thumbnail to localStorage with bank and slot index
           // We use the target indices here to ensure we're saving to the correct slot
           localStorage.setItem(`${getStorageKey(targetBankIndex, targetSlotIndex)}-thumbnail`, thumbnail);
-          
+
           // Store timestamp for age-based purging
           localStorage.setItem(`${getStorageKey(targetBankIndex, targetSlotIndex)}-thumbnail-timestamp`, Date.now());
 
@@ -604,10 +604,10 @@ export function createSlotsPanel(editor, hydra, runCode) {
 
     // Show dialog with options
     const message = "What would you like to clear?\n\n" +
-                   "1. Clear Current Bank - Removes all slots in the current bank\n" +
-                   "2. Clear All Banks - Removes all slots in all banks\n" +
-                   "3. Clear All Thumbnails Only - Keeps code but removes all thumbnails to save space";
-    
+      "1. Clear Current Bank - Removes all slots in the current bank\n" +
+      "2. Clear All Banks - Removes all slots in all banks\n" +
+      "3. Clear All Thumbnails Only - Keeps code but removes all thumbnails to save space";
+
     const choice = prompt(message, "1");
 
     if (choice === null || choice === "") {
@@ -618,7 +618,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
     if (choice === "3" || choice.toLowerCase() === "thumbnails") {
       // Clear all thumbnails only (across all banks)
       let thumbnailCount = 0;
-      
+
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && key.includes('-thumbnail')) {
@@ -632,7 +632,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
         const thumbnailElement = slotElements[i].querySelector(".slot-thumbnail");
         thumbnailElement.style.backgroundImage = "";
         thumbnailElement.style.backgroundColor = "";
-        
+
         // Add colored background for slots that still have code
         const storageKey = getStorageKey(currentBank, i);
         const hasCode = localStorage.getItem(storageKey);
@@ -657,7 +657,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
           }
         }, 500);
       }, 1500);
-      
+
       return;
     }
 
