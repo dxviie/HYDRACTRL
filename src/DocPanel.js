@@ -349,13 +349,13 @@ export function createDocPanel() {
   if (savedPosition) {
     panel.style.left = savedPosition.left + "px";
     panel.style.top = savedPosition.top + "px";
-    panel.style.width = savedPosition.width ? savedPosition.width + "px" : "350px";
-    panel.style.height = savedPosition.height ? savedPosition.height + "px" : "500px";
+    panel.style.width = savedPosition.width ? savedPosition.width + "px" : "500px";
+    panel.style.height = savedPosition.height ? savedPosition.height + "px" : "900px";
   } else {
     panel.style.left = "60px";
     panel.style.top = "60px";
-    panel.style.width = "350px";
-    panel.style.height = "500px";
+    panel.style.width = "500px";
+    panel.style.height = "900px";
   }
 
   panel.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important";
@@ -367,7 +367,6 @@ export function createDocPanel() {
   panel.style.fontFamily = "sans-serif";
   panel.style.fontSize = "14px";
   panel.style.color = "var(--color-text-primary)";
-  panel.style.display = "flex";
   panel.style.flexDirection = "column";
 
   // Create the handle
