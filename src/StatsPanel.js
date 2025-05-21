@@ -63,6 +63,37 @@ export function createStatsPanel() {
   title.style.color = "var(--color-text-secondary)";
   title.textContent = "SYSTEM";
 
+  // Create buttons container
+  const buttonsContainer = document.createElement("div");
+  buttonsContainer.className = "stats-buttons";
+  buttonsContainer.style.display = "flex";
+  buttonsContainer.style.alignItems = "center";
+  buttonsContainer.style.gap = "8px";
+
+  // Create the docs button
+  const docsButton = document.createElement("div");
+  docsButton.className = "docs-button";
+  docsButton.style.fontSize = "14px";
+  docsButton.style.color = "var(--color-text-secondary)";
+  docsButton.style.cursor = "pointer";
+  docsButton.style.display = "flex";
+  docsButton.style.alignItems = "center";
+  docsButton.style.justifyContent = "center";
+  docsButton.style.transition = "all 0.2s ease";
+  docsButton.title = "Hydra Functions Reference";
+  docsButton.textContent = "📚";
+  docsButton.style.opacity = "0.7";
+  
+  docsButton.addEventListener("mouseenter", () => {
+    docsButton.style.opacity = "1";
+    docsButton.style.transform = "scale(1.1)";
+  });
+  
+  docsButton.addEventListener("mouseleave", () => {
+    docsButton.style.opacity = "0.7";
+    docsButton.style.transform = "scale(1)";
+  });
+
   // Create the toggle button
   const toggle = document.createElement("div");
   toggle.className = "stats-toggle";
@@ -673,8 +704,12 @@ export function createStatsPanel() {
   content.appendChild(slotsSection);
   content.appendChild(footerSection);
 
+  // Add buttons to container
+  buttonsContainer.appendChild(docsButton);
+  buttonsContainer.appendChild(toggle);
+  
   handle.appendChild(title);
-  handle.appendChild(toggle);
+  handle.appendChild(buttonsContainer);
 
   panel.appendChild(handle);
   panel.appendChild(content);
@@ -834,7 +869,8 @@ export function createStatsPanel() {
     slots: {
       section: slotsSection,
       moveToNextSlotCheckbox: moveToNextSlotCheckbox,
-    }
+    },
+    docsButton // Expose docs button for external access
   };
 }
 

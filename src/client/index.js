@@ -1,6 +1,7 @@
 // Import utilities
 import { createStatsPanel } from "../StatsPanel.js";
 import { createSlotsPanel } from "../SlotsPanel.js";
+import { createDocPanel } from "../DocPanel.js";
 import { createCodeMirrorEditor } from "../utils/CodeMirrorEditor.js";
 import { createMidiManager } from "../MidiManager.js";
 import { loadPanelPosition, savePanelPosition } from "../utils/PanelStorage.js";
@@ -582,6 +583,7 @@ function toggleEditor() {
   const editorContainer = document.getElementById("editor-container");
   const statsPanelElement = document.querySelector(".stats-panel");
   const slotsPanelElement = document.querySelector(".slots-panel");
+  const docPanelElement = document.querySelector(".doc-panel");
   
   // Get visibility state from localStorage, defaulting to visible (true)
   // We invert the storage value because we're about to toggle it
@@ -591,9 +593,10 @@ function toggleEditor() {
     // Hide the editor and panels using visibility property to preserve layout
     editorContainer.style.visibility = "hidden";
     
-    // Hide stats and slots panels if they exist
+    // Hide all panels if they exist
     if (statsPanelElement) statsPanelElement.style.visibility = "hidden";
     if (slotsPanelElement) slotsPanelElement.style.visibility = "hidden";
+    if (docPanelElement) docPanelElement.style.visibility = "hidden";
     
     // Add a CSS class to the body to indicate hidden UI (useful for styling)
     document.body.classList.add("ui-hidden");
@@ -604,9 +607,10 @@ function toggleEditor() {
     // Show the editor and panels
     editorContainer.style.visibility = "visible";
     
-    // Show stats and slots panels if they exist
+    // Show all panels if they exist
     if (statsPanelElement) statsPanelElement.style.visibility = "visible";
     if (slotsPanelElement) slotsPanelElement.style.visibility = "visible";
+    if (docPanelElement) docPanelElement.style.visibility = "visible";
     
     // Remove the hidden UI class
     document.body.classList.remove("ui-hidden");
@@ -890,11 +894,13 @@ async function init() {
         const editorContainer = document.getElementById("editor-container");
         const statsPanelElement = document.querySelector(".stats-panel");
         const slotsPanelElement = document.querySelector(".slots-panel");
+        const docPanelElement = document.querySelector(".doc-panel");
         
         // Hide all UI elements using visibility to preserve layout
         if (editorContainer) editorContainer.style.visibility = "hidden";
         if (statsPanelElement) statsPanelElement.style.visibility = "hidden";
-        if (slotsPanelElement) slotsPanelElement.style.visibility = "hidden";
+        if (slotsPanelElement) statsPanelElement.style.visibility = "hidden";
+        if (docPanelElement) docPanelElement.style.visibility = "hidden";
         
         // Add a CSS class to the body to indicate hidden UI
         document.body.classList.add("ui-hidden");
@@ -1125,6 +1131,14 @@ async function init() {
 
     // Create the stats panel using our simple implementation
     const statsPanel = createStatsPanel();
+    
+    // Create the documentation panel (hidden by default)
+    const docPanel = createDocPanel();
+    
+    // Connect the docs button to toggle the documentation panel
+    statsPanel.docsButton.addEventListener("click", () => {
+      docPanel.toggle();
+    });
 
     // Import default scenes if there are no saved scenes in localStorage
     await importDefaultScenesIfEmpty();
@@ -1454,6 +1468,7 @@ async function init() {
     window.statsPanel = statsPanel;
     window.slotsPanel = slotsPanel;
     window.midiManager = midiManager;
+    window.docPanel = docPanel; // Expose doc panel for access
     window._editorProxy = editor; // Expose editor proxy for focus etc.
     window.showInfoPanel = showInfoPanel; // Expose info panel functions
     window.hideInfoPanel = hideInfoPanel;
