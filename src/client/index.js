@@ -365,7 +365,7 @@ function createInfoPanel() {
 
   // Define shortcuts
   const shortcuts = [
-    { keys: "Ctrl/⌘ + `", action: "Toggle editor visibility" },
+    { keys: "Ctrl/⌘ + `", action: "Toggle UI visibility" },
     { keys: "Ctrl/⌘ + Enter", action: "Run code" },
     { keys: "Ctrl/⌘ + S", action: "Save code" },
     { keys: "Ctrl/⌘ + Y", action: "Toggle Auto Run" },
@@ -577,17 +577,28 @@ async function runCode(editor, hydra) {
   }
 }
 
-// Toggle editor visibility
+// Toggle editor and panel visibility
 function toggleEditor() {
   const editorContainer = document.getElementById("editor-container");
+  const statsPanelElement = document.querySelector(".stats-panel");
+  const slotsPanelElement = document.querySelector(".slots-panel");
+  
   const isVisible = editorContainer.style.display !== "none";
 
   if (isVisible) {
-    // Hide the editor
+    // Hide the editor and panels
     editorContainer.style.display = "none";
+    
+    // Hide stats and slots panels if they exist
+    if (statsPanelElement) statsPanelElement.style.display = "none";
+    if (slotsPanelElement) slotsPanelElement.style.display = "none";
   } else {
-    // Show the editor
+    // Show the editor and panels
     editorContainer.style.display = "flex"; // Use flex to maintain the flex layout
+    
+    // Show stats and slots panels if they exist
+    if (statsPanelElement) statsPanelElement.style.display = "block";
+    if (slotsPanelElement) slotsPanelElement.style.display = "block";
 
     // Focus the editor after making it visible
     setTimeout(() => {
