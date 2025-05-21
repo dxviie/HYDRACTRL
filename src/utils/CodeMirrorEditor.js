@@ -12,6 +12,7 @@ import { dracula } from "@uiw/codemirror-theme-dracula";
 import { monokai } from "@uiw/codemirror-theme-monokai";
 import { eclipse } from "@uiw/codemirror-theme-eclipse";
 import { solarizedDark } from "@uiw/codemirror-theme-solarized";
+import { autocompletion, CompletionContext, startCompletion } from "@codemirror/autocomplete";
 
 // Language compartment for JavaScript with Hydra extensions
 const languageCompartment = new Compartment();
@@ -53,59 +54,318 @@ const hydraTheme = EditorView.theme({
   },
 });
 
+// Hydra API Function Definitions with parameters
+const hydraFunctions = {
+  // Source Functions
+  osc: {
+    description: "Sine wave oscillator",
+    params: ["frequency = 60", "sync = 0.1", "offset = 0"],
+    example: "osc(10, 0.1, 0.5).out()"
+  },
+  noise: {
+    description: "Noise generator",
+    params: ["scale = 10", "offset = 0.1"],
+    example: "noise(10, 0.1).out()"
+  },
+  voronoi: {
+    description: "Voronoi diagram",
+    params: ["scale = 5", "speed = 0.3", "blending = 0.3"],
+    example: "voronoi(5, 0.3, 0.3).out()"
+  },
+  shape: {
+    description: "Generate a shape",
+    params: ["sides = 3", "radius = 0.3", "smoothing = 0.01"],
+    example: "shape(4, 0.5, 0.01).out()"
+  },
+  gradient: {
+    description: "Generate a gradient",
+    params: ["speed = 0"],
+    example: "gradient(0.1).out()"
+  },
+  src: {
+    description: "Use a source buffer",
+    params: ["source"],
+    example: "src(o0).out()"
+  },
+  solid: {
+    description: "Solid color",
+    params: ["r = 0", "g = 0", "b = 0", "a = 1"],
+    example: "solid(1, 0, 0, 1).out()"
+  },
+
+  // Color Operations
+  color: {
+    description: "Shift RGB color values",
+    params: ["r = 1", "g = 1", "b = 1"],
+    example: "osc().color(1, 0.5, 0.3).out()"
+  },
+  colorama: {
+    description: "Shift HSV values",
+    params: ["amount = 0.005"],
+    example: "osc().colorama(0.1).out()"
+  },
+  saturate: {
+    description: "Saturate colors",
+    params: ["amount = 2"],
+    example: "osc().saturate(2).out()"
+  },
+  hue: {
+    description: "Hue rotation",
+    params: ["hue = 0.4"],
+    example: "osc().hue(0.5).out()"
+  },
+  brightness: {
+    description: "Adjust brightness",
+    params: ["brightness = 0.4"],
+    example: "osc().brightness(0.5).out()"
+  },
+  contrast: {
+    description: "Adjust contrast",
+    params: ["contrast = 1.6"],
+    example: "osc().contrast(1.5).out()"
+  },
+  invert: {
+    description: "Invert colors",
+    params: ["amount = 1"],
+    example: "osc().invert(1).out()"
+  },
+
+  // Geometry Operations
+  rotate: {
+    description: "Rotate texture",
+    params: ["angle = 10", "speed = 0"],
+    example: "osc().rotate(1, 0.1).out()"
+  },
+  repeat: {
+    description: "Repeat texture in x and y",
+    params: ["repeatX = 3", "repeatY = 3", "offsetX = 0", "offsetY = 0"],
+    example: "osc().repeat(3, 3).out()"
+  },
+  repeatX: {
+    description: "Repeat texture in x direction",
+    params: ["reps = 3", "offset = 0"],
+    example: "osc().repeatX(3, 0).out()"
+  },
+  repeatY: {
+    description: "Repeat texture in y direction",
+    params: ["reps = 3", "offset = 0"],
+    example: "osc().repeatY(3, 0).out()"
+  },
+  kaleid: {
+    description: "Kaleidoscope effect",
+    params: ["numSides = 4"],
+    example: "osc().kaleid(4).out()"
+  },
+  pixelate: {
+    description: "Pixelate texture",
+    params: ["pixelX = 20", "pixelY = 20"],
+    example: "osc().pixelate(20, 20).out()"
+  },
+  scale: {
+    description: "Scale texture",
+    params: ["amount = 1.5", "xMult = 1", "yMult = 1"],
+    example: "osc().scale(1.5, 1, 1).out()"
+  },
+
+  // Modulation and Blending
+  modulate: {
+    description: "Modulate texture with another source",
+    params: ["texture", "amount = 0.1"],
+    example: "osc().modulate(noise(), 0.1).out()"
+  },
+  modulatePixelate: {
+    description: "Modulated pixelate",
+    params: ["texture", "multiple = 10", "offset = 3"],
+    example: "osc().modulatePixelate(noise(), 10, 3).out()"
+  },
+  modulateRotate: {
+    description: "Modulated rotation",
+    params: ["texture", "multiple = 1", "offset = 0"],
+    example: "osc().modulateRotate(noise(), 1, 0).out()"
+  },
+  modulateScale: {
+    description: "Modulated scaling",
+    params: ["texture", "multiple = 1", "offset = 1"],
+    example: "osc().modulateScale(noise(), 1, 1).out()"
+  },
+  modulateKaleid: {
+    description: "Modulated kaleidoscope",
+    params: ["texture", "nSides = 4"],
+    example: "osc().modulateKaleid(noise(), 4).out()"
+  },
+  blend: {
+    description: "Blend with another source",
+    params: ["texture", "amount = 0.5"],
+    example: "osc().blend(noise(), 0.5).out()"
+  },
+  mult: {
+    description: "Multiply with another source",
+    params: ["texture", "amount = 1"],
+    example: "osc().mult(noise(), 1).out()"
+  },
+  add: {
+    description: "Add with another source",
+    params: ["texture", "amount = 1"],
+    example: "osc().add(noise(), 1).out()"
+  },
+  diff: {
+    description: "Difference with another source",
+    params: ["texture"],
+    example: "osc().diff(noise()).out()"
+  },
+  mask: {
+    description: "Apply mask",
+    params: ["texture"],
+    example: "osc().mask(noise()).out()"
+  },
+  thresh: {
+    description: "Threshold filter",
+    params: ["threshold = 0.5", "tolerance = 0.04"],
+    example: "osc().thresh(0.5, 0.04).out()"
+  },
+
+  // Output and System Functions
+  out: {
+    description: "Output to a specific buffer",
+    params: ["buffer = o0"],
+    example: "osc().out(o0)"
+  },
+  render: {
+    description: "Render all output buffers",
+    params: ["output = o0"],
+    example: "render(o0)"
+  },
+  hush: {
+    description: "Clear all output buffers",
+    params: [],
+    example: "hush()"
+  },
+  setResolution: {
+    description: "Set resolution of output",
+    params: ["width", "height"],
+    example: "setResolution(800, 600)"
+  },
+  setBins: {
+    description: "Set number of FFT bins",
+    params: ["bins = 4"],
+    example: "setBins(4)"
+  },
+
+  // P5 related Functions
+  draw: {
+    description: "P5 draw function",
+    params: [],
+    example: "draw = () => { background(0); fill(255); ellipse(50, 50, 50); }"
+  },
+  setup: {
+    description: "P5 setup function",
+    params: [],
+    example: "setup = () => { createCanvas(400, 400); }"
+  },
+  mousePressed: {
+    description: "P5 mousePressed event function",
+    params: [],
+    example: "mousePressed = () => { console.log('pressed'); }"
+  },
+  mouseReleased: {
+    description: "P5 mouseReleased event function",
+    params: [],
+    example: "mouseReleased = () => { console.log('released'); }"
+  },
+  mouseMoved: {
+    description: "P5 mouseMoved event function",
+    params: [],
+    example: "mouseMoved = () => { console.log('moved'); }"
+  }
+};
+
 // Create a list of Hydra functions for syntax highlighting
-const hydraKeywords = [
-  // Core generator functions
-  "osc",
-  "noise",
-  "voronoi",
-  "shape",
-  "gradient",
-  "src",
-  "solid",
-  // Color operations
-  "color",
-  "colorama",
-  "saturate",
-  "hue",
-  "brightness",
-  "contrast",
-  "invert",
-  // Geometry operations
-  "rotate",
-  "repeat",
-  "repeatX",
-  "repeatY",
-  "kaleid",
-  "pixelate",
-  "scale",
-  // Modulation and blending
-  "modulate",
-  "modulatePixelate",
-  "modulateRotate",
-  "modulateScale",
-  "modulateKaleid",
-  "blend",
-  "mult",
-  "add",
-  "diff",
-  "mask",
-  "thresh",
-  // Output and system functions
-  "out",
-  "render",
-  "hush",
-  "setFunction",
-  "setResolution",
-  "setBins",
-  "fft",
-  // P5 related
-  "draw",
-  "setup",
-  "mousePressed",
-  "mouseReleased",
-  "mouseMoved",
-];
+const hydraKeywords = Object.keys(hydraFunctions);
+
+/**
+ * Provide Hydra-specific autocompletions
+ * @param {CompletionContext} context - The CodeMirror completion context
+ * @returns {Array} Completion options
+ */
+function hydraCompletions(context) {
+  // Check for function names
+  const functionMatch = context.matchBefore(/\w*$/);
+  if (functionMatch.from == functionMatch.to && !context.explicit) {
+    return null;
+  }
+
+  // Generate completions for Hydra function names
+  const matchText = functionMatch.text.toLowerCase();
+  const completions = Object.keys(hydraFunctions)
+    .filter(keyword => keyword.toLowerCase().startsWith(matchText))
+    .map(keyword => {
+      const funcData = hydraFunctions[keyword];
+      const paramInfo = funcData.params.length > 0
+        ? `(${funcData.params.join(", ")})`
+        : "()";
+
+      return {
+        label: keyword,
+        type: "function",
+        detail: paramInfo,
+        info: `${funcData.description}\n\nExample: ${funcData.example}`,
+        apply: keyword + "(", // Add opening parenthesis for function call
+        boost: 1
+      };
+    });
+
+  // Check for method chaining (like .color(), .rotate(), etc.)
+  const methodMatch = context.matchBefore(/\.\w*$/);
+  if (methodMatch && methodMatch.from != methodMatch.to) {
+    const methodText = methodMatch.text.substring(1).toLowerCase(); // Remove the dot
+    const methodCompletions = Object.keys(hydraFunctions)
+      .filter(keyword =>
+        // Only include methods, not source functions (assumes source functions don't chain)
+        keyword !== "osc" &&
+        keyword !== "noise" &&
+        keyword !== "voronoi" &&
+        keyword !== "shape" &&
+        keyword !== "gradient" &&
+        keyword !== "src" &&
+        keyword !== "solid" &&
+        keyword.toLowerCase().startsWith(methodText)
+      )
+      .map(keyword => {
+        const funcData = hydraFunctions[keyword];
+        const paramInfo = funcData.params.length > 0
+          ? `(${funcData.params.join(", ")})`
+          : "()";
+
+        return {
+          label: keyword,
+          type: "method",
+          detail: paramInfo,
+          info: `${funcData.description}\n\nExample: ${funcData.example}`,
+          apply: keyword + "(", // Add opening parenthesis for function call
+          boost: 1
+        };
+      });
+
+    if (methodCompletions.length) {
+      return {
+        from: methodMatch.from + 1, // +1 to account for the dot
+        options: methodCompletions,
+        validFor: /^\w*$/
+      };
+    }
+  }
+
+  // Return function name completions if any match
+  if (completions.length) {
+    return {
+      from: functionMatch.from,
+      options: completions,
+      validFor: /^\w*$/
+    };
+  }
+
+  return null;
+}
 
 /**
  * Create a CodeMirror editor for Hydra code
@@ -144,6 +404,12 @@ export function createCodeMirrorEditor(container, initialCode = "") {
       // High priority to override other keymaps
       preventDefault: true,
     },
+    {
+      // Add Ctrl+Space for manual trigger of completion
+      key: "Ctrl-Space",
+      mac: "Cmd-Space",
+      run: startCompletion
+    }
   ]);
 
   // Function to get the appropriate theme based on body class
@@ -174,6 +440,25 @@ export function createCodeMirrorEditor(container, initialCode = "") {
       EditorView.lineWrapping,
       EditorState.tabSize.of(2),
       preventCtrlEnterHandler, // Add our custom handler
+      // Add autocompletion with custom Hydra completions
+      autocompletion({
+        override: [hydraCompletions],
+        activateOnTyping: true,
+        defaultKeymap: true,
+        icons: true,
+        closeOnBlur: true,
+        addToOptions: [
+          {
+            render(completion, state) {
+              const element = document.createElement('div');
+              element.classList.add('cm-tooltip-section');
+              element.textContent = completion.detail || '';
+              return element;
+            },
+            position: 60
+          }
+        ]
+      })
     ],
   });
 
