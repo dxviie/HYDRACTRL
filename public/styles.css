@@ -396,6 +396,14 @@ button:active {
   overflow-y: auto;
 }
 
+/* Hide UI elements properly */
+.ui-hidden .editor-container,
+.ui-hidden .stats-panel,
+.ui-hidden .slots-panel {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* Stats Panel */
 .dragging {
   opacity: 0.9;

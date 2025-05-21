@@ -583,22 +583,36 @@ function toggleEditor() {
   const statsPanelElement = document.querySelector(".stats-panel");
   const slotsPanelElement = document.querySelector(".slots-panel");
   
-  const isVisible = editorContainer.style.display !== "none";
+  // Get visibility state from localStorage, defaulting to visible (true)
+  // We invert the storage value because we're about to toggle it
+  const isVisible = localStorage.getItem("hydractrl-ui-visible") !== "false";
 
   if (isVisible) {
-    // Hide the editor and panels
-    editorContainer.style.display = "none";
+    // Hide the editor and panels using visibility property to preserve layout
+    editorContainer.style.visibility = "hidden";
     
     // Hide stats and slots panels if they exist
-    if (statsPanelElement) statsPanelElement.style.display = "none";
-    if (slotsPanelElement) slotsPanelElement.style.display = "none";
+    if (statsPanelElement) statsPanelElement.style.visibility = "hidden";
+    if (slotsPanelElement) slotsPanelElement.style.visibility = "hidden";
+    
+    // Add a CSS class to the body to indicate hidden UI (useful for styling)
+    document.body.classList.add("ui-hidden");
+    
+    // Store the new visibility state
+    localStorage.setItem("hydractrl-ui-visible", "false");
   } else {
     // Show the editor and panels
-    editorContainer.style.display = "flex"; // Use flex to maintain the flex layout
+    editorContainer.style.visibility = "visible";
     
     // Show stats and slots panels if they exist
-    if (statsPanelElement) statsPanelElement.style.display = "block";
-    if (slotsPanelElement) slotsPanelElement.style.display = "block";
+    if (statsPanelElement) statsPanelElement.style.visibility = "visible";
+    if (slotsPanelElement) slotsPanelElement.style.visibility = "visible";
+    
+    // Remove the hidden UI class
+    document.body.classList.remove("ui-hidden");
+    
+    // Store the new visibility state
+    localStorage.setItem("hydractrl-ui-visible", "true");
 
     // Focus the editor after making it visible
     setTimeout(() => {
@@ -866,6 +880,26 @@ async function init() {
   try {
     const editor = initEditor(); // No longer async
     const hydra = await initHydra();
+    
+    // Apply UI visibility state from localStorage right after panels are created
+    const applyUiVisibility = () => {
+      const isVisible = localStorage.getItem("hydractrl-ui-visible");
+      
+      // Only apply if explicitly set to false (hidden)
+      if (isVisible === "false") {
+        const editorContainer = document.getElementById("editor-container");
+        const statsPanelElement = document.querySelector(".stats-panel");
+        const slotsPanelElement = document.querySelector(".slots-panel");
+        
+        // Hide all UI elements using visibility to preserve layout
+        if (editorContainer) editorContainer.style.visibility = "hidden";
+        if (statsPanelElement) statsPanelElement.style.visibility = "hidden";
+        if (slotsPanelElement) slotsPanelElement.style.visibility = "hidden";
+        
+        // Add a CSS class to the body to indicate hidden UI
+        document.body.classList.add("ui-hidden");
+      }
+    };
 
     window.P5 = P5; // Expose P5 globally for use in the editor
 
@@ -1100,6 +1134,9 @@ async function init() {
 
     // Initialize MIDI support with the slots panel
     const midiManager = createMidiManager(slotsPanel);
+    
+    // Apply UI visibility state after all panels are created
+    applyUiVisibility();
 
     // Initialize MIDI access
     const midiSupported = midiManager.init();

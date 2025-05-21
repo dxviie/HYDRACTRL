@@ -12,6 +12,8 @@ const PREFIX = "hydractrl_panel_";
  * @param {Object} position - Position and size data to save
  */
 export function savePanelPosition(panelId, position) {
+  if (!panelId || !position) return;
+  if (position.width === 0 || position.height === 0) return; // Avoid saving zero size
   try {
     localStorage.setItem(PREFIX + panelId, JSON.stringify(position));
   } catch (error) {
