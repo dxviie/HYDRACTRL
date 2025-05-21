@@ -467,6 +467,37 @@ button:active {
   font-weight: bold;
 }
 
+.editor-handle-controls {
+  display: flex;
+  align-items: center;
+}
+
+.editor-handle-controls button {
+  background-color: transparent;
+  padding: 3px 6px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+.editor-handle-controls button:hover {
+  background-color: rgba(var(--color-bg-tertiary-rgb), 0.8);
+  opacity: 1;
+  transform: none;
+  color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+}
+
+.editor-handle-controls .shortcut {
+  font-size: 10px;
+  font-family: monospace;
+}
+
 .editor-content {
   flex-grow: 1;
   overflow: auto;

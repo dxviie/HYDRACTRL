@@ -365,7 +365,7 @@ function createInfoPanel() {
 
   // Define shortcuts
   const shortcuts = [
-    { keys: "Escape", action: "Toggle editor visibility" },
+    { keys: "Ctrl/⌘ + `", action: "Toggle editor visibility" },
     { keys: "Ctrl/⌘ + Enter", action: "Run code" },
     { keys: "Ctrl/⌘ + S", action: "Save code" },
     { keys: "Ctrl/⌘ + Y", action: "Toggle Auto Run" },
@@ -982,8 +982,9 @@ async function init() {
         editor.focus();
       }
 
-      // ESC to toggle editor visibility
-      if (e.key === "Escape") {
+      // Ctrl/Cmd+` (backtick) to toggle editor visibility
+      if (e.key === "`" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault(); // Prevent any default behavior
         toggleEditor();
       }
 
@@ -1395,6 +1396,12 @@ async function init() {
       return true;
     };
 
+    // Set up the toggle editor button
+    const toggleEditorBtn = document.getElementById("toggle-editor-btn");
+    if (toggleEditorBtn) {
+      toggleEditorBtn.addEventListener("click", toggleEditor);
+    }
+
     // Add to window for debugging and access
     window.statsPanel = statsPanel;
     window.slotsPanel = slotsPanel;
@@ -1402,6 +1409,7 @@ async function init() {
     window._editorProxy = editor; // Expose editor proxy for focus etc.
     window.showInfoPanel = showInfoPanel; // Expose info panel functions
     window.hideInfoPanel = hideInfoPanel;
+    window.toggleEditor = toggleEditor; // Expose toggle editor function
 
     // Check if we should show the info panel on startup
     if (localStorage.getItem("hydractrl-show-info-on-startup") !== "false") {
