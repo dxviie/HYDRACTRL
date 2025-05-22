@@ -11,7 +11,11 @@ export function createMidiManager(slotsPanel) {
   // Track if this is a nanoPAD2 or similar controller
   let isNanoPad = false;
 
-  // Track XY pad values (normalized to 0-1)
+  // Initialize global XY pad values
+  window.nanoX = 0;
+  window.nanoY = 0;
+
+  // Track XY pad values internally (normalized to 0-1)
   let xyPadValues = {
     x: 0,
     y: 0
@@ -175,22 +179,24 @@ export function createMidiManager(slotsPanel) {
         // Update XY pad values if this is an XY pad message
         if ([0, 16].includes(ccNum)) { // X axis
           xyPadValues.x = value / 127; // Normalize to 0-1
+          window.nanoX = xyPadValues.x; // Update global variable
           return; // Skip further processing
         } else if ([1, 17].includes(ccNum)) { // Y axis
           xyPadValues.y = value / 127; // Normalize to 0-1
+          window.nanoY = xyPadValues.y; // Update global variable
           return; // Skip further processing
         }
 
         // For other CC messages, throttle if coming too quickly
         if (now - lastTime < 100) {
-          console.log(`Throttling rapid CC message: CC#${ccNum}=${value}`);
+          console.debug(`Throttling rapid CC message: CC#${ccNum}=${value}`);
           return; // Skip processing this message further
         }
 
         // If this CC value could trigger a bank change, enforce a cooldown period
         if (value >= 0 && value <= 3) {
           if (now - lastBankChange < THROTTLE_TIME) {
-            console.log(`Throttling potential bank change message: CC#${ccNum}=${value}`);
+            console.debug(`Throttling potential bank change message: CC#${ccNum}=${value}`);
             return; // Skip processing this message
           }
           lastBankChange = now;
@@ -240,17 +246,17 @@ export function createMidiManager(slotsPanel) {
           // Only allow a scene change if it's been at least THROTTLE_TIME ms since the last one
           // This prevents the XY pad from triggering multiple scene changes
           if (now - lastBankChange >= THROTTLE_TIME) {
-            console.log(`nanoPAD2 Scene change SysEx detected: Scene ${sceneNumber + 1}`);
+            console.debug(`nanoPAD2 Scene change SysEx detected: Scene ${sceneNumber + 1}`);
             lastBankChange = now;
             handlePossibleSceneChange(sceneNumber);
           } else {
-            console.log(`Throttling nanoPAD2 scene change to prevent XY pad interference`);
+            console.debug(`Throttling nanoPAD2 scene change to prevent XY pad interference`);
           }
         }
       }
     }
 
-    console.log(
+    console.debug(
       `MIDI ${messageType}: [${data.join(", ")}] Channel: ${channel + 1}`,
       cmd === 0x90
         ? `Note: ${data[1]} Velocity: ${data[2]}`
@@ -291,7 +297,7 @@ export function createMidiManager(slotsPanel) {
         // Just log the message but don't take action
         const ccNum = data[1];
         const value = data[2];
-        console.log(`Ignoring CC#${ccNum}=${value} to prevent XY pad interference`);
+        console.debug(`Ignoring CC#${ccNum}=${value} to prevent XY pad interference`);
       }
     } else {
       // Generic MIDI handling for other devices
@@ -485,10 +491,10 @@ export function createMidiManager(slotsPanel) {
 
     // If a mapping was found, select the corresponding slot
     if (mapping && slotsPanel) {
-      console.log(`MIDI note ${note} maps to slot ${mapping.slot}`);
+      console.debug(`MIDI note ${note} maps to slot ${mapping.slot}`);
       slotsPanel.setActiveSlot(mapping.slot);
     } else {
-      console.log(`No mapping found for MIDI note ${note} in bank ${currentScene}`);
+      console.debug(`No mapping found for MIDI note ${note} in bank ${currentScene}`);
     }
   }
 
