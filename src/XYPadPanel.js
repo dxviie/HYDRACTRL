@@ -109,32 +109,35 @@ export function createXYPadPanel() {
   paramsSection.style.gap = "4px";
 
   // Create parameter sliders
-  const createParamSlider = (name, min, max, value, step = 0.01) => {
+  const createParamSlider = (label_text, initial, min, max, step = 0.01) => {
     const container = document.createElement("div");
     container.style.display = "flex";
-    container.style.alignItems = "center";
-    container.style.gap = "8px";
+    container.style.flexDirection = "column";
+    container.style.gap = "4px";
 
-    const label = document.createElement("label");
-    label.textContent = name;
-    label.style.fontSize = "11px";
+    const label = document.createElement("div");
+    label.style.fontSize = "12px";
     label.style.color = "var(--color-text-secondary)";
-    label.style.width = "60px";
+    label.style.display = "flex";
+    label.style.justifyContent = "space-between";
+    label.style.alignItems = "center";
+
+    const label_span = document.createElement("span");
+    label_span.textContent = label_text;
+    label.appendChild(label_span);
+
+    const value_display = document.createElement("span");
+    value_display.textContent = initial;
+    value_display.style.fontFamily = "monospace";
+    value_display.style.color = "transparent";
+    label.appendChild(value_display);
 
     const slider = document.createElement("input");
     slider.type = "range";
     slider.min = min;
     slider.max = max;
-    slider.value = value;
     slider.step = step;
-    slider.style.flex = "1";
-
-    const value_display = document.createElement("span");
-    value_display.textContent = value;
-    value_display.style.fontSize = "11px";
-    value_display.style.color = "var(--color-text-secondary)";
-    value_display.style.width = "40px";
-    value_display.style.textAlign = "right";
+    slider.value = initial;
 
     slider.addEventListener("input", () => {
       value_display.textContent = slider.value;
@@ -143,17 +146,14 @@ export function createXYPadPanel() {
 
     container.appendChild(label);
     container.appendChild(slider);
-    container.appendChild(value_display);
     return { container, slider };
   };
 
-  const frictionControl = createParamSlider("Friction", 0.5, 0.999, 0.97);
-  const bounceControl = createParamSlider("Bounce", 0, 1, 0.7);
-  const gravityControl = createParamSlider("Gravity", -1000, 1000, 0, 1);
+  const frictionControl = createParamSlider("Friction", 0.1, 0, 0.2);
+  const bounceControl = createParamSlider("Bounce", 0.7, 0.3, 1);
 
   paramsSection.appendChild(frictionControl.container);
   paramsSection.appendChild(bounceControl.container);
-  paramsSection.appendChild(gravityControl.container);
 
   controlsSection.appendChild(physicsToggle);
   controlsSection.appendChild(paramsSection);
@@ -281,8 +281,7 @@ export function createXYPadPanel() {
   function updatePhysicsParams() {
     physics.updateParams({
       friction: parseFloat(frictionControl.slider.value),
-      bounce: parseFloat(bounceControl.slider.value),
-      gravity: parseFloat(gravityControl.slider.value)
+      bounce: parseFloat(bounceControl.slider.value)
     });
   }
 

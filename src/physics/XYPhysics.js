@@ -21,9 +21,8 @@ export class XYPhysics {
     this.timeHistory = [];
 
     // Physics parameters (with defaults)
-    this.friction = options.friction ?? 0.97;  // Air resistance (0-1)
-    this.bounce = options.bounce ?? 0.7;       // Bounciness (0-1)
-    this.gravity = options.gravity ?? 0;        // Gravity strength
+    this.friction = options.friction ?? 0.1;  // Friction (0-1), higher means more friction
+    this.bounce = options.bounce ?? 0.7;     // Bounciness (0-1)
     this.velocityLimit = options.velocityLimit ?? 2000; // Max velocity to prevent instability
 
     // Animation frame handling
@@ -37,12 +36,10 @@ export class XYPhysics {
     // Convert deltaTime to seconds for more intuitive physics
     const dt = deltaTime / 1000;
 
-    // Apply gravity
-    this.vy += this.gravity * dt;
-
-    // Apply friction
-    this.vx *= Math.pow(this.friction, dt * 60); // Scale friction by framerate
-    this.vy *= Math.pow(this.friction, dt * 60);
+    // Apply friction (1 - friction to invert the behavior)
+    const frictionFactor = Math.pow(1 - this.friction, dt * 60); // Scale friction by framerate
+    this.vx *= frictionFactor;
+    this.vy *= frictionFactor;
 
     // Limit velocity to prevent instability
     const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
@@ -183,6 +180,5 @@ export class XYPhysics {
   updateParams(params) {
     if (params.friction !== undefined) this.friction = params.friction;
     if (params.bounce !== undefined) this.bounce = params.bounce;
-    if (params.gravity !== undefined) this.gravity = params.gravity;
   }
 }
