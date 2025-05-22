@@ -70,66 +70,71 @@ export function loadPanelPosition(panelId) {
 }
 
 /**
- * Makes a panel position and size persistent
+ * Set up panel position persistence
  * @param {HTMLElement} element - The panel element
  * @param {string} panelId - Unique identifier for the panel
- * @param {Object} defaultPosition - Default position to use if none is stored
+ * @param {Object} defaultPosition - Default position (left, top)
+ * @param {Object} [options] - Additional options including size and behavior
  * @returns {Object} Methods to update and save positions
  */
-export function setupPanelPersistence(element, panelId, defaultPosition = {}) {
+export function setupPanelPersistence(element, panelId, defaultPosition = {}, options = {}) {
   // Load saved position or use defaults
   const savedPosition = loadPanelPosition(panelId);
   const position = savedPosition || defaultPosition;
 
-  // Apply initial position if available
+  // Apply initial position
   if (position.left !== undefined) element.style.left = position.left + "px";
   if (position.top !== undefined) element.style.top = position.top + "px";
-  if (position.width !== undefined && position.width !== "auto")
-    element.style.width = position.width + "px";
-  if (position.height !== undefined && position.height !== "auto")
-    element.style.height = position.height + "px";
 
-  // Create an observer to monitor size changes (for resizable panels)
-  const resizeObserver = new ResizeObserver((entries) => {
+  // Apply size based on options
+  if (options.skipSizeRestore) {
+    // Use size from options, not from saved position
+    if (options.width !== undefined) {
+      element.style.width = typeof options.width === 'number' ? 
+        options.width + "px" : options.width;
+    }
+    if (options.height !== undefined) {
+      element.style.height = typeof options.height === 'number' ? 
+        options.height + "px" : options.height;
+    }
+  } else {
+    // Use saved size if available
+    if (position.width !== undefined && position.width !== "auto") {
+      element.style.width = position.width + "px";
+    }
+    if (position.height !== undefined && position.height !== "auto") {
+      element.style.height = position.height + "px";
+    }
+  }
+
+  // Create an observer to monitor size changes
+  const resizeObserver = new ResizeObserver(() => {
     // Don't save while dragging to avoid excessive saves
     if (element.classList.contains("dragging")) return;
-
-    for (const entry of entries) {
-      const width = entry.contentRect.width;
-      const height = entry.contentRect.height;
-
-      // Get current position
-      const currentPosition = {
-        left: parseInt(element.style.left || "0"),
-        top: parseInt(element.style.top || "0"),
-        width,
-        height,
-      };
-
-      // Save to localStorage
-      savePanelPosition(panelId, currentPosition);
-    }
+    savePosition();
   });
 
-  // Start observing
+  // Start observing size changes
   resizeObserver.observe(element);
 
-  // Function to save position (called after dragging)
-  const savePosition = () => {
+  // Function to save current position and optionally size
+  function savePosition() {
     const currentPosition = {
       left: parseInt(element.style.left || "0"),
-      top: parseInt(element.style.top || "0"),
-      width: element.offsetWidth,
-      height: element.offsetHeight,
+      top: parseInt(element.style.top || "0")
     };
 
-    savePanelPosition(panelId, currentPosition);
-  };
+    // Only save size if not using skipSizeRestore
+    if (!options.skipSizeRestore) {
+      currentPosition.width = element.offsetWidth;
+      currentPosition.height = element.offsetHeight;
+    }
 
-  return {
-    savePosition,
-    disconnect: () => resizeObserver.disconnect(),
-  };
+    savePanelPosition(panelId, currentPosition);
+  }
+
+  // Return methods for external use
+  return { savePosition, disconnect: () => resizeObserver.disconnect() };
 }
 
 /**

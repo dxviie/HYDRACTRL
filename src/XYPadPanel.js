@@ -157,12 +157,14 @@ export function createXYPadPanel() {
   panel.appendChild(controlsSection);
   document.body.appendChild(panel);
 
-  // Set up panel position persistence
+  // Set up panel position persistence (only for position, not size)
   const { savePosition } = setupPanelPersistence(panel, 'xy-pad', {
     left: 20,
     top: 20,
+  }, {
     width: 256, // 240px pad + 16px margins
-    height: 'fit-content'
+    height: 'fit-content',
+    skipSizeRestore: true // Don't restore size from localStorage
   });
 
   // Initialize physics system
