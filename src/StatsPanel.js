@@ -177,10 +177,10 @@ export function createStatsPanel() {
     const xyPadPanelElement = document.querySelector(".xy-pad-panel");
     const isVisible = xyPadPanelElement.style.visibility !== "hidden";
     const newVisible = !isVisible;
-    
+
     // Update visibility
     xyPadPanelElement.style.visibility = newVisible ? "visible" : "hidden";
-    
+
     // Update localStorage and button text
     localStorage.setItem('hydractrl-xy-pad-visible', newVisible);
     xyPadButton.textContent = newVisible ? 'Hide XY Pad' : 'Show XY Pad';
@@ -565,11 +565,11 @@ export function createStatsPanel() {
 
   // Breakout button
   const breakoutButton = document.createElement("button");
-  breakoutButton.textContent = "Breakout View";
+  breakoutButton.textContent = "Open Breakout View";
   breakoutButton.style.fontSize = "10px";
   breakoutButton.style.padding = "2px 4px";
   breakoutButton.style.margin = "4px 0";
-  breakoutButton.style.width = "fit-content";
+  breakoutButton.style.width = "100%";
   breakoutButton.title = "Open visualization in a new window";
 
   // Size selection container
