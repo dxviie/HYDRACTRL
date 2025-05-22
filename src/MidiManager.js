@@ -176,12 +176,19 @@ export function createMidiManager(slotsPanel) {
         lastCCTime[ccKey] = now;
 
         // Update XY pad values
+        const normalizedValue = value / 127;
         if (ccNum === 2) {
-          window.nanoY = value / 127;
-          xyPadValues.y = value / 127;
+          window.nanoY = normalizedValue;
+          xyPadValues.y = normalizedValue;
+          if (xyPadPanel) {
+            xyPadPanel.updateFromMIDIY(normalizedValue);
+          }
         } else if (ccNum === 1) {
-          window.nanoX = value / 127;
-          xyPadValues.x = value / 127;
+          window.nanoX = normalizedValue;
+          xyPadValues.x = normalizedValue;
+          if (xyPadPanel) {
+            xyPadPanel.updateFromMIDIX(normalizedValue);
+          }
         }
 
         // Update XY pad panel if available

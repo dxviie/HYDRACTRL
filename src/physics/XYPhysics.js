@@ -122,9 +122,29 @@ export class XYPhysics {
     this.y = y * this.height;
   }
 
+  // Set X position
+  setPositionX(x) {
+    this.x = x * this.width;
+  }
+
+  // Set Y position
+  setPositionY(y) {
+    this.y = y * this.height;
+  }
+
   // Set current velocity (in pixels per second)
   setVelocity(vx, vy) {
     this.vx = vx;
+    this.vy = vy;
+  }
+
+  // Set X velocity
+  setVelocityX(vx) {
+    this.vx = vx;
+  }
+
+  // Set Y velocity
+  setVelocityY(vy) {
     this.vy = vy;
   }
 

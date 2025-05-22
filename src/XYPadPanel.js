@@ -229,33 +229,58 @@ export function createXYPadPanel() {
     }
   }
 
-  // Function to update from MIDI values
-  function updateFromMIDI(x, y) {
+  // Function to update X coordinate from MIDI
+  function updateFromMIDIX(x) {
     // Stop any running physics simulation when pad is touched
     physics.stop();
     isPadActive = true;
 
     // Store last position and time for velocity calculation
-    lastPadX = physics.x;
-    lastPadY = physics.y;
+    const lastX = physics.x;
     const now = performance.now();
 
-    // Update physics position
-    physics.setPosition(x, y);
+    // Update physics X position
+    physics.setPositionX(x);
 
     // Only calculate velocity if we have valid time delta
     if (lastPadTime > 0) {
       const dt = (now - lastPadTime) / 1000;
-      if (dt > 0 && dt < 0.1) { // Only apply velocity if time delta is reasonable
+      if (dt > 0 && dt < 0.01) { // Only apply velocity if time delta is reasonable
         // Calculate velocity based on physics coordinates
-        const vx = (physics.x - lastPadX) / dt;
-        const vy = (physics.y - lastPadY) / dt;
-        physics.setVelocity(vx, vy);
+        const vx = (physics.x - lastX) / dt;
+        physics.setVelocityX(vx);
       }
     }
 
     lastPadTime = now;
-    updatePosition(x, y, true);
+    updatePosition(x, physics.y / physics.height, true);
+  }
+
+  // Function to update Y coordinate from MIDI
+  function updateFromMIDIY(y) {
+    // Stop any running physics simulation when pad is touched
+    physics.stop();
+    isPadActive = true;
+
+    // Store last position and time for velocity calculation
+    const lastY = physics.y;
+    const now = performance.now();
+
+    // Update physics Y position
+    physics.setPositionY(y);
+
+    // Only calculate velocity if we have valid time delta
+    if (lastPadTime > 0) {
+      const dt = (now - lastPadTime) / 1000;
+      if (dt > 0 && dt < 0.01) { // Only apply velocity if time delta is reasonable
+        // Calculate velocity based on physics coordinates
+        const vy = (physics.y - lastY) / dt;
+        physics.setVelocityY(vy);
+      }
+    }
+
+    lastPadTime = now;
+    updatePosition(physics.x / physics.width, y, true);
   }
 
   // Function to handle pad release
@@ -316,7 +341,8 @@ export function createXYPadPanel() {
   const panelInterface = {
     panel,
     updatePosition,
-    updateFromMIDI,
+    updateFromMIDIX,
+    updateFromMIDIY,
     handlePadRelease,
     togglePanel,
     isVisible: () => panel.style.visibility === "visible"
