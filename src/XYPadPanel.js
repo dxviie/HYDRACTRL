@@ -2,6 +2,8 @@
  * XY Pad Panel
  * A visual representation of the Korg nanoPAD's XY pad
  */
+import { setupPanelPersistence } from './utils/PanelStorage.js';
+
 export function createXYPadPanel() {
   // Create the panel container
   const panel = document.createElement("div");
@@ -80,6 +82,14 @@ export function createXYPadPanel() {
   panel.appendChild(padArea);
   document.body.appendChild(panel);
 
+  // Set up panel position persistence
+  const { savePosition } = setupPanelPersistence(panel, 'xy-pad', {
+    left: 20,
+    top: 20,
+    width: 256, // 240px pad + 16px margins
+    height: 220  // 180px pad + 40px handle/margins
+  });
+
   // Make the panel draggable
   let isDragging = false;
   let currentX;
@@ -98,6 +108,7 @@ export function createXYPadPanel() {
     initialY = e.clientY - yOffset;
     if (e.target === handle) {
       isDragging = true;
+      panel.classList.add('dragging');
     }
   }
 
@@ -108,14 +119,19 @@ export function createXYPadPanel() {
       currentY = e.clientY - initialY;
       xOffset = currentX;
       yOffset = currentY;
-      panel.style.transform = `translate(${currentX}px, ${currentY}px)`;
+      panel.style.left = `${currentX}px`;
+      panel.style.top = `${currentY}px`;
     }
   }
 
   function dragEnd(e) {
-    initialX = currentX;
-    initialY = currentY;
-    isDragging = false;
+    if (isDragging) {
+      initialX = currentX;
+      initialY = currentY;
+      isDragging = false;
+      panel.classList.remove('dragging');
+      savePosition();
+    }
   }
 
   // Update indicator position based on XY values
