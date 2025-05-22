@@ -168,9 +168,8 @@ export function createMidiManager(slotsPanel) {
       const ccNum = data[1];
       const value = data[2];
 
-      // Check if this CC number is known to be an XY pad (usually CC 16-17 or 0-1)
-      const xyPadCCs = [0, 1, 16, 17, 18, 19];
-      if (xyPadCCs.includes(ccNum)) {
+      // Check if this CC number is for the XY pad
+      if ([1, 2].includes(ccNum)) {
         // Throttle the message if it's coming too fast
         const now = Date.now();
         const ccKey = `${channel}_${ccNum}`;
@@ -181,20 +180,18 @@ export function createMidiManager(slotsPanel) {
         lastCCValues[ccKey] = { time: now, value: value };
 
         // Update XY pad values if this is an XY pad message
-        if ([0, 16].includes(ccNum)) { // X axis
-          xyPadValues.x = value / 127; // Normalize to 0-1
-          window.nanoX = xyPadValues.x; // Update global variable
-          return; // Skip further processing
-        } else if ([1, 17].includes(ccNum)) { // Y axis
-          xyPadValues.y = value / 127; // Normalize to 0-1
-          window.nanoY = xyPadValues.y; // Update global variable
-          return; // Skip further processing
-        }
+        const normalizedValue = value / 127; // Normalize to 0-1
 
-        // For other CC messages, throttle if coming too quickly
-        if (now - lastTime < 100) {
-          console.debug(`Throttling rapid CC message: CC#${ccNum}=${value}`);
-          return; // Skip processing this message further
+        if (ccNum === 2) { // Y axis
+          xyPadValues.y = normalizedValue;
+          window.nanoY = normalizedValue;
+          console.debug(`XY Pad Y: ${normalizedValue.toFixed(3)}`);
+          return; // Skip further processing
+        } else if (ccNum === 1) { // X axis
+          xyPadValues.x = normalizedValue;
+          window.nanoX = normalizedValue;
+          console.debug(`XY Pad X: ${normalizedValue.toFixed(3)}`);
+          return; // Skip further processing
         }
 
         // If this CC value could trigger a bank change, enforce a cooldown period
