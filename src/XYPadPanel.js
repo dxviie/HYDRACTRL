@@ -162,7 +162,7 @@ export function createXYPadPanel() {
     left: 20,
     top: 20,
     width: 256, // 240px pad + 16px margins
-    height: 220  // 180px pad + 40px handle/margins
+    height: 'fit-content'
   });
 
   // Initialize physics system
@@ -272,6 +272,7 @@ export function createXYPadPanel() {
     if (!isPhysicsEnabled) {
       physics.stop();
     }
+    // setTimeout(() => savePosition(), 100);
   });
 
   function updatePhysicsParams() {
