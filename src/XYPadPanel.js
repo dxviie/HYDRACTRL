@@ -39,21 +39,8 @@ export function createXYPadPanel() {
   title.style.color = "var(--color-text-secondary)";
   title.textContent = "XY PAD";
 
-  // Create close button
-  const closeButton = document.createElement("div");
-  closeButton.className = "xy-pad-close";
-  closeButton.style.fontSize = "16px";
-  closeButton.style.color = "var(--color-text-secondary)";
-  closeButton.style.cursor = "pointer";
-  closeButton.style.opacity = "0.7";
-  closeButton.textContent = "×";
-  closeButton.style.transition = "opacity 0.2s ease";
-  closeButton.addEventListener("mouseenter", () => closeButton.style.opacity = "1");
-  closeButton.addEventListener("mouseleave", () => closeButton.style.opacity = "0.7");
-
   // Add title and close button to handle
   handle.appendChild(title);
-  handle.appendChild(closeButton);
 
   // Create the XY pad visualization area (4:3 aspect ratio)
   const padArea = document.createElement("div");
@@ -149,9 +136,6 @@ export function createXYPadPanel() {
     panel.style.visibility = show ? "visible" : "hidden";
     localStorage.setItem('hydractrl-xy-pad-visible', show);
   }
-
-  // Close button handler
-  closeButton.addEventListener("click", () => togglePanel(false));
 
   return {
     togglePanel,
