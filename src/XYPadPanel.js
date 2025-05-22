@@ -73,6 +73,7 @@ export function createXYPadPanel() {
   indicator.style.transform = "translate(-50%, -50%)";
   indicator.style.transition = "background-color 0.3s ease";
   padArea.appendChild(indicator);
+  setTimeout(() => updatePosition(0.5, 0.5, false), 100);
 
   // Create physics controls section
   const controlsSection = document.createElement("div");
@@ -81,31 +82,9 @@ export function createXYPadPanel() {
   controlsSection.style.flexDirection = "column";
   controlsSection.style.gap = "8px";
 
-  // Physics toggle
-  const physicsToggle = document.createElement("div");
-  physicsToggle.style.display = "flex";
-  physicsToggle.style.alignItems = "center";
-  physicsToggle.style.gap = "8px";
-
-  const physicsCheckbox = document.createElement("input");
-  physicsCheckbox.type = "checkbox";
-  physicsCheckbox.id = "xy-physics";
-  physicsCheckbox.checked = localStorage.getItem('hydractrl-xy-physics') === 'true';
-
-  const physicsLabel = document.createElement("label");
-  physicsLabel.htmlFor = "xy-physics";
-  physicsLabel.textContent = "Physics";
-  physicsLabel.style.fontSize = "12px";
-  physicsLabel.style.color = "var(--color-text-secondary)";
-  physicsLabel.style.userSelect = "none";
-  physicsLabel.style.cursor = "pointer";
-
-  physicsToggle.appendChild(physicsCheckbox);
-  physicsToggle.appendChild(physicsLabel);
-
   // Physics parameters section (initially hidden)
   const paramsSection = document.createElement("div");
-  paramsSection.style.display = physicsCheckbox.checked ? "flex" : "none";
+  paramsSection.style.display = "flex";
   paramsSection.style.flexDirection = "column";
   paramsSection.style.gap = "4px";
 
@@ -156,7 +135,6 @@ export function createXYPadPanel() {
   paramsSection.appendChild(frictionControl.container);
   paramsSection.appendChild(bounceControl.container);
 
-  controlsSection.appendChild(physicsToggle);
   controlsSection.appendChild(paramsSection);
 
   // Add everything to the panel
@@ -177,7 +155,7 @@ export function createXYPadPanel() {
 
   // Initialize physics system
   const physics = new XYPhysics(padArea.offsetWidth, padArea.offsetHeight, { historySize: 3 });
-  let isPhysicsEnabled = physicsCheckbox.checked;
+  const isPhysicsEnabled = true;
 
   // Track pad interaction state and physics values
   let isPadActive = false;
@@ -267,17 +245,6 @@ export function createXYPadPanel() {
       physics.stop();
     }
   }
-
-  // Handle physics controls
-  physicsCheckbox.addEventListener("change", () => {
-    isPhysicsEnabled = physicsCheckbox.checked;
-    paramsSection.style.display = isPhysicsEnabled ? "flex" : "none";
-    localStorage.setItem('hydractrl-xy-physics', isPhysicsEnabled);
-    if (!isPhysicsEnabled) {
-      physics.stop();
-    }
-    // setTimeout(() => savePosition(), 100);
-  });
 
   function updatePhysicsParams() {
     physics.updateParams({
