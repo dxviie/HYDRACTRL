@@ -277,7 +277,7 @@ body {
   height: 400px;
   background-color: rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
   z-index: 100;
   box-shadow: 0 4px 15px var(--color-panel-shadow);
   backdrop-filter: blur(var(--color-panel-blur));
@@ -363,8 +363,7 @@ body {
   display: flex;
   flex: 1 1 auto;
   min-height: 0;
-  /* Important for Firefox */
-  overflow: hidden;
+  overflow: visible;
 }
 
 button {
@@ -576,11 +575,6 @@ button:active {
 .editor-handle-controls .shortcut {
   font-size: 10px;
   font-family: monospace;
-}
-
-.editor-content {
-  flex-grow: 1;
-  overflow: auto;
 }
 
 /* Editor footer with buttons */
