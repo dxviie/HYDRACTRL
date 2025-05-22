@@ -1041,8 +1041,14 @@ async function init() {
 
       if (e.altKey && !e.ctrlKey & !e.metaKey && !e.shiftKey) {
         // Hexadecimal keys 0-F to select slots 1-16
-        // First handle 0-9 keys
         const numKey = e.key;
+        
+        // Ignore if it's just the Alt key or any other special key
+        if (numKey === 'Alt' || numKey.startsWith('Arrow') || numKey.length > 1) {
+          return;
+        }
+        
+        // First handle 0-9 keys
         if (numKey >= '0' && numKey <= '9' && window.slotsPanel) {
           e.preventDefault();
           // For key '0', select slot 1 (index 0)
