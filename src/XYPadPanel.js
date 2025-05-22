@@ -10,13 +10,20 @@ export function createXYPadPanel() {
   const panel = document.createElement("div");
   panel.className = "xy-pad-panel";
   panel.style.position = "absolute";
-  panel.style.top = "20px";
-  panel.style.left = "20px";
-  panel.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity))";
-  panel.style.borderRadius = "8px";
-  panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
-  panel.style.backdropFilter = "blur(var(--color-panel-blur))";
+  panel.style.backgroundColor = "var(--color-bg-secondary)";
+  panel.style.borderRadius = "4px";
+  panel.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.3)";
   panel.style.zIndex = "100";
+  panel.style.visibility = 'hidden';
+  panel.style.transition = 'opacity 0.3s ease, visibility 0.3s ease';
+
+  // Only show the panel if MIDI is available
+  if (window.midiManager && window.midiManager.isConnected() && window.midiManager.getActiveDevice()?.name.toLowerCase().includes('nanopad')) {
+    if (localStorage.getItem('hydractrl-xy-pad-visible') !== 'false') {
+      panel.style.visibility = 'visible';
+      panel.style.opacity = '1';
+    }
+  }
 
   // Create the handle/title bar
   const handle = document.createElement("div");
@@ -171,7 +178,7 @@ export function createXYPadPanel() {
   const physics = new XYPhysics(padArea.offsetWidth, padArea.offsetHeight);
   let isPhysicsEnabled = physicsCheckbox.checked;
 
-  // Track pad interaction state
+  // Track pad interaction state and physics values
   let isPadActive = false;
   let lastPadX = 0;
   let lastPadY = 0;
@@ -222,48 +229,43 @@ export function createXYPadPanel() {
     }
   }
 
-  // Handle XY pad interaction
-  padArea.addEventListener("mousedown", (e) => {
-    isPadActive = true;
-    physics.stop();
-    updatePadPosition(e);
-  });
-
-  padArea.addEventListener("mousemove", (e) => {
-    if (!isPadActive) return;
-    updatePadPosition(e);
-  });
-
-  document.addEventListener("mouseup", () => {
-    if (!isPadActive) return;
-    isPadActive = false;
-
-    if (isPhysicsEnabled) {
-      const now = performance.now();
-      const dt = (now - lastPadTime) / 1000;
-      if (dt > 0 && dt < 0.1) { // Only apply velocity if the time delta is reasonable
-        const vx = (physics.x - lastPadX) / dt;
-        const vy = (physics.y - lastPadY) / dt;
-        physics.setVelocity(vx, vy);
-        physics.start((x, y) => updatePosition(x, y, true));
-      }
-    }
-  });
-
-  // Update pad position from mouse event
-  function updatePadPosition(e) {
-    const rect = padArea.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = 1 - (e.clientY - rect.top) / rect.height; // Invert Y axis
-
+  // Function to update from MIDI values
+  function updateFromMIDI(x, y) {
     // Store last position and time for velocity calculation
     lastPadX = physics.x;
     lastPadY = physics.y;
-    lastPadTime = performance.now();
+    const now = performance.now();
+
+    // Only calculate velocity if we have valid time delta
+    if (lastPadTime > 0) {
+      const dt = (now - lastPadTime) / 1000;
+      if (dt > 0 && dt < 0.1) { // Only apply velocity if time delta is reasonable
+        const vx = (x * physics.width - lastPadX) / dt;
+        const vy = (y * physics.height - lastPadY) / dt;
+        physics.setVelocity(vx, vy);
+      }
+    }
+
+    lastPadTime = now;
 
     // Update physics position
     physics.setPosition(x, y);
     updatePosition(x, y, true);
+
+    // Start physics simulation if enabled and pad is released
+    if (!isPadActive && isPhysicsEnabled) {
+      physics.start((px, py) => updatePosition(px, py, false));
+    }
+
+    isPadActive = true;
+  }
+
+  // Function to handle pad release
+  function handlePadRelease() {
+    isPadActive = false;
+    if (!isPhysicsEnabled) {
+      physics.stop();
+    }
   }
 
   // Handle physics controls

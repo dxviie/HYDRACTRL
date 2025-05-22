@@ -147,8 +147,9 @@ export function createMidiManager(slotsPanel) {
   let currentScene = 0; // Scene 1 by default
 
   // Track rate limiting for messages that may come from XY pad
-  const lastCCValues = {};
+  const lastCCTime = {};
   const THROTTLE_TIME = 500; // ms between allowed bank changes
+  const CC_THROTTLE_TIME = 25;
   let lastBankChange = 0;
   let isXYPadActive = false;
   let lastXYActivity = 0;
@@ -171,48 +172,27 @@ export function createMidiManager(slotsPanel) {
         // Throttle the message if it's coming too fast
         const now = Date.now();
         const ccKey = `${channel}_${ccNum}`;
-        const lastTime = lastCCValues[ccKey]?.time || 0;
-        const lastValue = lastCCValues[ccKey]?.value || 0;
+        const lastTime = lastCCTime[ccKey] || 0;
+        if (now - lastTime < CC_THROTTLE_TIME) {
+          return;
+        }
+        lastCCTime[ccKey] = now;
 
-        // Store the current value and time
-        lastCCValues[ccKey] = { time: now, value: value };
-
-        // Update XY pad values if this is an XY pad message
-        const normalizedValue = value / 127; // Normalize to 0-1
-        isXYPadActive = true;
-        lastXYActivity = now; // Use the 'now' from the outer scope
-
-        if (ccNum === 2) { // Y axis
-          xyPadValues.y = normalizedValue;
-          window.nanoY = normalizedValue;
-        } else if (ccNum === 1) { // X axis
-          xyPadValues.x = normalizedValue;
-          window.nanoX = normalizedValue;
+        // Update XY pad values
+        if (ccNum === 2) {
+          window.nanoY = value / 127;
+          xyPadValues.y = value / 127;
+        } else if (ccNum === 1) {
+          window.nanoX = value / 127;
+          xyPadValues.x = value / 127;
         }
 
-        // Update XY pad visualization
-        if (xyPadPanel) {
-          xyPadPanel.updatePosition(xyPadValues.x, xyPadValues.y, true);
+        // Update XY pad panel if available
+        if (xyPadPanel && typeof xyPadPanel.updateFromMIDI === 'function') {
+          xyPadPanel.updateFromMIDI(xyPadValues.x, xyPadValues.y);
         }
 
-        // Start inactivity check timer
-        setTimeout(() => {
-          if (lastXYActivity === now && xyPadPanel) {
-            isXYPadActive = false;
-            xyPadPanel.updatePosition(xyPadValues.x, xyPadValues.y, false);
-          }
-        }, XY_ACTIVITY_TIMEOUT);
-
-        return; // Skip further processing
-
-        // If this CC value could trigger a bank change, enforce a cooldown period
-        if (value >= 0 && value <= 3) {
-          if (now - lastBankChange < THROTTLE_TIME) {
-            console.debug(`Throttling potential bank change message: CC#${ccNum}=${value}`);
-            return; // Skip processing this message
-          }
-          lastBankChange = now;
-        }
+        return;
       }
     }
 
@@ -656,6 +636,10 @@ export function createMidiManager(slotsPanel) {
     // Set the XY pad panel
     setXYPadPanel: (panel) => {
       xyPadPanel = panel;
+      // Initialize with current values if they exist
+      if (panel && typeof panel.updateFromMIDI === 'function' && xyPadValues.x !== undefined) {
+        panel.updateFromMIDI(xyPadValues.x, xyPadValues.y);
+      }
     },
   };
 }
