@@ -1078,8 +1078,10 @@ async function init() {
           e.preventDefault();
           window.slotsPanel.importSlots();
         }
+      }
 
-        // Ctrl/⌘+Left/Right arrow keys to cycle between banks (only when no MIDI device is connected)
+      // Alt+Left/Right arrow keys to cycle between banks (only when no MIDI device is connected)
+      if (e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
         if (e.key === "ArrowLeft" && window.slotsPanel && window.slotsPanel.cycleBank) {
           // Check if MIDI device is connected
           const midiConnected =
