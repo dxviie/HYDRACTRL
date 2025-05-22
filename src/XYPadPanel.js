@@ -222,12 +222,14 @@ export function createXYPadPanel() {
     const dxPixels = indicatorPixelX - releaseX;
     const dyPixels = indicatorPixelY - releaseY;
 
-    const velocityScale = 0.005; // Adjust this to control launch speed
+    const velocityScale = 3; // Adjust this to control launch speed
     physics.vx = dxPixels * velocityScale;
-    physics.vy = dyPixels * velocityScale;
+    physics.vy = - dyPixels * velocityScale;
 
     // Physics will resume in the animate loop if isPhysicsEnabled is true
     // isPadActive remains false, user needs to click pad or indicator again
+    isPadActive = false;
+
     if (isPhysicsEnabled) {
       physics.start((px, py) => {
         updatePosition(px, py, false);
