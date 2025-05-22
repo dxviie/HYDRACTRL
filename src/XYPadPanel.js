@@ -10,7 +10,7 @@ export function createXYPadPanel() {
   const panel = document.createElement("div");
   panel.className = "xy-pad-panel";
   panel.style.position = "absolute";
-  panel.style.backgroundColor = "var(--color-bg-secondary)";
+  panel.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity))";
   panel.style.borderRadius = "4px";
   panel.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.3)";
   panel.style.zIndex = "100";
@@ -36,7 +36,7 @@ export function createXYPadPanel() {
   handle.style.padding = "0 8px";
   handle.style.cursor = "move";
   handle.style.userSelect = "none";
-  handle.style.borderRadius = "8px 8px 0 0";
+  handle.style.borderRadius = "4px 4px 0 0";
 
   // Create the title
   const title = document.createElement("div");
@@ -56,9 +56,10 @@ export function createXYPadPanel() {
   padArea.style.width = "240px"; // 4:3 ratio
   padArea.style.height = "180px";
   padArea.style.margin = "8px";
-  padArea.style.backgroundColor = "rgba(var(--color-bg-tertiary-rgb), 0.3)";
-  padArea.style.borderRadius = "4px";
+  padArea.style.backgroundColor = "rgba(255, 255, 255, .1)";
   padArea.style.position = "relative";
+  padArea.style.borderRadius = "0 0 4px 4px";
+  padArea.style.overflow = "hidden";
   padArea.style.cursor = "crosshair";
 
   // Create the position indicator
