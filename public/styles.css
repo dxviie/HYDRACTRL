@@ -11,11 +11,13 @@
 }
 
 ::-webkit-scrollbar-track:horizontal {
-  margin: 0 6px; /* Add some margin to prevent overlap with vertical scrollbar */
+  margin: 0 6px;
+  /* Add some margin to prevent overlap with vertical scrollbar */
 }
 
 ::-webkit-scrollbar-track:vertical {
-  margin: 6px 0; /* Add some margin to prevent overlap with horizontal scrollbar */
+  margin: 6px 0;
+  /* Add some margin to prevent overlap with horizontal scrollbar */
 }
 
 ::-webkit-scrollbar-thumb {
@@ -282,6 +284,8 @@ body {
   resize: both;
   display: flex;
   flex-direction: column;
+  min-width: 500px;
+  min-height: 250px;
 }
 
 /* Hydra Editor Styles */
@@ -497,7 +501,8 @@ button:active {
   font-size: 0.9em;
 }
 
-.doc-panel h2, .doc-panel h3 {
+.doc-panel h2,
+.doc-panel h3 {
   margin-top: 0;
 }
 
