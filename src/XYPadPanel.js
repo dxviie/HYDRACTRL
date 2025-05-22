@@ -2,7 +2,7 @@
  * XY Pad Panel
  * A visual representation of the Korg nanoPAD's XY pad
  */
-import { setupPanelPersistence } from './utils/PanelStorage.js';
+import { setupPanelPersistence, savePanelPosition } from './utils/PanelStorage.js';
 import { XYPhysics } from './physics/XYPhysics.js';
 
 export function createXYPadPanel() {
@@ -179,56 +179,10 @@ export function createXYPadPanel() {
   // Track pad interaction state and physics values
   let isPadActive = false;
   let isCoiling = false;
-  let coilStartX = 0, coilStartY = 0; // In pixels, relative to padArea
-  let lastUpdateTime = performance.now();
   let indicatorPixelX = 0, indicatorPixelY = 0;
-  let lastPadY = 0;
-  let lastPadTime = 0;
 
   // Make the panel draggable
-  let isDragging = false;
-  let currentX;
-  let currentY;
-  let initialX;
-  let initialY;
-  let xOffset = 0, yOffset = 0;
-
-  handle.addEventListener("mousedown", dragStart);
-  document.addEventListener("mousemove", drag);
-  document.addEventListener("mouseup", dragEnd);
-
-  // Handle panel dragging
-  function dragStart(e) {
-    initialX = e.clientX - xOffset;
-    initialY = e.clientY - yOffset;
-    if (e.target === handle) {
-      isDragging = true;
-      panel.classList.add('dragging');
-    }
-  }
-
-  function drag(e) {
-    if (isDragging) {
-      e.preventDefault();
-      currentX = e.clientX - initialX;
-      currentY = e.clientY - initialY;
-      xOffset = currentX;
-      yOffset = currentY;
-      panel.style.left = `${currentX}px`;
-      panel.style.top = `${currentY}px`;
-    }
-  }
-
-  function dragEnd(e) {
-    if (isDragging) {
-      initialX = currentX;
-      initialY = currentY;
-      isDragging = false;
-      panel.classList.remove('dragging');
-      savePosition();
-    }
-  }
-
+  makeDraggable(panel, handle, 'xy-pad');
 
   // --- Coil Interaction Logic ---
   const handleCoilMove = (e) => {
@@ -397,4 +351,133 @@ export function createXYPadPanel() {
   }
 
   return panelInterface;
+}
+
+/**
+ * Make an element draggable
+ */
+function makeDraggable(element, handle, panelId) {
+  // Variables for tracking position
+  let initialX = 0;
+  let initialY = 0;
+  let currentX = 0;
+  let currentY = 0;
+  let offsetX = 0;
+  let offsetY = 0;
+  let isDragging = false;
+
+  // Initialize position once the element has rendered
+  setTimeout(() => {
+    // Only calculate from right if we don't have a saved position and right is specified
+    if (!element.style.left && element.style.right) {
+      // Get and store the initial position
+      const rect = element.getBoundingClientRect();
+
+      // Calculate position based on right alignment
+      const rightOffset = parseInt(element.style.right || "0");
+      currentX = window.innerWidth - rect.width - rightOffset;
+      currentY = parseInt(element.style.top || "0");
+
+      // Set explicit left position based on current right position
+      element.style.left = currentX + "px";
+
+      // Remove right positioning to prevent conflicts
+      element.style.right = "";
+    } else {
+      // Already positioned by left/top (from saved position or default)
+      currentX = parseInt(element.style.left || "0");
+      currentY = parseInt(element.style.top || "0");
+    }
+
+    // Save initial position if we have a panelId
+    if (panelId) {
+      savePanelPosition(panelId, {
+        left: currentX,
+        top: currentY,
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+      });
+    }
+  }, 100);
+
+  // Mouse down handler
+  function onMouseDown(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Critical: Remove right positioning before starting drag
+    if (element.style.right) {
+      element.style.right = "";
+    }
+
+    // Calculate initial mouse position
+    initialX = e.clientX;
+    initialY = e.clientY;
+
+    // Get current element position from inline style
+    // This fixes the initial jump by using the stored position
+    currentX = parseInt(element.style.left || "0");
+    currentY = parseInt(element.style.top || "0");
+
+    // Start dragging
+    isDragging = true;
+    element.classList.add("dragging");
+
+    // Add listeners
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  }
+
+  // Mouse move handler
+  function onMouseMove(e) {
+    if (!isDragging) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Calculate offset
+    offsetX = e.clientX - initialX;
+    offsetY = e.clientY - initialY;
+
+    // Calculate new position with bounds checking
+    const newX = Math.max(0, Math.min(window.innerWidth - element.offsetWidth, currentX + offsetX));
+    const newY = Math.max(
+      0,
+      Math.min(window.innerHeight - element.offsetHeight, currentY + offsetY),
+    );
+
+    // Update position
+    element.style.left = newX + "px";
+    element.style.top = newY + "px";
+  }
+
+  // Mouse up handler
+  function onMouseUp(e) {
+    if (!isDragging) return;
+
+    // Update current position with final offsets
+    currentX = parseInt(element.style.left || "0");
+    currentY = parseInt(element.style.top || "0");
+
+    // Save position to localStorage if we have a panelId
+    if (panelId) {
+      savePanelPosition(panelId, {
+        left: currentX,
+        top: currentY,
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+      });
+    }
+
+    // End dragging
+    isDragging = false;
+    element.classList.remove("dragging");
+
+    // Remove listeners
+    document.removeEventListener("mousemove", onMouseMove);
+    document.removeEventListener("mouseup", onMouseUp);
+  }
+
+  // Add listener to handle
+  handle.addEventListener("mousedown", onMouseDown);
 }
