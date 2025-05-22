@@ -14,6 +14,12 @@ export class XYPhysics {
     this.vx = 0;
     this.vy = 0;
 
+    // Position history for velocity calculation
+    this.historySize = options.historySize ?? 5;  // Number of points to keep
+    this.xHistory = [];
+    this.yHistory = [];
+    this.timeHistory = [];
+
     // Physics parameters (with defaults)
     this.friction = options.friction ?? 0.97;  // Air resistance (0-1)
     this.bounce = options.bounce ?? 0.7;       // Bounciness (0-1)
@@ -75,6 +81,10 @@ export class XYPhysics {
   // Start physics simulation
   start(callback) {
     if (this.isRunning) return;
+    
+    // Calculate initial velocities from position history
+    this.calculateInitialVelocities();
+    
     this.isRunning = true;
     this.lastTime = performance.now();
 
@@ -122,30 +132,51 @@ export class XYPhysics {
     this.y = y * this.height;
   }
 
-  // Set X position
+  // Set X position and record history
   setPositionX(x) {
+    const now = performance.now();
     this.x = x * this.width;
+    
+    this.xHistory.push({ pos: this.x, time: now });
+    if (this.xHistory.length > this.historySize) {
+      this.xHistory.shift();
+    }
   }
 
-  // Set Y position
+  // Set Y position and record history
   setPositionY(y) {
+    const now = performance.now();
     this.y = y * this.height;
+    
+    this.yHistory.push({ pos: this.y, time: now });
+    if (this.yHistory.length > this.historySize) {
+      this.yHistory.shift();
+    }
   }
 
-  // Set current velocity (in pixels per second)
-  setVelocity(vx, vy) {
-    this.vx = vx;
-    this.vy = vy;
-  }
+  // Calculate initial velocities from position history
+  calculateInitialVelocities() {
+    if (this.xHistory.length >= 2) {
+      const xLatest = this.xHistory[this.xHistory.length - 1];
+      const xPrev = this.xHistory[0];
+      const dt = (xLatest.time - xPrev.time) / 1000;
+      if (dt > 0) {
+        this.vx = (xLatest.pos - xPrev.pos) / dt;
+      }
+    }
 
-  // Set X velocity
-  setVelocityX(vx) {
-    this.vx = vx;
-  }
+    if (this.yHistory.length >= 2) {
+      const yLatest = this.yHistory[this.yHistory.length - 1];
+      const yPrev = this.yHistory[0];
+      const dt = (yLatest.time - yPrev.time) / 1000;
+      if (dt > 0) {
+        this.vy = (yLatest.pos - yPrev.pos) / dt;
+      }
+    }
 
-  // Set Y velocity
-  setVelocityY(vy) {
-    this.vy = vy;
+    // Clear history after calculating velocities
+    this.xHistory = [];
+    this.yHistory = [];
   }
 
   // Update physics parameters

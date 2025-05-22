@@ -175,7 +175,7 @@ export function createXYPadPanel() {
   });
 
   // Initialize physics system
-  const physics = new XYPhysics(padArea.offsetWidth, padArea.offsetHeight);
+  const physics = new XYPhysics(padArea.offsetWidth, padArea.offsetHeight, { historySize: 10 });
   let isPhysicsEnabled = physicsCheckbox.checked;
 
   // Track pad interaction state and physics values
@@ -235,24 +235,8 @@ export function createXYPadPanel() {
     physics.stop();
     isPadActive = true;
 
-    // Store last position and time for velocity calculation
-    const lastX = physics.x;
-    const now = performance.now();
-
-    // Update physics X position
+    // Update physics X position (which records history)
     physics.setPositionX(x);
-
-    // Only calculate velocity if we have valid time delta
-    if (lastPadTime > 0) {
-      const dt = (now - lastPadTime) / 1000;
-      if (dt > 0 && dt < 0.01) { // Only apply velocity if time delta is reasonable
-        // Calculate velocity based on physics coordinates
-        const vx = (physics.x - lastX) / dt;
-        physics.setVelocityX(vx);
-      }
-    }
-
-    lastPadTime = now;
     updatePosition(x, physics.y / physics.height, true);
   }
 
@@ -262,24 +246,8 @@ export function createXYPadPanel() {
     physics.stop();
     isPadActive = true;
 
-    // Store last position and time for velocity calculation
-    const lastY = physics.y;
-    const now = performance.now();
-
-    // Update physics Y position
+    // Update physics Y position (which records history)
     physics.setPositionY(y);
-
-    // Only calculate velocity if we have valid time delta
-    if (lastPadTime > 0) {
-      const dt = (now - lastPadTime) / 1000;
-      if (dt > 0 && dt < 0.01) { // Only apply velocity if time delta is reasonable
-        // Calculate velocity based on physics coordinates
-        const vy = (physics.y - lastY) / dt;
-        physics.setVelocityY(vy);
-      }
-    }
-
-    lastPadTime = now;
     updatePosition(physics.x / physics.width, y, true);
   }
 
