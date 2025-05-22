@@ -231,6 +231,10 @@ export function createXYPadPanel() {
 
   // Function to update from MIDI values
   function updateFromMIDI(x, y) {
+    // Stop any running physics simulation when pad is touched
+    physics.stop();
+    isPadActive = true;
+
     // Store last position and time for velocity calculation
     lastPadX = physics.x;
     lastPadY = physics.y;
@@ -240,8 +244,8 @@ export function createXYPadPanel() {
     if (lastPadTime > 0) {
       const dt = (now - lastPadTime) / 1000;
       if (dt > 0 && dt < 0.1) { // Only apply velocity if time delta is reasonable
-        const vx = (x * physics.width - lastPadX) / dt;
-        const vy = (y * physics.height - lastPadY) / dt;
+        const vx = (x - lastPadX) / dt;
+        const vy = (y - lastPadY) / dt;
         physics.setVelocity(vx, vy);
       }
     }
@@ -251,19 +255,16 @@ export function createXYPadPanel() {
     // Update physics position
     physics.setPosition(x, y);
     updatePosition(x, y, true);
-
-    // Start physics simulation if enabled and pad is released
-    if (!isPadActive && isPhysicsEnabled) {
-      physics.start((px, py) => updatePosition(px, py, false));
-    }
-
-    isPadActive = true;
   }
 
   // Function to handle pad release
   function handlePadRelease() {
     isPadActive = false;
-    if (!isPhysicsEnabled) {
+
+    // Start physics simulation if enabled
+    if (isPhysicsEnabled) {
+      physics.start((px, py) => updatePosition(px, py, false));
+    } else {
       physics.stop();
     }
   }
