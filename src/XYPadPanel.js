@@ -66,13 +66,32 @@ export function createXYPadPanel() {
   const indicator = document.createElement("div");
   indicator.className = "xy-pad-indicator";
   indicator.style.position = "absolute";
-  indicator.style.width = "10px";
-  indicator.style.height = "10px";
+  indicator.style.width = "20px";
+  indicator.style.height = "20px";
+  indicator.style.cursor = "pointer";
   indicator.style.borderRadius = "50%";
   indicator.style.backgroundColor = "var(--color-text-secondary)";
   indicator.style.transform = "translate(-50%, -50%)";
   indicator.style.transition = "background-color 0.3s ease";
   padArea.appendChild(indicator);
+
+  // Create SVG for the coil line visualization
+  const coilLineSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  coilLineSVG.style.position = "absolute";
+  coilLineSVG.style.top = "0";
+  coilLineSVG.style.left = "0";
+  coilLineSVG.style.width = "240";
+  coilLineSVG.style.height = "180";
+  coilLineSVG.style.pointerEvents = "none"; // Pass mouse events through
+  coilLineSVG.style.display = "none"; // Initially hidden
+  padArea.appendChild(coilLineSVG);
+
+  const coilLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  coilLine.setAttribute("stroke", "var(--color-text-primary)");
+  coilLine.setAttribute("stroke-width", "2");
+  coilLine.setAttribute("stroke-dasharray", "4 2"); // Dashed line for coil effect
+  coilLineSVG.appendChild(coilLine);
+
   setTimeout(() => updatePosition(0.5, 0.5, false), 100);
 
   // Create physics controls section
@@ -159,7 +178,10 @@ export function createXYPadPanel() {
 
   // Track pad interaction state and physics values
   let isPadActive = false;
-  let lastPadX = 0;
+  let isCoiling = false;
+  let coilStartX = 0, coilStartY = 0; // In pixels, relative to padArea
+  let lastUpdateTime = performance.now();
+  let indicatorPixelX = 0, indicatorPixelY = 0;
   let lastPadY = 0;
   let lastPadTime = 0;
 
@@ -169,8 +191,7 @@ export function createXYPadPanel() {
   let currentY;
   let initialX;
   let initialY;
-  let xOffset = 0;
-  let yOffset = 0;
+  let xOffset = 0, yOffset = 0;
 
   handle.addEventListener("mousedown", dragStart);
   document.addEventListener("mousemove", drag);
@@ -207,6 +228,89 @@ export function createXYPadPanel() {
       savePosition();
     }
   }
+
+
+  // --- Coil Interaction Logic ---
+  const handleCoilMove = (e) => {
+    if (!isCoiling) return;
+    e.preventDefault();
+
+    const rect = padArea.getBoundingClientRect();
+    let mouseX = e.clientX - rect.left;
+    let mouseY = e.clientY - rect.top;
+
+    // Clamp mouse position to padArea boundaries
+    mouseX = Math.max(0, Math.min(mouseX, padArea.offsetWidth));
+    mouseY = Math.max(0, Math.min(mouseY, padArea.offsetHeight));
+
+    coilLine.setAttribute("x2", mouseX);
+    coilLine.setAttribute("y2", mouseY);
+  };
+
+  const handleCoilRelease = (e) => {
+    if (!isCoiling) return;
+    e.preventDefault();
+    isCoiling = false;
+    coilLineSVG.style.display = "none";
+
+    document.removeEventListener("mousemove", handleCoilMove);
+    document.removeEventListener("mouseup", handleCoilRelease);
+
+    const rect = padArea.getBoundingClientRect();
+    let releaseX = e.clientX - rect.left;
+    let releaseY = e.clientY - rect.top;
+
+    // Clamp release position to padArea boundaries
+    releaseX = Math.max(0, Math.min(releaseX, padArea.offsetWidth));
+    releaseY = Math.max(0, Math.min(releaseY, padArea.offsetHeight));
+
+    // Calculate displacement (from release point to indicator's fixed point during coil)
+    const dxPixels = indicatorPixelX - releaseX;
+    const dyPixels = indicatorPixelY - releaseY;
+
+    const velocityScale = 0.005; // Adjust this to control launch speed
+    physics.vx = dxPixels * velocityScale;
+    physics.vy = dyPixels * velocityScale;
+
+    // Physics will resume in the animate loop if isPhysicsEnabled is true
+    // isPadActive remains false, user needs to click pad or indicator again
+    if (isPhysicsEnabled) {
+      physics.start((px, py) => {
+        updatePosition(px, py, false);
+        window.nanoX = px;
+        window.nanoY = py;
+      });
+    }
+  };
+
+  indicator.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent padArea's mousedown if any were added later
+
+    isCoiling = true;
+    isPadActive = false; // Disable normal pad dragging/interaction
+    physics.stop(); // Stop current physics movement
+
+    // Store indicator's current position in pixels as the coil's anchor
+    // Ensure physics.x and physics.y are up-to-date if not actively moving
+    const currentIndicatorRect = indicator.getBoundingClientRect();
+    const padAreaRect = padArea.getBoundingClientRect();
+    indicatorPixelX = (currentIndicatorRect.left + currentIndicatorRect.width / 2) - padAreaRect.left;
+    indicatorPixelY = (currentIndicatorRect.top + currentIndicatorRect.height / 2) - padAreaRect.top;
+
+    // Update physics object's internal position to match the visual indicator before coiling
+    // This ensures the coil starts from the visually correct point if physics was idle.
+    physics.setPosition(indicatorPixelX / padArea.offsetWidth, 1 - (indicatorPixelY / padArea.offsetHeight));
+
+    coilLine.setAttribute("x1", indicatorPixelX);
+    coilLine.setAttribute("y1", indicatorPixelY);
+    coilLine.setAttribute("x2", indicatorPixelX); // Initially, coil end is at indicator
+    coilLine.setAttribute("y2", indicatorPixelY);
+    coilLineSVG.style.display = "block";
+
+    document.addEventListener("mousemove", handleCoilMove);
+    document.addEventListener("mouseup", handleCoilRelease);
+  });
 
   // Function to update X coordinate from MIDI
   function updateFromMIDIX(x) {
