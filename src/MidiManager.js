@@ -21,6 +21,10 @@ export function createMidiManager(slotsPanel) {
     y: 0
   };
 
+  // MIDI learn mode state
+  let isLearning = false;
+  let learnCallback = null;
+
   // Create notification for MIDI status
   const midiStatus = document.createElement("div");
   midiStatus.className = "midi-status";
@@ -267,12 +271,20 @@ export function createMidiManager(slotsPanel) {
             : "",
     );
 
-    // nanoPAD2 specific handling
+    // Handle nanoPAD2 pad press
     if (isNanoPad) {
       // Note On message (button press)
       if (cmd === 0x90 && data[2] > 0) {
         // Note On with velocity > 0
         const note = data[1];
+
+        // If in learn mode, call the learn callback
+        if (isLearning && learnCallback) {
+          isLearning = false;
+          learnCallback(note);
+          learnCallback = null;
+          return;
+        }
 
         // Process regular pad notes (not scene buttons)
         handleNanoPadNote(note);
@@ -615,5 +627,22 @@ export function createMidiManager(slotsPanel) {
     getXYPadValues: () => {
       return { ...xyPadValues }; // Return a copy
     },
+
+    // Start MIDI learn mode
+    startLearnMode: (callback) => {
+      isLearning = true;
+      learnCallback = callback;
+      showMidiStatus('Press a pad to map it...', false);
+    },
+
+    // Cancel MIDI learn mode
+    cancelLearnMode: () => {
+      isLearning = false;
+      learnCallback = null;
+      showMidiStatus('MIDI learn cancelled', false);
+    },
+
+    // Check if we're in learn mode
+    isLearning: () => isLearning,
   };
 }

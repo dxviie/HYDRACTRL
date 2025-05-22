@@ -139,9 +139,57 @@ export function createStatsPanel() {
   midiDeviceContainer.style.flexDirection = "column";
   midiDeviceContainer.style.gap = "4px";
 
+  // Create MIDI learn button
+  const midiLearnButton = document.createElement("button");
+  midiLearnButton.className = "midi-learn-button";
+  midiLearnButton.style.backgroundColor = "var(--color-bg-tertiary)";
+  midiLearnButton.style.border = "none";
+  midiLearnButton.style.borderRadius = "4px";
+  midiLearnButton.style.padding = "4px 8px";
+  midiLearnButton.style.color = "var(--color-text-primary)";
+  midiLearnButton.style.cursor = "pointer";
+  midiLearnButton.style.fontSize = "12px";
+  midiLearnButton.textContent = "MIDI Learn";
+
+  // Create MIDI mapping display
+  const midiMappingDisplay = document.createElement("div");
+  midiMappingDisplay.className = "midi-mapping-display";
+  midiMappingDisplay.style.fontSize = "12px";
+  midiMappingDisplay.style.color = "var(--color-text-secondary)";
+  midiMappingDisplay.style.marginTop = "4px";
+  midiMappingDisplay.style.display = "none";
+
+  // Add click handler for MIDI learn
+  midiLearnButton.addEventListener("click", () => {
+    if (window.midiManager.isLearning()) {
+      window.midiManager.cancelLearnMode();
+      midiLearnButton.textContent = "MIDI Learn";
+      midiMappingDisplay.style.display = "none";
+    } else {
+      midiMappingDisplay.style.display = "block";
+      midiMappingDisplay.textContent = "Click a slot, then press a pad to map it...";
+      midiLearnButton.textContent = "Cancel Learn";
+
+      // Start MIDI learn mode
+      window.midiManager.startLearnMode((note) => {
+        const activeSlot = window.slotsPanel.getActiveSlotIndex();
+        if (activeSlot !== null) {
+          window.midiManager.updateMapping(note, activeSlot);
+          midiMappingDisplay.textContent = `Mapped pad ${note} to slot ${activeSlot + 1}`;
+          setTimeout(() => {
+            midiMappingDisplay.style.display = "none";
+          }, 2000);
+        }
+        midiLearnButton.textContent = "MIDI Learn";
+      });
+    }
+  });
+
   // Add to MIDI section
   midiSection.appendChild(midiStatusText);
   midiSection.appendChild(midiDeviceContainer);
+  midiSection.appendChild(midiLearnButton);
+  midiSection.appendChild(midiMappingDisplay);
 
   // Create a theme settings section
   const themeSection = document.createElement("div");
