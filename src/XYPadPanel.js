@@ -130,7 +130,8 @@ export function createXYPadPanel() {
 
   // Show/hide panel
   function togglePanel(show) {
-    panel.style.display = show ? "block" : "none";
+    panel.style.visibility = show ? "visible" : "hidden";
+    localStorage.setItem('hydractrl-xy-pad-visible', show);
   }
 
   // Close button handler
@@ -139,6 +140,6 @@ export function createXYPadPanel() {
   return {
     togglePanel,
     updatePosition,
-    isVisible: () => panel.style.display === "block"
+    isVisible: () => panel.style.visibility === "visible"
   };
 }

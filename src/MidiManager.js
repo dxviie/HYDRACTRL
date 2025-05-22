@@ -105,11 +105,6 @@ export function createMidiManager(slotsPanel) {
       activeDevice.onmidimessage = null;
     }
 
-    // Reset XY pad panel
-    if (xyPadPanel) {
-      xyPadPanel.togglePanel(false);
-    }
-
     activeDevice = device;
     activeDevice.onmidimessage = onMIDIMessage;
     isConnected = true;
@@ -657,5 +652,10 @@ export function createMidiManager(slotsPanel) {
 
     // Check if we're in learn mode
     isLearning: () => isLearning,
+
+    // Set the XY pad panel
+    setXYPadPanel: (panel) => {
+      xyPadPanel = panel;
+    },
   };
 }

@@ -1166,6 +1166,9 @@ async function init() {
       const xyPadPanel = module.createXYPadPanel();
       window.xyPadPanel = xyPadPanel;
 
+      // Set the XY pad panel in the MIDI manager
+      midiManager.setXYPadPanel(xyPadPanel);
+
       // Set initial visibility based on localStorage
       const xyPadVisible = localStorage.getItem('hydractrl-xy-pad-visible') === 'true';
       xyPadPanel.togglePanel(xyPadVisible);
