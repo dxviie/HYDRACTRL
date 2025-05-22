@@ -11,6 +11,12 @@ export function createMidiManager(slotsPanel) {
   // Track if this is a nanoPAD2 or similar controller
   let isNanoPad = false;
 
+  // Track XY pad values (normalized to 0-1)
+  let xyPadValues = {
+    x: 0,
+    y: 0
+  };
+
   // Create notification for MIDI status
   const midiStatus = document.createElement("div");
   midiStatus.className = "midi-status";
@@ -53,8 +59,8 @@ export function createMidiManager(slotsPanel) {
 
     console.log(
       "MIDI Debug Info: If your scene buttons aren't recognized, " +
-        "press them and check the console log to see their MIDI messages. " +
-        "Then you can add them to the supported patterns.",
+      "press them and check the console log to see their MIDI messages. " +
+      "Then you can add them to the supported patterns.",
     );
 
     return true;
@@ -166,9 +172,18 @@ export function createMidiManager(slotsPanel) {
         // Store the current value and time
         lastCCValues[ccKey] = { time: now, value: value };
 
-        // If this message is coming too quickly after the last one, it's likely the XY pad
+        // Update XY pad values if this is an XY pad message
+        if ([0, 16].includes(ccNum)) { // X axis
+          xyPadValues.x = value / 127; // Normalize to 0-1
+          return; // Skip further processing
+        } else if ([1, 17].includes(ccNum)) { // Y axis
+          xyPadValues.y = value / 127; // Normalize to 0-1
+          return; // Skip further processing
+        }
+
+        // For other CC messages, throttle if coming too quickly
         if (now - lastTime < 100) {
-          console.log(`Blocking potential XY pad message: CC#${ccNum}=${value}`);
+          console.log(`Throttling rapid CC message: CC#${ccNum}=${value}`);
           return; // Skip processing this message further
         }
 
@@ -588,6 +603,11 @@ export function createMidiManager(slotsPanel) {
       // Save to localStorage
       saveMidiMapping(midiMapping);
       return true;
+    },
+
+    // Get current XY pad values (normalized 0-1)
+    getXYPadValues: () => {
+      return { ...xyPadValues }; // Return a copy
     },
   };
 }
