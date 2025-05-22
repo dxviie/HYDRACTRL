@@ -175,7 +175,7 @@ export function createXYPadPanel() {
   });
 
   // Initialize physics system
-  const physics = new XYPhysics(padArea.offsetWidth, padArea.offsetHeight, { historySize: 10 });
+  const physics = new XYPhysics(padArea.offsetWidth, padArea.offsetHeight, { historySize: 3 });
   let isPhysicsEnabled = physicsCheckbox.checked;
 
   // Track pad interaction state and physics values
@@ -257,7 +257,11 @@ export function createXYPadPanel() {
 
     // Start physics simulation if enabled
     if (isPhysicsEnabled) {
-      physics.start((px, py) => updatePosition(px, py, false));
+      physics.start((px, py) => {
+        updatePosition(px, py, false);
+        window.nanoX = px;
+        window.nanoY = py;
+      });
     } else {
       physics.stop();
     }
