@@ -8,8 +8,6 @@ let midiAccess = null;
 let activeDevice = null;
 let isConnected = false;
 let xyPadPanel = null;
-let isLearning = false;
-let learnCallback = null;
 let xyPadValues = { x: 0, y: 0 };
 
 export function createMidiManager(slotsPanel) {
@@ -68,6 +66,8 @@ export function createMidiManager(slotsPanel) {
       "press them and check the console log to see their MIDI messages. " +
       "Then you can add them to the supported patterns.",
     );
+
+
 
     return true;
   }
@@ -151,9 +151,6 @@ export function createMidiManager(slotsPanel) {
   const THROTTLE_TIME = 500; // ms between allowed bank changes
   const CC_THROTTLE_TIME = 25;
   let lastBankChange = 0;
-  let isXYPadActive = false;
-  let lastXYActivity = 0;
-  const XY_ACTIVITY_TIMEOUT = 100; // ms to consider XY pad inactive after last message
 
   // Handle MIDI messages
   function onMIDIMessage(message) {
