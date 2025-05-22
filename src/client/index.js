@@ -35,6 +35,10 @@ function initEditor() {
   const editorContent = document.getElementById("editor-content");
   const editorContainer = document.getElementById("editor-container");
 
+  // Enable resizing on the editor container
+  editorContainer.style.resize = "both";
+  editorContainer.style.overflow = "auto";
+
   // Create the hydra editor with CodeMirror
   const editor = createCodeMirrorEditor(editorContent, DEFAULT_CODE);
 
