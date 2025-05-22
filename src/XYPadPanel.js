@@ -14,7 +14,6 @@ export function createXYPadPanel() {
   panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
   panel.style.backdropFilter = "blur(var(--color-panel-blur))";
   panel.style.zIndex = "100";
-  panel.style.display = "none"; // Hidden by default
 
   // Create the handle/title bar
   const handle = document.createElement("div");

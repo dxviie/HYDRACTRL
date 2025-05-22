@@ -586,9 +586,9 @@ function toggleEditor() {
   const docPanelElement = document.querySelector(".doc-panel");
   const xyPadPanelElement = document.querySelector(".xy-pad-panel");
 
-  // Get visibility state from localStorage, defaulting to visible (true)
-  // We invert the storage value because we're about to toggle it
+  // Get visibility states from localStorage
   const isVisible = localStorage.getItem("hydractrl-ui-visible") !== "false";
+  const xyPadVisible = localStorage.getItem("hydractrl-xy-pad-visible") === "true";
 
   if (isVisible) {
     // Hide the editor and panels using visibility property to preserve layout
@@ -598,9 +598,10 @@ function toggleEditor() {
     if (statsPanelElement) statsPanelElement.style.visibility = "hidden";
     if (slotsPanelElement) slotsPanelElement.style.visibility = "hidden";
     if (docPanelElement) docPanelElement.style.visibility = "hidden";
-    if (xyPadPanelElement) xyPadPanelElement.style.visibility = "hidden";
+    // Only hide XY pad if it's supposed to be visible
+    if (xyPadPanelElement && xyPadVisible) xyPadPanelElement.style.visibility = "hidden";
 
-    // Add a CSS class to the body to indicate hidden UI (useful for styling)
+    // Add a CSS class to the body to indicate hidden UI
     document.body.classList.add("ui-hidden");
 
     // Store the new visibility state
@@ -613,7 +614,8 @@ function toggleEditor() {
     if (statsPanelElement) statsPanelElement.style.visibility = "visible";
     if (slotsPanelElement) slotsPanelElement.style.visibility = "visible";
     if (docPanelElement) docPanelElement.style.visibility = "visible";
-    if (xyPadPanelElement) xyPadPanelElement.style.visibility = "visible";
+    // Only show XY pad if it's supposed to be visible
+    if (xyPadPanelElement && xyPadVisible) xyPadPanelElement.style.visibility = "visible";
 
     // Remove the hidden UI class
     document.body.classList.remove("ui-hidden");
@@ -621,12 +623,11 @@ function toggleEditor() {
     // Store the new visibility state
     localStorage.setItem("hydractrl-ui-visible", "true");
 
-    // Focus the editor after making it visible
+    // Focus the editor and trigger resize after showing
     setTimeout(() => {
       if (window._editorProxy) {
         window._editorProxy.focus();
       }
-
       // Force a resize event to make sure sizes are updated
       window.dispatchEvent(new Event("resize"));
     }, 50);
@@ -1159,6 +1160,16 @@ async function init() {
 
     // Initialize MIDI support with the slots panel
     const midiManager = createMidiManager(slotsPanel);
+
+    // Create XY pad panel
+    import('./../XYPadPanel.js').then(module => {
+      const xyPadPanel = module.createXYPadPanel();
+      window.xyPadPanel = xyPadPanel;
+
+      // Set initial visibility based on localStorage
+      const xyPadVisible = localStorage.getItem('hydractrl-xy-pad-visible') === 'true';
+      xyPadPanel.togglePanel(xyPadVisible);
+    });
 
     // Apply UI visibility state after all panels are created
     applyUiVisibility();

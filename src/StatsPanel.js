@@ -169,13 +169,21 @@ export function createStatsPanel() {
   xyPadButton.style.fontSize = "12px";
   xyPadButton.textContent = "Show XY Pad";
 
+  // Set initial button text based on localStorage
+  const xyPadVisible = localStorage.getItem('hydractrl-xy-pad-visible') === 'true';
+  xyPadButton.textContent = xyPadVisible ? 'Hide XY Pad' : 'Show XY Pad';
+
   xyPadButton.addEventListener("click", () => {
     const xyPadPanelElement = document.querySelector(".xy-pad-panel");
-    if (xyPadPanelElement.style.visibility === "hidden") {
-      xyPadPanelElement.style.visibility = "visible";
-    } else {
-      xyPadPanelElement.style.visibility = "hidden";
-    }
+    const isVisible = xyPadPanelElement.style.visibility !== "hidden";
+    const newVisible = !isVisible;
+    
+    // Update visibility
+    xyPadPanelElement.style.visibility = newVisible ? "visible" : "hidden";
+    
+    // Update localStorage and button text
+    localStorage.setItem('hydractrl-xy-pad-visible', newVisible);
+    xyPadButton.textContent = newVisible ? 'Hide XY Pad' : 'Show XY Pad';
   });
 
   // Create MIDI mapping display
