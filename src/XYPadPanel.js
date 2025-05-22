@@ -259,12 +259,15 @@ export function createXYPadPanel() {
 
   // Function to handle pad release
   function handlePadRelease() {
+    console.log("handlePadRelease!!!!!");
     isPadActive = false;
 
     // Start physics simulation if enabled
     if (isPhysicsEnabled) {
+      console.log("Starting physics simulation");
       physics.start((px, py) => updatePosition(px, py, false));
     } else {
+      console.log("Stopping physics simulation");
       physics.stop();
     }
   }

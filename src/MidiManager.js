@@ -148,7 +148,7 @@ export function createMidiManager(slotsPanel) {
 
   // Track rate limiting for messages that may come from XY pad
   const lastCCTime = {};
-  const THROTTLE_TIME = 500; // ms between allowed bank changes
+  const THROTTLE_TIME = 150; // ms between allowed bank changes
   const CC_THROTTLE_TIME = 25;
   let lastBankChange = 0;
 
@@ -207,6 +207,9 @@ export function createMidiManager(slotsPanel) {
         break;
       case 0xb0:
         messageType = "Control Change";
+        if (xyPadPanel && data[1] === 16 && data[2] === 0) {
+          xyPadPanel.handlePadRelease();
+        }
         break;
       case 0xc0:
         messageType = "Program Change";
