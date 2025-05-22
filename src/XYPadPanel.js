@@ -240,20 +240,21 @@ export function createXYPadPanel() {
     lastPadY = physics.y;
     const now = performance.now();
 
+    // Update physics position
+    physics.setPosition(x, y);
+
     // Only calculate velocity if we have valid time delta
     if (lastPadTime > 0) {
       const dt = (now - lastPadTime) / 1000;
       if (dt > 0 && dt < 0.1) { // Only apply velocity if time delta is reasonable
-        const vx = (x - lastPadX) / dt;
-        const vy = (y - lastPadY) / dt;
+        // Calculate velocity based on physics coordinates
+        const vx = (physics.x - lastPadX) / dt;
+        const vy = (physics.y - lastPadY) / dt;
         physics.setVelocity(vx, vy);
       }
     }
 
     lastPadTime = now;
-
-    // Update physics position
-    physics.setPosition(x, y);
     updatePosition(x, y, true);
   }
 
