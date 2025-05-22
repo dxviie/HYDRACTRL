@@ -43,6 +43,19 @@
   scrollbar-color: var(--color-button-bg) var(--color-bg-editor);
 }
 
+/* Global visibility transitions */
+*[style*="visibility"] {
+  transition: visibility 0.2s ease, opacity 0.2s ease;
+}
+
+*[style*="visibility: hidden"] {
+  opacity: 0;
+}
+
+*[style*="visibility: visible"] {
+  opacity: 1;
+}
+
 /* Theme Variables - Default (Dark Dracula-inspired) */
 :root {
   /* Base colors */
