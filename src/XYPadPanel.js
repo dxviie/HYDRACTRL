@@ -150,8 +150,8 @@ export function createXYPadPanel() {
     return { container, slider };
   };
 
-  const frictionControl = createParamSlider("Friction", 0.1, 0, 0.2);
-  const bounceControl = createParamSlider("Bounce", 0.7, 0.3, 1);
+  const frictionControl = createParamSlider("Friction", 0, 0, 0.15);
+  const bounceControl = createParamSlider("Bounce", 1, 0.3, 1);
 
   paramsSection.appendChild(frictionControl.container);
   paramsSection.appendChild(bounceControl.container);

@@ -21,8 +21,8 @@ export class XYPhysics {
     this.timeHistory = [];
 
     // Physics parameters (with defaults)
-    this.friction = options.friction ?? 0.1;  // Friction (0-1), higher means more friction
-    this.bounce = options.bounce ?? 0.7;     // Bounciness (0-1)
+    this.friction = options.friction ?? 0;  // Friction (0-1), higher means more friction
+    this.bounce = options.bounce ?? 1;     // Bounciness (0-1)
     this.velocityLimit = options.velocityLimit ?? 2000; // Max velocity to prevent instability
 
     // Animation frame handling
@@ -78,10 +78,10 @@ export class XYPhysics {
   // Start physics simulation
   start(callback) {
     if (this.isRunning) return;
-    
+
     // Calculate initial velocities from position history
     this.calculateInitialVelocities();
-    
+
     this.isRunning = true;
     this.lastTime = performance.now();
 
@@ -133,7 +133,7 @@ export class XYPhysics {
   setPositionX(x) {
     const now = performance.now();
     this.x = x * this.width;
-    
+
     this.xHistory.push({ pos: this.x, time: now });
     if (this.xHistory.length > this.historySize) {
       this.xHistory.shift();
@@ -144,7 +144,7 @@ export class XYPhysics {
   setPositionY(y) {
     const now = performance.now();
     this.y = y * this.height;
-    
+
     this.yHistory.push({ pos: this.y, time: now });
     if (this.yHistory.length > this.historySize) {
       this.yHistory.shift();
