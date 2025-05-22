@@ -310,9 +310,20 @@ export function createXYPadPanel() {
     localStorage.setItem('hydractrl-xy-pad-visible', show);
   }
 
-  return {
-    togglePanel,
+  // Create panel interface
+  const panelInterface = {
+    panel,
     updatePosition,
+    updateFromMIDI,
+    handlePadRelease,
+    togglePanel,
     isVisible: () => panel.style.visibility === "visible"
   };
+
+  // Register with MIDI manager if available
+  if (window.midiManager) {
+    window.midiManager.setXYPadPanel(panelInterface);
+  }
+
+  return panelInterface;
 }
