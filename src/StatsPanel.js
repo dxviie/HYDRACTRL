@@ -139,6 +139,12 @@ export function createStatsPanel() {
   midiDeviceContainer.style.flexDirection = "column";
   midiDeviceContainer.style.gap = "4px";
 
+  // Create buttons container
+  const midiButtonsContainer = document.createElement("div");
+  midiButtonsContainer.style.display = "flex";
+  midiButtonsContainer.style.gap = "8px";
+  midiButtonsContainer.style.marginTop = "8px";
+
   // Create MIDI learn button
   const midiLearnButton = document.createElement("button");
   midiLearnButton.className = "midi-learn-button";
@@ -150,6 +156,19 @@ export function createStatsPanel() {
   midiLearnButton.style.cursor = "pointer";
   midiLearnButton.style.fontSize = "12px";
   midiLearnButton.textContent = "MIDI Learn";
+
+  // Create XY pad toggle button
+  const xyPadButton = document.createElement("button");
+  xyPadButton.className = "xy-pad-button";
+  xyPadButton.style.backgroundColor = "var(--color-bg-tertiary)";
+  xyPadButton.style.border = "none";
+  xyPadButton.style.borderRadius = "4px";
+  xyPadButton.style.padding = "4px 8px";
+  xyPadButton.style.color = "var(--color-text-primary)";
+  xyPadButton.style.cursor = "pointer";
+  xyPadButton.style.fontSize = "12px";
+  xyPadButton.textContent = "Show XY Pad";
+  xyPadButton.style.display = "none"; // Hidden by default
 
   // Create MIDI mapping display
   const midiMappingDisplay = document.createElement("div");
@@ -185,10 +204,14 @@ export function createStatsPanel() {
     }
   });
 
+  // Add buttons to container
+  midiButtonsContainer.appendChild(midiLearnButton);
+  midiButtonsContainer.appendChild(xyPadButton);
+
   // Add to MIDI section
   midiSection.appendChild(midiStatusText);
   midiSection.appendChild(midiDeviceContainer);
-  midiSection.appendChild(midiLearnButton);
+  midiSection.appendChild(midiButtonsContainer);
   midiSection.appendChild(midiMappingDisplay);
 
   // Create a theme settings section

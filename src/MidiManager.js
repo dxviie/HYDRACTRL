@@ -2,24 +2,22 @@
  * MIDI Manager
  * A simple manager for MIDI input devices with special support for Korg nanoPAD2
  */
+// Module-level variables for MIDI state
+let isNanoPad = false;
+let midiAccess = null;
+let activeDevice = null;
+let isConnected = false;
+let xyPadPanel = null;
+let isLearning = false;
+let learnCallback = null;
+let xyPadValues = { x: 0, y: 0 };
+
 export function createMidiManager(slotsPanel) {
-  // Track the MIDI access and active device
-  let midiAccess = null;
-  let activeDevice = null;
-  let isConnected = false;
-
-  // Track if this is a nanoPAD2 or similar controller
-  let isNanoPad = false;
-
   // Initialize global XY pad values
   window.nanoX = 0;
   window.nanoY = 0;
-
-  // Track XY pad values internally (normalized to 0-1)
-  let xyPadValues = {
-    x: 0,
-    y: 0
-  };
+  xyPadValues.x = 0;
+  xyPadValues.y = 0;
 
   // MIDI learn mode state
   let isLearning = false;
@@ -101,23 +99,45 @@ export function createMidiManager(slotsPanel) {
   }
 
   // Connect to a specific MIDI device
-  function connectToDevice(inputDevice) {
+  async function connectToDevice(device) {
+    // Close any existing connection
     if (activeDevice) {
-      // Remove listeners from previous device
       activeDevice.onmidimessage = null;
     }
 
-    activeDevice = inputDevice;
+    // Reset XY pad panel
+    if (xyPadPanel) {
+      xyPadPanel.togglePanel(false);
+    }
+
+    activeDevice = device;
     activeDevice.onmidimessage = onMIDIMessage;
     isConnected = true;
 
     // Check if it's a nanoPAD or similar
-    isNanoPad =
-      activeDevice.name &&
-      (activeDevice.name.toLowerCase().includes("nanopad") ||
-        activeDevice.name.toLowerCase().includes("korg"));
+    isNanoPad = device.name.toLowerCase().includes('nanopad');
+    showMidiStatus(`Connected to ${device.name}`, false);
 
-    showMidiStatus(`Connected: ${activeDevice.name || "MIDI Device"}`);
+    // Show XY pad button if it's a nanoPAD
+    const xyPadButton = document.querySelector('.xy-pad-button');
+    if (xyPadButton) {
+      xyPadButton.style.display = isNanoPad ? 'block' : 'none';
+      // Remove existing click listener if any
+      const newButton = xyPadButton.cloneNode(true);
+      xyPadButton.parentNode.replaceChild(newButton, xyPadButton);
+      newButton.addEventListener('click', () => {
+        if (!xyPadPanel) {
+          // Import and create XY pad panel on first use
+          import('./XYPadPanel.js').then(module => {
+            xyPadPanel = module.createXYPadPanel();
+            xyPadPanel.togglePanel(true);
+          });
+        } else {
+          xyPadPanel.togglePanel(!xyPadPanel.isVisible());
+        }
+      });
+    }
+
     console.log(`MIDI connected: ${activeDevice.name}`);
   }
 
@@ -155,6 +175,9 @@ export function createMidiManager(slotsPanel) {
   const lastCCValues = {};
   const THROTTLE_TIME = 500; // ms between allowed bank changes
   let lastBankChange = 0;
+  let isXYPadActive = false;
+  let lastXYActivity = 0;
+  const XY_ACTIVITY_TIMEOUT = 100; // ms to consider XY pad inactive after last message
 
   // Handle MIDI messages
   function onMIDIMessage(message) {
@@ -181,18 +204,31 @@ export function createMidiManager(slotsPanel) {
 
         // Update XY pad values if this is an XY pad message
         const normalizedValue = value / 127; // Normalize to 0-1
+        isXYPadActive = true;
+        lastXYActivity = now; // Use the 'now' from the outer scope
 
         if (ccNum === 2) { // Y axis
           xyPadValues.y = normalizedValue;
           window.nanoY = normalizedValue;
-          console.debug(`XY Pad Y: ${normalizedValue.toFixed(3)}`);
-          return; // Skip further processing
         } else if (ccNum === 1) { // X axis
           xyPadValues.x = normalizedValue;
           window.nanoX = normalizedValue;
-          console.debug(`XY Pad X: ${normalizedValue.toFixed(3)}`);
-          return; // Skip further processing
         }
+
+        // Update XY pad visualization
+        if (xyPadPanel) {
+          xyPadPanel.updatePosition(xyPadValues.x, xyPadValues.y, true);
+        }
+
+        // Start inactivity check timer
+        setTimeout(() => {
+          if (lastXYActivity === now && xyPadPanel) {
+            isXYPadActive = false;
+            xyPadPanel.updatePosition(xyPadValues.x, xyPadValues.y, false);
+          }
+        }, XY_ACTIVITY_TIMEOUT);
+
+        return; // Skip further processing
 
         // If this CC value could trigger a bank change, enforce a cooldown period
         if (value >= 0 && value <= 3) {
