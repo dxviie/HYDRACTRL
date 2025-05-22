@@ -83,12 +83,12 @@ export function createStatsPanel() {
   docsButton.title = "Hydra Functions Reference";
   docsButton.textContent = "📚";
   docsButton.style.opacity = "0.7";
-  
+
   docsButton.addEventListener("mouseenter", () => {
     docsButton.style.opacity = "1";
     docsButton.style.transform = "scale(1.1)";
   });
-  
+
   docsButton.addEventListener("mouseleave", () => {
     docsButton.style.opacity = "0.7";
     docsButton.style.transform = "scale(1)";
@@ -168,7 +168,15 @@ export function createStatsPanel() {
   xyPadButton.style.cursor = "pointer";
   xyPadButton.style.fontSize = "12px";
   xyPadButton.textContent = "Show XY Pad";
-  xyPadButton.style.display = "none"; // Hidden by default
+
+  xyPadButton.addEventListener("click", () => {
+    const xyPadPanelElement = document.querySelector(".xy-pad-panel");
+    if (xyPadPanelElement.style.visibility === "hidden") {
+      xyPadPanelElement.style.visibility = "visible";
+    } else {
+      xyPadPanelElement.style.visibility = "hidden";
+    }
+  });
 
   // Create MIDI mapping display
   const midiMappingDisplay = document.createElement("div");
@@ -778,7 +786,7 @@ export function createStatsPanel() {
   // Add buttons to container
   buttonsContainer.appendChild(docsButton);
   buttonsContainer.appendChild(toggle);
-  
+
   handle.appendChild(title);
   handle.appendChild(buttonsContainer);
 

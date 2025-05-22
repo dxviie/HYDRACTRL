@@ -584,7 +584,8 @@ function toggleEditor() {
   const statsPanelElement = document.querySelector(".stats-panel");
   const slotsPanelElement = document.querySelector(".slots-panel");
   const docPanelElement = document.querySelector(".doc-panel");
-  
+  const xyPadPanelElement = document.querySelector(".xy-pad-panel");
+
   // Get visibility state from localStorage, defaulting to visible (true)
   // We invert the storage value because we're about to toggle it
   const isVisible = localStorage.getItem("hydractrl-ui-visible") !== "false";
@@ -592,29 +593,31 @@ function toggleEditor() {
   if (isVisible) {
     // Hide the editor and panels using visibility property to preserve layout
     editorContainer.style.visibility = "hidden";
-    
+
     // Hide all panels if they exist
     if (statsPanelElement) statsPanelElement.style.visibility = "hidden";
     if (slotsPanelElement) slotsPanelElement.style.visibility = "hidden";
     if (docPanelElement) docPanelElement.style.visibility = "hidden";
-    
+    if (xyPadPanelElement) xyPadPanelElement.style.visibility = "hidden";
+
     // Add a CSS class to the body to indicate hidden UI (useful for styling)
     document.body.classList.add("ui-hidden");
-    
+
     // Store the new visibility state
     localStorage.setItem("hydractrl-ui-visible", "false");
   } else {
     // Show the editor and panels
     editorContainer.style.visibility = "visible";
-    
+
     // Show all panels if they exist
     if (statsPanelElement) statsPanelElement.style.visibility = "visible";
     if (slotsPanelElement) slotsPanelElement.style.visibility = "visible";
     if (docPanelElement) docPanelElement.style.visibility = "visible";
-    
+    if (xyPadPanelElement) xyPadPanelElement.style.visibility = "visible";
+
     // Remove the hidden UI class
     document.body.classList.remove("ui-hidden");
-    
+
     // Store the new visibility state
     localStorage.setItem("hydractrl-ui-visible", "true");
 
@@ -884,24 +887,24 @@ async function init() {
   try {
     const editor = initEditor(); // No longer async
     const hydra = await initHydra();
-    
+
     // Apply UI visibility state from localStorage right after panels are created
     const applyUiVisibility = () => {
       const isVisible = localStorage.getItem("hydractrl-ui-visible");
-      
+
       // Only apply if explicitly set to false (hidden)
       if (isVisible === "false") {
         const editorContainer = document.getElementById("editor-container");
         const statsPanelElement = document.querySelector(".stats-panel");
         const slotsPanelElement = document.querySelector(".slots-panel");
         const docPanelElement = document.querySelector(".doc-panel");
-        
+
         // Hide all UI elements using visibility to preserve layout
         if (editorContainer) editorContainer.style.visibility = "hidden";
         if (statsPanelElement) statsPanelElement.style.visibility = "hidden";
         if (slotsPanelElement) statsPanelElement.style.visibility = "hidden";
         if (docPanelElement) docPanelElement.style.visibility = "hidden";
-        
+
         // Add a CSS class to the body to indicate hidden UI
         document.body.classList.add("ui-hidden");
       }
@@ -1035,19 +1038,19 @@ async function init() {
 
       // Ctrl/Cmd+` (backtick) to toggle editor visibility
       if (e.key === "`" && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault(); // Prevent any default behavior
+        e.preventDefault();
         toggleEditor();
       }
 
       if (e.altKey && !e.ctrlKey & !e.metaKey && !e.shiftKey) {
         // Hexadecimal keys 0-F to select slots 1-16
         const numKey = e.key;
-        
+
         // Ignore if it's just the Alt key or any other special key
         if (numKey === 'Alt' || numKey.startsWith('Arrow') || numKey.length > 1) {
           return;
         }
-        
+
         // First handle 0-9 keys
         if (numKey >= '0' && numKey <= '9' && window.slotsPanel) {
           e.preventDefault();
@@ -1139,10 +1142,10 @@ async function init() {
 
     // Create the stats panel using our simple implementation
     const statsPanel = createStatsPanel();
-    
+
     // Create the documentation panel (hidden by default)
     const docPanel = createDocPanel();
-    
+
     // Connect the docs button to toggle the documentation panel
     statsPanel.docsButton.addEventListener("click", () => {
       docPanel.toggle();
@@ -1156,7 +1159,7 @@ async function init() {
 
     // Initialize MIDI support with the slots panel
     const midiManager = createMidiManager(slotsPanel);
-    
+
     // Apply UI visibility state after all panels are created
     applyUiVisibility();
 

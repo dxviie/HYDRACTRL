@@ -118,26 +118,6 @@ export function createMidiManager(slotsPanel) {
     isNanoPad = device.name.toLowerCase().includes('nanopad');
     showMidiStatus(`Connected to ${device.name}`, false);
 
-    // Show XY pad button if it's a nanoPAD
-    const xyPadButton = document.querySelector('.xy-pad-button');
-    if (xyPadButton) {
-      xyPadButton.style.display = isNanoPad ? 'block' : 'none';
-      // Remove existing click listener if any
-      const newButton = xyPadButton.cloneNode(true);
-      xyPadButton.parentNode.replaceChild(newButton, xyPadButton);
-      newButton.addEventListener('click', () => {
-        if (!xyPadPanel) {
-          // Import and create XY pad panel on first use
-          import('./XYPadPanel.js').then(module => {
-            xyPadPanel = module.createXYPadPanel();
-            xyPadPanel.togglePanel(true);
-          });
-        } else {
-          xyPadPanel.togglePanel(!xyPadPanel.isVisible());
-        }
-      });
-    }
-
     console.log(`MIDI connected: ${activeDevice.name}`);
   }
 
