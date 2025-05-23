@@ -596,6 +596,7 @@ export function createDocPanel() {
   rightContent.style.padding = "10px";
   rightContent.style.height = "20rem";
   rightContent.style.width = "100%";
+  rightContent.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
 
   // Selected function indicator
   let selectedFunction = null;
