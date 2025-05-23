@@ -28,27 +28,27 @@ const FUNCTION_CATEGORIES = {
   },
   modulate: {
     title: "Modulate",
-    color: "#00FF00",
+    color: "#99ffee",
     functions: ["modulate", "modulateHue", "modulateKaleid", "modulatePixelate", "modulateRepeat", "modulateRepeatX", "modulateRepeatY", "modulateRotate", "modulateScale", "modulateScrollX", "modulateScrollY"]
   },
   external: {
     title: "External",
-    color: "#FFAA00",
+    color: "#99ccff",
     functions: ["initCam", "initImage", "initVideo", "init", "initStream", "initScreen"]
   },
   settings: {
     title: "Settings",
-    color: "#FFFFFF",
+    color: "#aa99ff",
     functions: ["render", "update", "setResolution", "hush", "setFunction", "speed", "bpm", "width", "height", "time", "mouse"]
   },
   array: {
     title: "Array",
-    color: "#FF0000",
+    color: "#ee99ff",
     functions: ["fast", "smooth", "ease", "offset", "fit"]
   },
   audio: {
     title: "Audio",
-    color: "#0000FF",
+    color: "#ff99cc",
     functions: ["fft", "setBins", "setCutoff", "setScale", "setSmooth", "show"]
   }
 };
@@ -677,7 +677,7 @@ export function createDocPanel() {
   panel.style.borderRadius = "8px";
   panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
   panel.style.backdropFilter = "blur(var(--color-panel-blur))";
-  panel.style.zIndex = "9";
+  panel.style.zIndex = "999";
   panel.style.overflow = "hidden";
   panel.style.fontFamily = "sans-serif";
   panel.style.fontSize = "14px";
@@ -804,9 +804,11 @@ export function createDocPanel() {
     categoryHeading.style.fontWeight = "bold";
     categoryHeading.style.marginTop = "10px";
     categoryHeading.style.marginBottom = "6px";
-    categoryHeading.style.color = category.color;
+    categoryHeading.style.backgroundColor = category.color;
+    categoryHeading.style.color = "black";
     categoryHeading.style.borderBottom = `1px solid ${category.color}4D`; // Add 30% opacity border
-    categoryHeading.style.paddingBottom = "3px";
+    categoryHeading.style.padding = ".5rem 1rem";
+    categoryHeading.style.borderRadius = "4px";
     categoryHeading.textContent = category.title;
 
     leftSidebar.appendChild(categoryHeading);
