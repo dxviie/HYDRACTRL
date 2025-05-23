@@ -523,9 +523,6 @@ async function runCode(editor, hydra) {
     // Get code from editor
     const code = editor.state.doc.toString();
 
-    // Clear any previous errors
-    console.clear();
-
     // Remove any existing error notifications
     const existingErrors = document.querySelectorAll(".error-notification");
     existingErrors.forEach((el) => el.remove());
