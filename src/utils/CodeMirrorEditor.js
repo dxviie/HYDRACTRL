@@ -56,226 +56,258 @@ const hydraTheme = EditorView.theme({
 
 // Hydra API Function Definitions with parameters
 const hydraFunctions = {
-  // Source Functions
-  osc: {
-    description: "Sine wave oscillator",
-    params: ["frequency = 60", "sync = 0.1", "offset = 0"],
-
-  },
-  noise: {
-    description: "Noise generator",
-    params: ["scale = 10", "offset = 0.1"],
-
-  },
-  voronoi: {
-    description: "Voronoi diagram",
-    params: ["scale = 5", "speed = 0.3", "blending = 0.3"],
-
-  },
-  shape: {
-    description: "Generate a shape",
-    params: ["sides = 3", "radius = 0.3", "smoothing = 0.01"],
-
-  },
-  gradient: {
-    description: "Generate a gradient",
-    params: ["speed = 0"],
-
-  },
-  src: {
-    description: "Use a source buffer",
-    params: ["source"],
-
-  },
-  solid: {
-    description: "Solid color",
-    params: ["r = 0", "g = 0", "b = 0", "a = 1"],
-
-  },
-
-  // Color Operations
-  color: {
-    description: "Shift RGB color values",
-    params: ["r = 1", "g = 1", "b = 1"],
-
-  },
-  colorama: {
-    description: "Shift HSV values",
-    params: ["amount = 0.005"],
-
-  },
-  saturate: {
-    description: "Saturate colors",
-    params: ["amount = 2"],
-
-  },
-  hue: {
-    description: "Hue rotation",
-    params: ["hue = 0.4"],
-
-  },
-  brightness: {
-    description: "Adjust brightness",
-    params: ["brightness = 0.4"],
-
-  },
-  contrast: {
-    description: "Adjust contrast",
-    params: ["contrast = 1.6"],
-
-  },
-  invert: {
-    description: "Invert colors",
-    params: ["amount = 1"],
-
-  },
-
-  // Geometry Operations
-  rotate: {
-    description: "Rotate texture",
-    params: ["angle = 10", "speed = 0"],
-
-  },
-  repeat: {
-    description: "Repeat texture in x and y",
-    params: ["repeatX = 3", "repeatY = 3", "offsetX = 0", "offsetY = 0"],
-
-  },
-  repeatX: {
-    description: "Repeat texture in x direction",
-    params: ["reps = 3", "offset = 0"],
-
-  },
-  repeatY: {
-    description: "Repeat texture in y direction",
-    params: ["reps = 3", "offset = 0"],
-
-  },
-  kaleid: {
-    description: "Kaleidoscope effect",
-    params: ["numSides = 4"],
-
-  },
-  pixelate: {
-    description: "Pixelate texture",
-    params: ["pixelX = 20", "pixelY = 20"],
-
-  },
-  scale: {
-    description: "Scale texture",
-    params: ["amount = 1.5", "xMult = 1", "yMult = 1", "offsetX = 0.5", "offsetY = 0.5"],
-
-  },
-
-  // Modulation and Blending
-  modulate: {
-    description: "Modulate texture with another source",
-    params: ["texture", "amount = 0.1"],
-
-  },
-  modulatePixelate: {
-    description: "Modulated pixelate",
-    params: ["texture", "multiple = 10", "offset = 3"],
-
-  },
-  modulateRotate: {
-    description: "Modulated rotation",
-    params: ["texture", "multiple = 1", "offset = 0"],
-
-  },
-  modulateScale: {
-    description: "Modulated scaling",
-    params: ["texture", "multiple = 1", "offset = 1"],
-
-  },
-  modulateKaleid: {
-    description: "Modulated kaleidoscope",
-    params: ["texture", "nSides = 4"],
-
-  },
-  blend: {
-    description: "Blend with another source",
-    params: ["texture", "amount = 0.5"],
-
-  },
-  mult: {
-    description: "Multiply with another source",
-    params: ["texture", "amount = 1"],
-
-  },
-  add: {
-    description: "Add with another source",
-    params: ["texture", "amount = 1"],
-
-  },
-  diff: {
-    description: "Difference with another source",
-    params: ["texture"],
-
-  },
-  mask: {
-    description: "Apply mask",
-    params: ["texture"],
-
-  },
-  thresh: {
-    description: "Threshold filter",
-    params: ["threshold = 0.5", "tolerance = 0.04"],
-
-  },
-
-  // Output and System Functions
-  out: {
-    description: "Output to a specific buffer",
-    params: ["buffer = o0"],
-
-  },
+  // Global Functions (Synth Control)
   render: {
-    description: "Render all output buffers",
-    params: ["output = o0"],
-
-  },
-  hush: {
-    description: "Clear all output buffers",
-    params: [],
-
+    description: "Renders specified output buffer(s) or all if none specified.",
+    params: ["outputBuffer"],
   },
   setResolution: {
-    description: "Set resolution of output",
+    description: "Sets canvas resolution.",
     params: ["width", "height"],
-
   },
-  setBins: {
-    description: "Set number of FFT bins",
-    params: ["bins = 4"],
-
+  hush: {
+    description: "Clears all output buffers.",
+    params: [],
+  },
+  update: {
+    description: "Manually trigger an update/render cycle.",
+    params: [],
+  },
+  initCam: {
+    description: "Initializes webcam as an input source (s0, s1, etc.).",
+    params: ["index = 0"],
+  },
+  initScreen: {
+    description: "Initializes screen capture as an input source.",
+    params: ["index = 0"],
+  },
+  initVideo: {
+    description: "Initializes video from URL as an input source.",
+    params: ["url"],
+  },
+  initImage: {
+    description: "Initializes image from URL as an input source.",
+    params: ["url"],
+  },
+  initAudio: {
+    description: "Initializes audio input for the 'a' (audio analysis) object.",
+    params: [],
   },
 
-  // P5 related Functions
+  // Source Functions
+  noise: {
+    description: "Generates Perlin noise.",
+    params: ["scale = 10", "offset = 0.1"],
+  },
+  voronoi: {
+    description: "Generates Voronoi diagrams.",
+    params: ["scale = 5", "speed = 0.3", "blending = 0.3"],
+  },
+  osc: {
+    description: "Generates a sine wave oscillator.",
+    params: ["frequency = 60", "sync = 0.1", "offset = 0"],
+  },
+  shape: {
+    description: "Generates geometric shapes.",
+    params: ["sides = 3", "radius = 0.3", "smoothing = 0.01"],
+  },
+  gradient: {
+    description: "Generates a color gradient.",
+    params: ["speed = 0"],
+  },
+  solid: {
+    description: "Generates a solid color.",
+    params: ["r = 0", "g = 0", "b = 0", "a = 1"],
+  },
+  src: {
+    description: "References an existing texture source (e.g., s0, o1).",
+    params: ["texture"],
+  },
+
+  // Geometry Functions
+  rotate: {
+    description: "Rotates a texture.",
+    params: ["angle = 0", "speed = 0"],
+  },
+  scale: {
+    description: "Scales a texture.",
+    params: ["amount = 1.5", "xMult = 1", "yMult = 1", "offsetX = 0.5", "offsetY = 0.5"],
+  },
+  pixelate: {
+    description: "Pixelates a texture.",
+    params: ["pixelX = 20", "pixelY = 20"],
+  },
+  repeat: {
+    description: "Repeats a texture.",
+    params: ["repeatX = 3", "repeatY = 3", "offsetX = 0", "offsetY = 0"],
+  },
+  repeatX: {
+    description: "Repeats a texture in the X direction.",
+    params: ["reps = 3", "offset = 0"],
+  },
+  repeatY: {
+    description: "Repeats a texture in the Y direction.",
+    params: ["reps = 3", "offset = 0"],
+  },
+  kaleid: {
+    description: "Creates a kaleidoscope effect.",
+    params: ["nSides = 4"],
+  },
+  scroll: {
+    description: "Scrolls a texture.",
+    params: ["scrollX = 0", "scrollY = 0", "speedX = 0", "speedY = 0"],
+  },
+  scrollX: {
+    description: "Scrolls a texture in the X direction.",
+    params: ["amount = 0", "speed = 0"],
+  },
+  scrollY: {
+    description: "Scrolls a texture in the Y direction.",
+    params: ["amount = 0", "speed = 0"],
+  },
+
+  // Color Functions
+  posterize: {
+    description: "Reduces the number of colors in a texture.",
+    params: ["bins = 3", "gamma = 0.6"],
+  },
+  shift: {
+    description: "Shifts RGBA color channels.",
+    params: ["r = 0.5", "g = 0", "b = 0", "a = 0"],
+  },
+  invert: {
+    description: "Inverts the colors of a texture.",
+    params: ["amount = 1"],
+  },
+  contrast: {
+    description: "Adjusts the contrast of a texture.",
+    params: ["amount = 1.6"],
+  },
+  brightness: {
+    description: "Adjusts the brightness of a texture.",
+    params: ["amount = 0.4"],
+  },
+  luma: {
+    description: "Creates a luma key (mask based on brightness).",
+    params: ["threshold = 0.5", "tolerance = 0.1"],
+  },
+  thresh: {
+    description: "Applies a threshold filter to a texture.",
+    params: ["threshold = 0.5", "tolerance = 0.01"],
+  },
+  color: {
+    description: "Sets or scales RGBA color values.",
+    params: ["r = 1", "g = 1", "b = 1", "a = 1"],
+  },
+  saturate: {
+    description: "Adjusts the saturation of a texture.",
+    params: ["amount = 1"],
+  },
+  hue: {
+    description: "Adjusts the hue of a texture.",
+    params: ["shift = 0"],
+  },
+  colorama: {
+    description: "Applies a colorama (HSV shift) effect.",
+    params: ["amount = 0.005"],
+  },
+
+  // Blend Functions
+  add: {
+    description: "Adds the colors of two textures.",
+    params: ["texture", "amount = 1"],
+  },
+  sub: {
+    description: "Subtracts the colors of one texture from another.",
+    params: ["texture", "amount = 1"],
+  },
+  layer: {
+    description: "Layers one texture on top of another (alpha blending).",
+    params: ["texture"],
+  },
+  blend: {
+    description: "Blends two textures using a specified amount.",
+    params: ["texture", "amount = 0.5"],
+  },
+  mult: {
+    description: "Multiplies the colors of two textures.",
+    params: ["texture", "amount = 1"],
+  },
+  diff: {
+    description: "Calculates the difference between two textures.",
+    params: ["texture"],
+  },
+  mask: {
+    description: "Uses one texture to mask another.",
+    params: ["texture", "reps = 3", "offset = 0.5"],
+  },
+
+  // Modulate Functions
+  modulate: {
+    description: "Modulates the texture coordinates of one source by another.",
+    params: ["texture", "amount = 0.1"],
+  },
+  modulateRepeat: {
+    description: "Modulates texture coordinates with a repeat effect.",
+    params: ["texture", "repeatX = 3", "repeatY = 3", "offsetX = 0", "offsetY = 0", "amount = 1"],
+  },
+  modulateRepeatX: {
+    description: "Modulates texture coordinates with a repeatX effect.",
+    params: ["texture", "reps = 3", "offset = 0", "amount = 1"],
+  },
+  modulateRepeatY: {
+    description: "Modulates texture coordinates with a repeatY effect.",
+    params: ["texture", "reps = 3", "offset = 0", "amount = 1"],
+  },
+  modulateKaleid: {
+    description: "Modulates texture coordinates with a kaleidoscope effect.",
+    params: ["texture", "nSides = 4", "amount = 1"],
+  },
+  modulateScrollX: {
+    description: "Modulates texture coordinates with a scrollX effect.",
+    params: ["texture", "scroll = 0.5", "speed = 0", "amount = 1"],
+  },
+  modulateScrollY: {
+    description: "Modulates texture coordinates with a scrollY effect.",
+    params: ["texture", "scroll = 0.5", "speed = 0", "amount = 1"],
+  },
+  modulateScale: {
+    description: "Modulates texture coordinates with a scale effect.",
+    params: ["texture", "multiple = 1", "offset = 0", "amount = 1"],
+  },
+  modulatePixelate: {
+    description: "Modulates texture coordinates with a pixelate effect.",
+    params: ["texture", "pixelX = 10", "pixelY = 10", "amount = 1"],
+  },
+  modulateRotate: {
+    description: "Modulates texture coordinates with a rotate effect.",
+    params: ["texture", "angle = 0", "speed = 0", "amount = 1"],
+  },
+  modulateHue: {
+    description: "Modulates texture hue based on another texture.",
+    params: ["texture", "amount = 0.1"],
+  },
+
+  // P5 related Functions (preserved from original)
   draw: {
     description: "P5 draw function",
     params: [],
-
   },
   setup: {
     description: "P5 setup function",
     params: [],
-
   },
   mousePressed: {
     description: "P5 mousePressed event function",
     params: [],
-
   },
   mouseReleased: {
     description: "P5 mouseReleased event function",
     params: [],
-
   },
   mouseMoved: {
     description: "P5 mouseMoved event function",
     params: [],
-
   }
 };
 
