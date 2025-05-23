@@ -125,7 +125,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   const shortcutsLabel = document.createElement("div");
   shortcutsLabel.className = "shortcut";
   shortcutsLabel.style.marginLeft = "4px";
-  shortcutsLabel.innerHTML = "<span style='font-size: 10px; color: var(--color-text-secondary);'>Alt + ←/→</span>";
+  shortcutsLabel.innerHTML = "<span style='font-size: 10px; color: var(--color-text-secondary);'>Alt/⌥ + ←/→</span>";
   dotsContainer.appendChild(shortcutsLabel);
 
   // Create icons container
@@ -251,7 +251,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
     index.style.right = "4px";
     index.style.fontSize = "12px";
     index.style.fontWeight = "bold";
-    index.innerHTML = "<span style='font-size: 8px; margin-right: 2px;'>Alt+</span>" + i.toString(16).toUpperCase();
+    index.innerHTML = "<span style='font-size: 8px; margin-right: 2px;'>Alt/⌥ +</span>" + i.toString(16).toUpperCase();
 
     // Thumbnail container for preview images
     const thumbnail = document.createElement("div");

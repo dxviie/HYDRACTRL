@@ -374,8 +374,8 @@ function createInfoPanel() {
     { keys: "Ctrl/⌘ + Enter", action: "Run code" },
     { keys: "Ctrl/⌘ + S", action: "Save code" },
     { keys: "Ctrl/⌘ + Y", action: "Toggle Auto Run" },
-    { keys: "Alt + 0-9 / A-F", action: "Select slot 1 to 16 (HEX)" },
-    { keys: "Ctrl/⌘ + ←/→", action: "Cycle between banks (only when no MIDI connected)" },
+    { keys: "Alt/⌥ + 0-9 / A-F", action: "Select slot 1 to 16 (HEX)" },
+    { keys: "Alt/⌥ + ←/→", action: "Cycle between banks (only when no MIDI connected)" },
     { keys: "Ctrl/⌘ + X", action: "Export all slots" },
     { keys: "Ctrl/⌘ + I", action: "Import slots file" }
   ];
