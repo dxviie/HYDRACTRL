@@ -1004,7 +1004,6 @@ async function init() {
 
     // Add keyboard shortcuts
     document.addEventListener("keydown", (e) => {
-      console.debug("Key pressed:", e.key, "Alt key pressed:", e.altKey, "Meta key pressed:", e.metaKey, "Ctrl key pressed:", e.ctrlKey, "Opt key pressed:", e.optKey);
       // Ctrl+Enter or Cmd+Enter to run code
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();

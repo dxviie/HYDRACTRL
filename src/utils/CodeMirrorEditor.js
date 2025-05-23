@@ -5,7 +5,7 @@
 
 import { EditorState, Compartment } from "@codemirror/state";
 import { EditorView, keymap, lineNumbers, highlightActiveLineGutter } from "@codemirror/view";
-import { defaultKeymap, indentWithTab } from "@codemirror/commands";
+import { history, defaultKeymap, historyKeymap, indentWithTab } from "@codemirror/commands";
 import { javascript } from "@codemirror/lang-javascript";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { dracula } from "@uiw/codemirror-theme-dracula";
@@ -465,7 +465,8 @@ export function createCodeMirrorEditor(container, initialCode = "") {
       highlightActiveLineGutter(),
       // Our custom Ctrl+Enter keymap comes first for highest priority
       ctrlEnterKeymap,
-      keymap.of([indentWithTab, ...defaultKeymap]),
+      history(), // Add history extension
+      keymap.of([indentWithTab, ...defaultKeymap, ...historyKeymap]),
       languageCompartment.of(javascript()),
       hydraTheme, // Base editor styling
       themeCompartment.of(getCurrentTheme()), // Theme-specific syntax coloring
