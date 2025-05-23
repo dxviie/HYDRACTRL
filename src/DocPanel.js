@@ -49,7 +49,7 @@ const FUNCTION_CATEGORIES = {
   audio: {
     title: "Audio",
     color: "#0000FF",
-    functions: ["a.fft", "a.setBins", "a.setCutoff", "a.setScale", "a.setSmooth", "a.show"]
+    functions: ["fft", "setBins", "setCutoff", "setScale", "setSmooth", "show"]
   }
 };
 
@@ -568,6 +568,44 @@ const FUNCTION_DOCS = {
     example: "mouse.x; mouse.y;",
     params: [
       { name: "mouse", description: "Mouse position" }
+    ]
+  },
+
+  // Array
+  fast: {
+    description: "Fast array",
+    example: "fast( speed = 1 )",
+    params: [
+      { name: "speed", default: "1", description: "Speed of array" }
+    ]
+  },
+  smooth: {
+    description: "Smooth array",
+    example: "smooth( speed = 1 )",
+    params: [
+      { name: "speed", default: "1", description: "Speed of array" }
+    ]
+  },
+  ease: {
+    description: "Ease array",
+    example: "ease( ease = 'linear' )",
+    params: [
+      { name: "ease", default: "linear", description: "Easing function" }
+    ]
+  },
+  offset: {
+    description: "Offset array",
+    example: "offset( offset = 0.5 )",
+    params: [
+      { name: "offset", default: "0.5", description: "Offset of array" }
+    ]
+  },
+  fit: {
+    description: "Fit array",
+    example: "fit( low = 0, high = 1 )",
+    params: [
+      { name: "low", default: "0", description: "Low value of array" },
+      { name: "high", default: "1", description: "High value of array" }
     ]
   },
   setBins: {
