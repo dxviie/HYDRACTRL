@@ -12,8 +12,8 @@ let xyPadValues = { x: 0, y: 0 };
 
 export function createMidiManager(slotsPanel) {
   // Initialize global XY pad values
-  window.nanoX = 0;
-  window.nanoY = 0;
+  window.nanoX = 0.5;
+  window.nanoY = 0.5;
   xyPadValues.x = 0;
   xyPadValues.y = 0;
 
