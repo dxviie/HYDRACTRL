@@ -163,7 +163,7 @@ const hydraFunctions = {
   },
   scale: {
     description: "Scale texture",
-    params: ["amount = 1.5", "xMult = 1", "yMult = 1"],
+    params: ["amount = 1.5", "xMult = 1", "yMult = 1", "offsetX = 0.5", "offsetY = 0.5"],
 
   },
 
