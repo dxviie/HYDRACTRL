@@ -912,7 +912,9 @@ export function createDocPanel() {
   // Add initial content to right panel
   rightContent.innerHTML = `
     <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; color: var(--color-text-secondary);">
-      <div style="font-size: 36px; margin-bottom: 10px;">📚</div>
+      <div style="font-size: 36px; margin-bottom: 10px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9.8V20m0-10.2c0-1.704.107-3.584-1.638-4.473C9.72 5 8.88 5 7.2 5H4.6C3.364 5 3 5.437 3 6.6v8.8c0 .568-.036 1.195.546 1.491c.214.109.493.109 1.052.109H7.43c2.377 0 3.26 1.036 4.569 3m0-10.2c0-1.704-.108-3.584 1.638-4.473C14.279 5 15.12 5 16.8 5h2.6c1.235 0 1.6.436 1.6 1.6v8.8c0 .567.035 1.195-.546 1.491c-.213.109-.493.109-1.052.109h-2.833c-2.377 0-3.26 1.036-4.57 3"/></svg>
+      </div>
       <div>Select a function from in the list below to view its documentation</div>
     </div>
   `;

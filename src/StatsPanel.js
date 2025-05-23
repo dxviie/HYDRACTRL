@@ -77,11 +77,13 @@ export function createStatsPanel() {
   docsButton.style.color = "var(--color-text-secondary)";
   docsButton.style.cursor = "pointer";
   docsButton.style.display = "flex";
+  docsButton.style.width = "14px";
+  docsButton.style.height = "14px";
   docsButton.style.alignItems = "center";
   docsButton.style.justifyContent = "center";
   docsButton.style.transition = "all 0.2s ease";
   docsButton.title = "Hydra Functions Reference";
-  docsButton.textContent = "📚";
+  docsButton.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='3.5' d='M12 9.8V20m0-10.2c0-1.704.107-3.584-1.638-4.473C9.72 5 8.88 5 7.2 5H4.6C3.364 5 3 5.437 3 6.6v8.8c0 .568-.036 1.195.546 1.491c.214.109.493.109 1.052.109H7.43c2.377 0 3.26 1.036 4.569 3m0-10.2c0-1.704-.108-3.584 1.638-4.473C14.279 5 15.12 5 16.8 5h2.6c1.235 0 1.6.436 1.6 1.6v8.8c0 .567.035 1.195-.546 1.491c-.213.109-.493.109-1.052.109h-2.833c-2.377 0-3.26 1.036-4.57 3'/></svg>";
   docsButton.style.opacity = "0.7";
 
   docsButton.addEventListener("mouseenter", () => {
@@ -753,17 +755,19 @@ export function createStatsPanel() {
 
   // Attribution text with links
   const attributionText = document.createElement("div");
-  attributionText.innerHTML = 'based on <a href="https://hydra.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">hydra</a> by <a href="https://www.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">Olivia Jack</a>.<br> made with 🧡 by <a href="https://d17e.dev" target="_blank" style="color:inherit;text-decoration:underline">D17E</a>';
+  attributionText.innerHTML = 'based on <a href="https://hydra.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">hydra</a> by <a href="https://www.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">Olivia Jack</a>.<br> made with <span style="color:var(--color-accent-primary);">♥</span> by <a href="https://d17e.dev" target="_blank" style="color:inherit;text-decoration:underline">D17E</a>';
   attributionText.style.lineHeight = "1.2";
 
   // Info icon button
   const infoButton = document.createElement("button");
-  infoButton.innerHTML = "ℹ️";
+  infoButton.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/><path d='M12 16v-5h-.5m0 5h1M12 8.5V8'/></g></svg>";
   infoButton.style.background = "none";
+  infoButton.style.width = "32px";
+  infoButton.style.height = "32px";
   infoButton.style.border = "none";
   infoButton.style.cursor = "pointer";
   infoButton.style.fontSize = "12px";
-  infoButton.style.padding = "2px";
+  infoButton.style.padding = "2px 8px";
   infoButton.style.display = "flex";
   infoButton.style.alignItems = "center";
   infoButton.style.justifyContent = "center";
