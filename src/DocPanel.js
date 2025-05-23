@@ -29,7 +29,7 @@ const FUNCTION_CATEGORIES = {
   modulate: {
     title: "Modulate",
     color: "#00FF00",
-    functions: ["modulate", "modulateHue", "modulateKaleid", "modulatePixelate", "modulateRepeat", "modulateRepeatX", "modulateRepeatY", "modulateRotate", "modulateScale", "modulateScrollX", "modulateScrollY", "modulateStretch"]
+    functions: ["modulate", "modulateHue", "modulateKaleid", "modulatePixelate", "modulateRepeat", "modulateRepeatX", "modulateRepeatY", "modulateRotate", "modulateScale", "modulateScrollX", "modulateScrollY"]
   },
   settings: {
     title: "Settings",
@@ -330,6 +330,13 @@ const FUNCTION_DOCS = {
       { name: "texture", description: "Texture to diff with" }
     ]
   },
+  layer: {
+    description: "Layer textures",
+    example: "osc().layer( texture ).out()",
+    params: [
+      { name: "texture", description: "Texture to layer" }
+    ]
+  },
   mask: {
     description: "Use one texture as alpha mask for another",
     example: "osc().mask(texture).out()",
@@ -345,6 +352,14 @@ const FUNCTION_DOCS = {
       { name: "amount", default: "1", description: "Amount to multiply" }
     ]
   },
+  sub: {
+    description: "Subtract textures",
+    example: "osc().sub(texture, amount = 1).out()",
+    params: [
+      { name: "texture", description: "Texture to subtract" },
+      { name: "amount", default: "1", description: "Amount to subtract" }
+    ]
+  },
 
   // Modulate
   modulate: {
@@ -353,6 +368,14 @@ const FUNCTION_DOCS = {
     params: [
       { name: "texture", description: "Texture to modulate with" },
       { name: "amount", default: "0.1", description: "Amount to modulate" }
+    ]
+  },
+  modulateHue: {
+    description: "Modulate hue with another source",
+    example: "osc().modulateHue( texture, amount = 1 ).out()",
+    params: [
+      { name: "texture", description: "Texture to modulate with" },
+      { name: "amount", default: "1", description: "Amount to modulate" }
     ]
   },
   modulateScale: {
@@ -373,6 +396,35 @@ const FUNCTION_DOCS = {
       { name: "offset", default: "3", description: "Offset for pixelation" }
     ]
   },
+  modulateRepeat: {
+    description: "Modulate repeat with another source",
+    example: "osc().modulateRepeat( texture, repeatX = 3, repeatY = 3, offsetX = 0.5, offsetY = 0.5 ).out()",
+    params: [
+      { name: "texture", description: "Texture to modulate with" },
+      { name: "repeatX", default: "3", description: "Number of horizontal repetitions" },
+      { name: "repeatY", default: "3", description: "Number of vertical repetitions" },
+      { name: "offsetX", default: "0.5", description: "X offset for repetition" },
+      { name: "offsetY", default: "0.5", description: "Y offset for repetition" }
+    ]
+  },
+  modulateRepeatX: {
+    description: "Modulate repeatX with another source",
+    example: "osc().modulateRepeatX( texture, reps = 3, offset = 0.5 ).out()",
+    params: [
+      { name: "texture", description: "Texture to modulate with" },
+      { name: "reps", default: "3", description: "Number of horizontal repetitions" },
+      { name: "offset", default: "0.5", description: "X offset for repetition" }
+    ]
+  },
+  modulateRepeatY: {
+    description: "Modulate repeatY with another source",
+    example: "osc().modulateRepeatY( texture, reps = 3, offset = 0.5 ).out()",
+    params: [
+      { name: "texture", description: "Texture to modulate with" },
+      { name: "reps", default: "3", description: "Number of vertical repetitions" },
+      { name: "offset", default: "0.5", description: "Y offset for repetition" }
+    ]
+  },
   modulateRotate: {
     description: "Modulate rotation with another source",
     example: "osc().modulateRotate(texture, multiple = 1, offset = 0).out()",
@@ -388,6 +440,24 @@ const FUNCTION_DOCS = {
     params: [
       { name: "texture", description: "Texture to modulate with" },
       { name: "nSides", default: "4", description: "Number of sides/reflections" }
+    ]
+  },
+  modulateScrollX: {
+    description: "Modulate scrollX with another source",
+    example: "osc().modulateScrollX( texture, scrollX = 0.5, speedX = 0 ).out()",
+    params: [
+      { name: "texture", description: "Texture to modulate with" },
+      { name: "scrollX", default: "0.5", description: "X scroll amount" },
+      { name: "speedX", default: "0", description: "X scroll speed" }
+    ]
+  },
+  modulateScrollY: {
+    description: "Modulate scrollY with another source",
+    example: "osc().modulateScrollY( texture, scrollY = 0.5, speedY = 0 ).out()",
+    params: [
+      { name: "texture", description: "Texture to modulate with" },
+      { name: "scrollY", default: "0.5", description: "Y scroll amount" },
+      { name: "speedY", default: "0", description: "Y scroll speed" }
     ]
   },
 
