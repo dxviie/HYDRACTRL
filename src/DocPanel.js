@@ -9,7 +9,7 @@ const FUNCTION_CATEGORIES = {
   sources: {
     title: "Sources",
     color: "#FFAA99",
-    functions: ["noise", "voronoi", "osc", "shape", "gradient", "solid", "src"]
+    functions: ["noise", "voronoi", "osc", "shape", "gradient", "solid", "src", "out"]
   },
   color: {
     title: "Color",
@@ -39,12 +39,12 @@ const FUNCTION_CATEGORIES = {
   settings: {
     title: "Settings",
     color: "#FFFFFF",
-    functions: ["setResolution", "setClear", "setBins", "setSmooth", "setScale", "update", "render", "hush"]
+    functions: ["render", "update", "setResolution", "hush", "setFunction", "speed", "bpm", "width", "height", "time", "mouse"]
   },
   array: {
     title: "Array",
     color: "#FF0000",
-    functions: ["array"]
+    functions: ["fast", "smooth", "ease", "offset", "fit"]
   },
   audio: {
     title: "Audio",
@@ -503,6 +503,11 @@ const FUNCTION_DOCS = {
       { name: "buffer", default: "o0", description: "Buffer to output to main display (o0, o1, o2, o3)" }
     ]
   },
+  update: {
+    description: "update is called every frame",
+    example: "update = () => b += 0.01 * Math.sin(time)",
+    params: []
+  },
   hush: {
     description: "Clear all output buffers",
     example: "hush()",
@@ -514,6 +519,55 @@ const FUNCTION_DOCS = {
     params: [
       { name: "width", description: "Width of output" },
       { name: "height", description: "Height of output" }
+    ]
+  },
+  setFunction: {
+    description: "Register a function in hydra",
+    example: "setFunction(options) - https://hydra.ojack.xyz/api/#functions/setFunction/0",
+    params: [
+      { name: "options", description: "Options object" }
+    ]
+  },
+  speed: {
+    description: "Set speed of time",
+    example: "speed = 1",
+    params: [
+      { name: "speed", description: "Speed of time" }
+    ]
+  },
+  bpm: {
+    description: "Set BPM of time",
+    example: "bpm = 120",
+    params: [
+      { name: "bpm", description: "BPM of time" }
+    ]
+  },
+  width: {
+    description: "width of output",
+    example: "width",
+    params: [
+      { name: "width", description: "Width of output" }
+    ]
+  },
+  height: {
+    description: "height of output",
+    example: "height",
+    params: [
+      { name: "height", description: "Height of output" }
+    ]
+  },
+  time: {
+    description: "time",
+    example: "time",
+    params: [
+      { name: "time", description: "Time of time" }
+    ]
+  },
+  mouse: {
+    description: "mouse position",
+    example: "mouse.x; mouse.y;",
+    params: [
+      { name: "mouse", description: "Mouse position" }
     ]
   },
   setBins: {
