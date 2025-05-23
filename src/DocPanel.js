@@ -31,6 +31,11 @@ const FUNCTION_CATEGORIES = {
     color: "#00FF00",
     functions: ["modulate", "modulateHue", "modulateKaleid", "modulatePixelate", "modulateRepeat", "modulateRepeatX", "modulateRepeatY", "modulateRotate", "modulateScale", "modulateScrollX", "modulateScrollY"]
   },
+  external: {
+    title: "External",
+    color: "#FFAA00",
+    functions: ["initCam", "initImage", "initVideo", "init", "initStream", "initScreen"]
+  },
   settings: {
     title: "Settings",
     color: "#FFFFFF",
@@ -45,11 +50,6 @@ const FUNCTION_CATEGORIES = {
     title: "Audio",
     color: "#0000FF",
     functions: ["a.fft", "a.setBins", "a.setCutoff", "a.setScale", "a.setSmooth", "a.show"]
-  },
-  external: {
-    title: "External",
-    color: "#FFAA00",
-    functions: ["initCam", "initImage", "initVideo", "initStream", "initScreen", "s0", "s1", "s2", "s3"]
   }
 };
 
@@ -459,6 +459,33 @@ const FUNCTION_DOCS = {
       { name: "scrollY", default: "0.5", description: "Y scroll amount" },
       { name: "speedY", default: "0", description: "Y scroll speed" }
     ]
+  },
+
+  // External
+  initCam: {
+    description: "Initialize webcam as an input source (s0, s1, etc.).",
+    params: ["index = 0"],
+    example: "initCam()"
+  },
+  initScreen: {
+    description: "Initialize screen capture as an input source.",
+    params: [],
+    example: "initScreen()"
+  },
+  initVideo: {
+    description: "Initialize video from URL as an input source.",
+    params: ["url"],
+    example: "initVideo(url)"
+  },
+  init: {
+    description: "Initialize video from URL as an input source.",
+    params: ["options"],
+    example: "init({ src: canvas })"
+  },
+  initImage: {
+    description: "Initialize image from URL as an input source.",
+    params: ["url"],
+    example: "initImage(url)"
   },
 
   // Settings
