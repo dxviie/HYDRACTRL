@@ -30,6 +30,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
+    "@iconify-json/fe": "^1.2.2",
     "@types/web": "^0.0.137",
     "bun-types": "latest"
   }
