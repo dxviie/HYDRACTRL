@@ -149,8 +149,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   exportBtn.style.cursor = "pointer";
   exportBtn.style.color = "white";
   exportBtn.style.fontWeight = "bold";
-  exportBtn.innerHTML = "💾"; // Simple download arrow
-
+  exportBtn.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M12 16.5v-9M8.5 11L12 7.5l3.5 3.5'/><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/></g></svg>"
   // Create import button
   const importBtn = document.createElement("div");
   importBtn.className = "slots-import";
@@ -164,7 +163,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   importBtn.style.cursor = "pointer";
   importBtn.style.color = "white";
   importBtn.style.fontWeight = "bold";
-  importBtn.innerHTML = "📂"; // Simple upload arrow
+  importBtn.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' style='transform: rotate(180deg);' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M12 16.5v-9M8.5 11L12 7.5l3.5 3.5'/><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/></g></svg>"
 
   // Add icons to container
   iconsContainer.appendChild(exportBtn);
@@ -179,15 +178,16 @@ export function createSlotsPanel(editor, hydra, runCode) {
   clearBtn.className = "slots-clear";
   clearBtn.style.fontSize = "14px";
   clearBtn.style.color = "var(--color-error)";
-  clearBtn.style.padding = "0px 6px";
   clearBtn.style.cursor = "pointer";
   clearBtn.style.fontWeight = "bold";
   clearBtn.style.borderRadius = "3px";
   clearBtn.style.lineHeight = "1";
+  clearBtn.style.width = "14px";
+  clearBtn.style.height = "14px";
   clearBtn.style.display = "flex";
   clearBtn.style.alignItems = "center";
   clearBtn.style.justifyContent = "center";
-  clearBtn.textContent = "×"; // Using × (multiplication sign) as it looks better than X
+  clearBtn.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6zM15 9l-6 6m0-6l6 6'/></svg>"
 
   // Add hover effect
   clearBtn.addEventListener("mouseover", () => {

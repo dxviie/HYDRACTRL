@@ -784,15 +784,45 @@ export function createDocPanel() {
 
     // Add example section
     if (funcInfo.example) {
+      const exampleButtonId = `copy-example-btn-${funcName.replace(/\s+/g, '-')}`;
       content += `
         <div class="function-example">
-          <div style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">Example</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <div style="font-size: 13px; font-weight: bold;">Example</div>
+            <button id="${exampleButtonId}" title="Copy example" class="copy-example-button" style="background: none; border: none; cursor: pointer; color: var(--color-text-secondary); padding: 2px 4px; line-height: 1;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.829 12.861c.171-.413.171-.938.171-1.986s0-1.573-.171-1.986a2.25 2.25 0 0 0-1.218-1.218c-.413-.171-.938-.171-1.986-.171H11.1c-1.26 0-1.89 0-2.371.245a2.25 2.25 0 0 0-.984.984C7.5 9.209 7.5 9.839 7.5 11.1v6.525c0 1.048 0 1.573.171 1.986c.229.551.667.99 1.218 1.218c.413.171.938.171 1.986.171s1.573 0 1.986-.171m7.968-7.968a2.25 2.25 0 0 1-1.218 1.218c-.413.171-.938.171-1.986.171s-1.573 0-1.986.171a2.25 2.25 0 0 0-1.218 1.218c-.171.413-.171.938-.171 1.986s0 1.573-.171 1.986a2.25 2.25 0 0 1-1.218 1.218m7.968-7.968a11.68 11.68 0 0 1-7.75 7.9l-.218.068M16.5 7.5v-.9c0-1.26 0-1.89-.245-2.371a2.25 2.25 0 0 0-.983-.984C14.79 3 14.16 3 12.9 3H6.6c-1.26 0-1.89 0-2.371.245a2.25 2.25 0 0 0-.984.984C3 4.709 3 5.339 3 6.6v6.3c0 1.26 0 1.89.245 2.371c.216.424.56.768.984.984c.48.245 1.111.245 2.372.245H7.5"/></svg>
+            </button>
+          </div>
           <pre style="background-color: rgba(0,0,0,0.2); padding: 6px; border-radius: 4px; overflow-x: auto; font-family: monospace; font-size: 12px; margin: 0;">${funcInfo.example}</pre>
         </div>
       `;
     }
 
     rightContent.innerHTML = content;
+
+    // Add event listener for the copy button if it exists
+    if (funcInfo.example) {
+      const exampleButtonId = `copy-example-btn-${funcName.replace(/\s+/g, '-')}`;
+      const copyButton = rightContent.querySelector(`#${exampleButtonId}`);
+      if (copyButton) {
+        copyButton.addEventListener('click', (event) => {
+          event.stopPropagation(); // Prevent any other click listeners on parent elements
+          navigator.clipboard.writeText(funcInfo.example)
+            .then(() => {
+              const originalIconHTML = copyButton.innerHTML;
+              copyButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><path fill="none" stroke="var(--color-success, green)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.829 12.861c.171-.413.171-.938.171-1.986s0-1.573-.171-1.986a2.25 2.25 0 0 0-1.218-1.218c-.413-.171-.938-.171-1.986-.171H11.1c-1.26 0-1.89 0-2.371.245a2.25 2.25 0 0 0-.984.984C7.5 9.209 7.5 9.839 7.5 11.1v6.525c0 1.048 0 1.573.171 1.986c.229.551.667.99 1.218 1.218c.413.171.938.171 1.986.171s1.573 0 1.986-.171m7.968-7.968a2.25 2.25 0 0 1-1.218 1.218c-.413.171-.938.171-1.986.171s-1.573 0-1.986.171a2.25 2.25 0 0 0-1.218 1.218c-.171.413-.171.938-.171 1.986s0 1.573-.171 1.986a2.25 2.25 0 0 1-1.218 1.218m7.968-7.968a11.68 11.68 0 0 1-7.75 7.9l-.218.068M16.5 7.5v-.9c0-1.26 0-1.89-.245-2.371a2.25 2.25 0 0 0-.983-.984C14.79 3 14.16 3 12.9 3H6.6c-1.26 0-1.89 0-2.371.245a2.25 2.25 0 0 0-.984.984C3 4.709 3 5.339 3 6.6v6.3c0 1.26 0 1.89.245 2.371c.216.424.56.768.984.984c.48.245 1.111.245 2.372.245H7.5"/></svg>';
+
+              setTimeout(() => {
+                copyButton.innerHTML = originalIconHTML;
+              }, 2000);
+            })
+            .catch(err => {
+              console.error('Failed to copy example to clipboard:', err);
+              alert('Failed to copy example. See console for details.');
+            });
+        });
+      }
+    }
   };
 
   // Create function list by categories
