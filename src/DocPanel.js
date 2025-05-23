@@ -8,22 +8,22 @@ import { loadPanelPosition, savePanelPosition } from "./utils/PanelStorage.js";
 const FUNCTION_CATEGORIES = {
   sources: {
     title: "Sources",
-    color: "#FF5500",
+    color: "#FFAA99",
     functions: ["noise", "voronoi", "osc", "shape", "gradient", "solid", "src"]
   },
   color: {
     title: "Color",
-    color: "#FFFF00",
-    functions: ["brightness", "contrast", "color", "colorama", "invert", "luma", "posterize", "saturate", "thresh", "hue"]
+    color: "#CCFF99",
+    functions: ["brightness", "contrast", "color", "colorama", "invert", "luma", "posterize", "saturate", "thresh", "hue", "r", "g", "b"]
   },
   geometry: {
     title: "Geometry",
-    color: "#00FFFF",
-    functions: ["kaleid", "pixelate", "repeat", "repeatX", "repeatY", "rotate", "scale", "scrollX", "scrollY", "stretch"]
+    color: "#FFEE99",
+    functions: ["kaleid", "pixelate", "repeat", "repeatX", "repeatY", "rotate", "scale", "scroll", "scrollX", "scrollY"]
   },
   blend: {
     title: "Blend",
-    color: "#FF00FF",
+    color: "#99FFAA",
     functions: ["add", "blend", "diff", "layer", "mask", "mult", "sub"]
   },
   modulate: {
@@ -133,11 +133,12 @@ const FUNCTION_DOCS = {
   },
   color: {
     description: "Adjust RGB color channels",
-    example: "osc().color(r = 1, g = 1, b = 1).out()",
+    example: "osc().color(r = 1, g = 1, b = 1, a = 1).out()",
     params: [
       { name: "r", default: "1", description: "Red adjustment (0-1)" },
       { name: "g", default: "1", description: "Green adjustment (0-1)" },
-      { name: "b", default: "1", description: "Blue adjustment (0-1)" }
+      { name: "b", default: "1", description: "Blue adjustment (0-1)" },
+      { name: "a", default: "1", description: "Alpha adjustment (0-1)" }
     ]
   },
   colorama: {
@@ -154,6 +155,22 @@ const FUNCTION_DOCS = {
       { name: "amount", default: "1", description: "Amount of color inversion" }
     ]
   },
+  luma: {
+    description: "Adjust luma",
+    example: "osc().luma( threshold = 0.5, tolerance = 0.1 ).out()",
+    params: [
+      { name: "threshold", default: "0.5", description: "Threshold for luma adjustment" },
+      { name: "tolerance", default: "0.1", description: "Tolerance for luma adjustment" }
+    ]
+  },
+  posterize: {
+    description: "Posterize colors",
+    example: "osc().posterize(bins = 3, gamma = 0.6).out()",
+    params: [
+      { name: "bins", default: "3", description: "Number of bins for posterization" },
+      { name: "gamma", default: "0.6", description: "Gamma correction for posterization" }
+    ]
+  },
   hue: {
     description: "Adjust hue",
     example: "osc().hue(amount = 0.4).out()",
@@ -166,6 +183,38 @@ const FUNCTION_DOCS = {
     example: "osc().saturate(amount = 2).out()",
     params: [
       { name: "amount", default: "2", description: "Amount of saturation adjustment" }
+    ]
+  },
+  thresh: {
+    description: "Threshold colors",
+    example: "osc().thresh(threshold = 0.5, tolerance = 0.04).out()",
+    params: [
+      { name: "threshold", default: "0.5", description: "Threshold for thresholding" },
+      { name: "tolerance", default: "0.04", description: "Tolerance for thresholding" }
+    ]
+  },
+  r: {
+    description: "Redden colors",
+    example: "osc().r(scale = 1, offset = 0).out()",
+    params: [
+      { name: "scale", default: "1", description: "Scale of red adjustment" },
+      { name: "offset", default: "0", description: "Offset of red adjustment" }
+    ]
+  },
+  g: {
+    description: "Green colors",
+    example: "osc().g(scale = 1, offset = 0).out()",
+    params: [
+      { name: "scale", default: "1", description: "Scale of green adjustment" },
+      { name: "offset", default: "0", description: "Offset of green adjustment" }
+    ]
+  },
+  b: {
+    description: "Blue colors",
+    example: "osc().b(scale = 1, offset = 0).out()",
+    params: [
+      { name: "scale", default: "1", description: "Scale of blue adjustment" },
+      { name: "offset", default: "0", description: "Offset of blue adjustment" }
     ]
   },
 
@@ -195,6 +244,22 @@ const FUNCTION_DOCS = {
       { name: "offsetY", default: "0", description: "Y offset for repetition" }
     ]
   },
+  repeatX: {
+    description: "Repeat image horizontally",
+    example: "osc().repeatX(repeatX = 3, offsetX = 0).out()",
+    params: [
+      { name: "repeatX", default: "3", description: "Number of horizontal repetitions" },
+      { name: "offsetX", default: "0", description: "X offset for repetition" }
+    ]
+  },
+  repeatY: {
+    description: "Repeat image vertically",
+    example: "osc().repeatY(repeatY = 3, offsetY = 0).out()",
+    params: [
+      { name: "repeatY", default: "3", description: "Number of vertical repetitions" },
+      { name: "offsetY", default: "0", description: "Y offset for repetition" }
+    ]
+  },
   rotate: {
     description: "Rotate image",
     example: "osc().rotate(angle = 10, speed = 0).out()",
@@ -205,11 +270,39 @@ const FUNCTION_DOCS = {
   },
   scale: {
     description: "Scale image",
-    example: "osc().scale(amount = 1.5, xMult = 1, yMult = 1).out()",
+    example: "osc().scale( amount = 1.5, xMult = 1, yMult = 1, offsetX = 0.5, offsetY = 0.5 ).out()",
     params: [
       { name: "amount", default: "1.5", description: "Scale amount" },
       { name: "xMult", default: "1", description: "X scale multiplier" },
-      { name: "yMult", default: "1", description: "Y scale multiplier" }
+      { name: "yMult", default: "1", description: "Y scale multiplier" },
+      { name: "offsetX", default: "0.5", description: "X offset for scaling" },
+      { name: "offsetY", default: "0.5", description: "Y offset for scaling" }
+    ]
+  },
+  scroll: {
+    description: "Scroll image",
+    example: "osc().scroll( scrollX = 0.5, scrollY = 0.5, speedX = 0, speedY = 0 ).out()",
+    params: [
+      { name: "scrollX", default: "0.5", description: "X scroll amount" },
+      { name: "scrollY", default: "0.5", description: "Y scroll amount" },
+      { name: "speedX", default: "0", description: "X scroll speed" },
+      { name: "speedY", default: "0", description: "Y scroll speed" }
+    ]
+  },
+  scrollX: {
+    description: "Scroll image horizontally",
+    example: "osc().scrollX( scrollX = 0.5, speedX = 0 ).out()",
+    params: [
+      { name: "scrollX", default: "0.5", description: "X scroll amount" },
+      { name: "speedX", default: "0", description: "X scroll speed" }
+    ]
+  },
+  scrollY: {
+    description: "Scroll image vertically",
+    example: "osc().scrollY( scrollY = 0.5, speedY = 0 ).out()",
+    params: [
+      { name: "scrollY", default: "0.5", description: "Y scroll amount" },
+      { name: "speedY", default: "0", description: "Y scroll speed" }
     ]
   },
 
