@@ -13,7 +13,7 @@ export function createXYPadPanel() {
   panel.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity))";
   panel.style.borderRadius = "4px";
   panel.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.3)";
-  panel.style.zIndex = "100";
+  panel.style.zIndex = "9";
   panel.style.visibility = 'hidden';
   panel.style.transition = 'opacity 0.3s ease, visibility 0.3s ease';
 

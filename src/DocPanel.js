@@ -677,7 +677,7 @@ export function createDocPanel() {
   panel.style.borderRadius = "8px";
   panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
   panel.style.backdropFilter = "blur(var(--color-panel-blur))";
-  panel.style.zIndex = "100";
+  panel.style.zIndex = "9";
   panel.style.overflow = "hidden";
   panel.style.fontFamily = "sans-serif";
   panel.style.fontSize = "14px";
