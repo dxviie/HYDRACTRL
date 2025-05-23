@@ -1048,33 +1048,30 @@ async function init() {
       }
 
       if (e.altKey && !e.ctrlKey & !e.metaKey && !e.shiftKey) {
-        // Hexadecimal keys 0-F to select slots 1-16
-        const numKey = e.key;
+        // Hexadecimal keys 0-F (physical keys) to select slots 0-15
+        let slotIndex = -1;
+        const keyCode = e.code; // Use e.code for physical key identification
 
-        // Ignore if it's just the Alt key or any other special key
-        if (numKey === 'Alt' || numKey.startsWith('Arrow') || numKey.length > 1) {
-          return;
+        // Handle Digit0 to Digit9 for slots 0-9
+        if (keyCode.startsWith('Digit')) {
+          const digit = parseInt(keyCode.substring(5)); // e.g., "Digit0" -> 0
+          if (!isNaN(digit) && digit >= 0 && digit <= 9) {
+            slotIndex = digit; // Digit0 maps to slot 0, Digit1 to 1, ..., Digit9 to 9
+          }
+        }
+        // Handle KeyA to KeyF for slots 10-15
+        else if (keyCode.startsWith('Key')) {
+          const keyChar = keyCode.substring(3); // e.g., "KeyA" -> "A"
+          if (keyChar.length === 1) { // Ensure it's a single character like 'A', not 'F1' etc.
+            const charCode = keyChar.charCodeAt(0);
+            if (charCode >= 'A'.charCodeAt(0) && charCode <= 'F'.charCodeAt(0)) {
+              slotIndex = charCode - 'A'.charCodeAt(0) + 10; // KeyA maps to slot 10
+            }
+          }
         }
 
-        // First handle 0-9 keys
-        if (numKey >= '0' && numKey <= '9' && window.slotsPanel) {
-          e.preventDefault();
-          // For key '0', select slot 1 (index 0)
-          // For keys '1'-'9', select slots 2-10 (index 1-9)
-          const slotIndex = numKey === '0' ? 0 : parseInt(numKey);
-          window.slotsPanel.setActiveSlot(slotIndex);
-        }
-
-        // Then handle A-F keys for slots 11-16
-        if (numKey >= 'a' && numKey <= 'f' && window.slotsPanel) {
-          e.preventDefault();
-          // Convert a-f to values 10-15
-          const slotIndex = numKey.charCodeAt(0) - 'a'.charCodeAt(0) + 10;
-          window.slotsPanel.setActiveSlot(slotIndex);
-        } else if (numKey >= 'A' && numKey <= 'F' && window.slotsPanel) {
-          e.preventDefault();
-          // Convert A-F to values 10-15
-          const slotIndex = numKey.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+        if (slotIndex !== -1 && window.slotsPanel) {
+          e.preventDefault(); // Prevent default browser/OS action (e.g., typing special chars on Mac)
           window.slotsPanel.setActiveSlot(slotIndex);
         }
       }
@@ -1096,7 +1093,7 @@ async function init() {
 
       // Alt+Left/Right arrow keys to cycle between banks (only when no MIDI device is connected)
       if (e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-        if (e.key === "ArrowLeft" && window.slotsPanel && window.slotsPanel.cycleBank) {
+        if (e.code === "ArrowLeft" && window.slotsPanel && window.slotsPanel.cycleBank) { /* Use e.code */
           // Check if MIDI device is connected
           const midiConnected =
             window.midiManager &&
@@ -1115,7 +1112,7 @@ async function init() {
           }
         }
 
-        if (e.key === "ArrowRight" && window.slotsPanel && window.slotsPanel.cycleBank) {
+        if (e.code === "ArrowRight" && window.slotsPanel && window.slotsPanel.cycleBank) { /* Use e.code */
           // Check if MIDI device is connected
           const midiConnected =
             window.midiManager &&
