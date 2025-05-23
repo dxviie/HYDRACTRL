@@ -608,9 +608,42 @@ const FUNCTION_DOCS = {
       { name: "high", default: "1", description: "High value of array" }
     ]
   },
+
+  // Audio
+  fft: {
+    description: "FFT",
+    example: "a.fft = Array(4)",
+    params: []
+  },
+  setSmooth: {
+    description: "Set smoothness of FFT",
+    example: "a.setSmooth( smooth = 0.4 )",
+    params: [
+      { name: "smooth", default: "0.4", description: "Smoothness of FFT" }
+    ]
+  },
+  setCutoff: {
+    description: "Set cutoff of FFT",
+    example: "a.setCutoff(cutoff = 2)",
+    params: [
+      { name: "cutoff", default: "2", description: "Cutoff of FFT" }
+    ]
+  },
+  setScale: {
+    description: "Set scale of FFT",
+    example: "a.setScale(scale = 10)",
+    params: [
+      { name: "scale", default: "10", description: "Scale of FFT" }
+    ]
+  },
+  show: {
+    description: "Show FFT",
+    example: "a.show()",
+    params: []
+  },
   setBins: {
     description: "Set number of FFT bins",
-    example: "setBins(bins = 4)",
+    example: "a.setBins(bins = 4)",
     params: [
       { name: "bins", default: "4", description: "Number of FFT bins" }
     ]
