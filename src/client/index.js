@@ -1047,7 +1047,7 @@ async function init() {
         toggleEditor();
       }
 
-      if (e.altKey && !e.ctrlKey & !e.metaKey && !e.shiftKey) {
+      if ((e.altKey || e.optKey) && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
         // Hexadecimal keys 0-F (physical keys) to select slots 0-15
         let slotIndex = -1;
         const keyCode = e.code; // Use e.code for physical key identification
@@ -1092,7 +1092,7 @@ async function init() {
       }
 
       // Alt+Left/Right arrow keys to cycle between banks (only when no MIDI device is connected)
-      if (e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+      if ((e.altKey || e.optKey) && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
         if (e.code === "ArrowLeft" && window.slotsPanel && window.slotsPanel.cycleBank) { /* Use e.code */
           // Check if MIDI device is connected
           const midiConnected =
