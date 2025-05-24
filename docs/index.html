@@ -405,53 +405,58 @@
                     style="color: var(--color-accent-primary);">Olivia Jack</a>. HYDRACTRL enhances the Hydra experience
                 with a performance-oriented interface, scene management, MIDI integration, and more.</p>
 
-            <p>Hydra allows you to create stunning visual patterns and animations through code. By combining
-                oscillators, geometry transformations, and color manipulations, you can create complex, hypnotic visuals
-                in real-time that react to various inputs including audio.</p>
-
             <div class="feature-grid">
                 <div class="feature-card">
+                    <img src="assets/scene-management.gif" alt="Scene Management Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
                     <i class="fas fa-save"></i>
                     <h3>Scene Management</h3>
-                    <p>Store and recall up to 64 scenes (4 banks of 16 slots) for quick access during performances.</p>
+                    <p>Store and recall up to 64 scenes (4 banks of 16 slots) with thumbnail previews for quick access during performances.</p>
                 </div>
                 <div class="feature-card">
+                    <img src="assets/midi-integration.gif" alt="MIDI Integration Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
                     <i class="fas fa-music"></i>
                     <h3>MIDI Integration</h3>
-                    <p>Control your visuals using Korg nanoPad MIDI controller.
-                    </p>
+                    <p>Control visuals with Korg nanoPAD2, including XY pad for dynamic modulation. Customizable MIDI mapping planned.</p>
                 </div>
-
                 <div class="feature-card">
+                    <img src="assets/code-editor.gif" alt="Advanced Code Editor Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
                     <i class="fas fa-code"></i>
-                    <h3>Code Editor</h3>
-                    <p>Syntax highlighting and customizable themes for easier live coding.</p>
+                    <h3>Advanced Code Editor</h3>
+                    <p>Powered by CodeMirror 6 with Hydra syntax highlighting, error reporting, and customizable themes for an optimized live coding experience.</p>
                 </div>
-
                 <div class="feature-card">
+                    <img src="assets/xy-pad-physics.gif" alt="XY Pad Physics Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
+                    <i class="fas fa-atom"></i>
+                    <h3>XY Pad Physics Engine</h3>
+                    <p>Utilize the Korg nanoPAD2's XY pad with a built-in physics engine (particle, spring, attractors) for expressive control.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="assets/audio-reactivity.gif" alt="Audio Reactivity Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
+                    <i class="fas fa-wave-square"></i>
+                    <h3>Audio Reactivity</h3>
+                    <p>Make your visuals dance to the music. Hydra's `a` object provides FFT data, loudness, and more for audio-reactive patches.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="assets/multiple-themes.gif" alt="Multiple Themes Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
                     <i class="fas fa-palette"></i>
                     <h3>Multiple Themes</h3>
-                    <p>5 built-in themes including the default dark theme, light theme, high contrast, neon 80s, and 90s
-                        pop.</p>
+                    <p>5 built-in themes including default dark, light, high contrast, neon 80s, and 90s pop, plus custom theme support.</p>
                 </div>
-
                 <div class="feature-card">
+                    <img src="assets/breakout-view.gif" alt="Breakout View Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
                     <i class="fas fa-external-link-alt"></i>
                     <h3>Breakout View</h3>
-                    <p>Send your visuals to a second screen or window with exact size control for recordings or
-                        projections.</p>
+                    <p>Send visuals to a second screen or window with precise size control for recordings or projections.</p>
                 </div>
-
                 <div class="feature-card">
+                    <img src="assets/import-export.gif" alt="Import/Export Banks Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
                     <i class="fas fa-file-export"></i>
-                    <h3>Import/Export</h3>
-                    <p>Save and share your scene banks with thumbnail previews for easy organization.</p>
+                    <h3>Import/Export Banks</h3>
+                    <p>Save and share your entire scene banks (all 64 slots) with thumbnail previews for easy organization and collaboration.</p>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <section id="features">
+        </div> <!-- Closes the container for the overview section -->
+    </section> <!-- Closes the overview section -->
         <div class="container">
             <h2>Key Features</h2>
 
@@ -659,6 +664,53 @@ osc(10, 0.1, 1.2)
 
             <p>Made with 🧡 by <a href="https://www.d17e.dev" aria-label="David Vandenbogaerde">d17e.dev</a> </p>
         </div>
+    <section id="keyboard-shortcuts">
+        <div class="container">
+            <h2>Keyboard Shortcuts</h2>
+            <p>Master HYDRACTRL with these essential keyboard shortcuts for a faster workflow:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Shortcut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Run current code block</td>
+                        <td><code>Ctrl + Enter</code> or <code>Cmd + Enter</code></td>
+                    </tr>
+                    <tr>
+                        <td>Save code to current slot</td>
+                        <td><code>Ctrl + S</code> or <code>Cmd + S</code></td>
+                    </tr>
+                    <tr>
+                        <td>Select Slot (0-9, A-F)</td>
+                        <td><code>Alt + [0-9]</code> or <code>Option + [0-9]</code> (for slots 0-9)<br>
+                            <code>Alt + [A-F]</code> or <code>Option + [A-F]</code> (for slots 10-15)</td>
+                    </tr>
+                    <tr>
+                        <td>Toggle Fullscreen Editor</td>
+                        <td><code>F11</code> or <code>Ctrl + Cmd + F</code> (macOS)</td>
+                    </tr>
+                    <tr>
+                        <td>Clear current output buffer (hush active buffer)</td>
+                        <td><code>Ctrl + .</code> (period) or <code>Cmd + .</code> (period)</td>
+                    </tr>
+                     <tr>
+                        <td>Clear all output buffers (global hush)</td>
+                        <td><code>Ctrl + Shift + .</code> (period) or <code>Cmd + Shift + .</code> (period)</td>
+                    </tr>
+                    <tr>
+                        <td>Focus Code Editor</td>
+                        <td><code>Esc</code> (when not in fullscreen editor)</td>
+                    </tr>
+                    <!-- Add more shortcuts as needed -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
     </footer>
 </body>
 
