@@ -139,7 +139,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   // Create export button
   const exportBtn = document.createElement("div");
   exportBtn.className = "slots-export";
-  exportBtn.title = "Export scenes (Ctrl+X)";
+  exportBtn.title = "Export scenes (Alt/⌥ + X)";
   exportBtn.style.fontSize = "12px";
   exportBtn.style.width = "14px";
   exportBtn.style.height = "14px";
@@ -153,7 +153,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
   // Create import button
   const importBtn = document.createElement("div");
   importBtn.className = "slots-import";
-  importBtn.title = "Import scenes (Ctrl+I)";
+  importBtn.title = "Import scenes (Alt/⌥ + I)";
   importBtn.style.fontSize = "12px";
   importBtn.style.width = "14px";
   importBtn.style.height = "14px";

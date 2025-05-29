@@ -38,10 +38,10 @@ bun run build:exe
 
 | Shortcut | Function |
 |----------|----------|
-| Ctrl + Enter | Run the current code |
+| Ctrl + Enter | Run the current code | 
 | Ctrl + S | Save code to the active slot |
-| Ctrl + X | Export scene bank |
-| Ctrl + I | Import scene bank |
+| Alt/⌥ + X | Export scene bank |
+| Alt/⌥ + I | Import scene bank |
 | Escape | Toggle editor visibility |
 | Ctrl + 1-9 | Select slots 1-9 in current bank |
 | Ctrl + ←/→ | Cycle between banks |

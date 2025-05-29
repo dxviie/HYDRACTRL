@@ -376,8 +376,8 @@ function createInfoPanel() {
     { keys: "Ctrl/⌘ + Y", action: "Toggle Auto Run" },
     { keys: "Alt/⌥ + 0-9 / A-F", action: "Select slot 1 to 16 (HEX)" },
     { keys: "Alt/⌥ + ←/→", action: "Cycle between banks (only when no MIDI connected)" },
-    { keys: "Ctrl/⌘ + X", action: "Export all slots" },
-    { keys: "Ctrl/⌘ + I", action: "Import slots file" }
+    { keys: "Alt/⌥ + X", action: "Export all slots" },
+    { keys: "Alt/⌥ + I", action: "Import slots file" }
   ];
 
   // Add shortcuts to table
@@ -1067,24 +1067,20 @@ async function init() {
           }
         }
 
-        if (slotIndex !== -1 && window.slotsPanel) {
-          e.preventDefault(); // Prevent default browser/OS action (e.g., typing special chars on Mac)
-          window.slotsPanel.setActiveSlot(slotIndex);
-        }
-      }
-
-      // Check for either Ctrl or Cmd (metaKey) for the following shortcuts
-      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey) {
-
-        // Ctrl/⌘+X to export scene bank
+        // Atl/Opt+X to export scene bank
         if (e.key === "x" && window.slotsPanel && window.slotsPanel.exportAllSlots) {
           e.preventDefault();
           window.slotsPanel.exportAllSlots();
         }
-        // Ctrl/⌘+I to import scene bank
+        // Atl/Opt+I to import scene bank
         if (e.key === "i" && window.slotsPanel && window.slotsPanel.importSlots) {
           e.preventDefault();
           window.slotsPanel.importSlots();
+        }
+
+        if (slotIndex !== -1 && window.slotsPanel) {
+          e.preventDefault(); // Prevent default browser/OS action (e.g., typing special chars on Mac)
+          window.slotsPanel.setActiveSlot(slotIndex);
         }
       }
 
