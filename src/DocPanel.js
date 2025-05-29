@@ -737,7 +737,8 @@ export function createDocPanel() {
 
   // Create the left sidebar (categories and functions)
   const leftSidebar = document.createElement("div");
-  leftSidebar.style.width = "100%"; // Take up more space for functions
+  leftSidebar.style.width = "100%";
+  leftSidebar.style.height = "fit-content";
   leftSidebar.style.borderRight = "1px solid rgba(var(--color-bg-tertiary-rgb), 0.5)";
   leftSidebar.style.overflow = "auto";
   leftSidebar.style.padding = "10px";
@@ -825,6 +826,14 @@ export function createDocPanel() {
     }
   };
 
+  // Create function tags container (horizontal flow)
+  const functionTagsContainer = document.createElement("div");
+  functionTagsContainer.style.display = "flex";
+  functionTagsContainer.style.flexWrap = "wrap";
+  functionTagsContainer.style.gap = "4px";
+  functionTagsContainer.style.padding = "4px 0";
+  functionTagsContainer.style.alignItems = "center";
+
   // Create function list by categories
   Object.keys(FUNCTION_CATEGORIES).forEach(catKey => {
     const category = FUNCTION_CATEGORIES[catKey];
@@ -832,23 +841,13 @@ export function createDocPanel() {
     // Create category heading
     const categoryHeading = document.createElement("div");
     categoryHeading.style.fontWeight = "bold";
-    categoryHeading.style.marginTop = "10px";
-    categoryHeading.style.marginBottom = "6px";
     categoryHeading.style.backgroundColor = category.color;
     categoryHeading.style.color = "black";
-    categoryHeading.style.borderBottom = `1px solid ${category.color}4D`; // Add 30% opacity border
     categoryHeading.style.padding = ".5rem 1rem";
     categoryHeading.style.borderRadius = "4px";
     categoryHeading.textContent = category.title;
 
-    leftSidebar.appendChild(categoryHeading);
-
-    // Create function tags container (horizontal flow)
-    const functionTagsContainer = document.createElement("div");
-    functionTagsContainer.style.display = "flex";
-    functionTagsContainer.style.flexWrap = "wrap";
-    functionTagsContainer.style.gap = "4px";
-    functionTagsContainer.style.padding = "4px 0";
+    functionTagsContainer.appendChild(categoryHeading);
 
     category.functions.forEach(funcName => {
       // Create tag-like container for each function
@@ -856,10 +855,11 @@ export function createDocPanel() {
       funcTag.textContent = funcName;
       funcTag.style.backgroundColor = `${category.color}20`; // 12% opacity background
       funcTag.style.color = "var(--color-text-primary)";
-      funcTag.style.padding = "3px 6px";
+      funcTag.style.padding = ".5rem 1rem";
       funcTag.style.borderRadius = "3px";
       funcTag.style.fontSize = "12px";
       funcTag.style.cursor = "pointer";
+      funcTag.style.height = "fit-content";
       funcTag.style.transition = "all 0.15s ease";
       funcTag.style.border = `1px solid ${category.color}30`; // 19% opacity border
 
@@ -905,9 +905,8 @@ export function createDocPanel() {
 
       functionTagsContainer.appendChild(funcTag);
     });
-
-    leftSidebar.appendChild(functionTagsContainer);
   });
+  leftSidebar.appendChild(functionTagsContainer);
 
   // Add initial content to right panel
   rightContent.innerHTML = `
