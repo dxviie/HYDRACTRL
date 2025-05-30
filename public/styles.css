@@ -286,8 +286,8 @@ body {
   position: absolute;
   top: 20px;
   left: 20px;
-  width: 500px;
-  height: 400px;
+  width: 680px;
+  height: 500px;
   background-color: rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important;
   border-radius: 8px;
   /* overflow: visible !important; */
