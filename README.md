@@ -2,8 +2,6 @@
 
 # HYDRACTRL
 
-
-
 A wrapper around [hydra](https://hydra.ojack.xyz/) designed for live visual performances.
 Check out the [project page](https://dxviie.github.io/HYDRACTRL/) or go [play around](https://hydractrl.d17e.dev)
 
@@ -11,12 +9,11 @@ Check out the [project page](https://dxviie.github.io/HYDRACTRL/) or go [play ar
 
 - Scene management with 4 banks of 16 slots (64 scenes total)
 - MIDI controller support with nanoPAD scene integration
-- Code editor with syntax highlighting
+- Code editor with syntax highlighting & code completion
 - 5 UI themes with customizable appearance
 - Breakout window for performances and recordings
 - Import/export scene banks with thumbnails
 - Built with Bun for maximum performance
-- Easily distributable as a standalone executable
 
 ## Quick Start
 
@@ -26,26 +23,4 @@ bun install
 
 # Start development server with hot reload
 bun dev
-
-# Build for production
-bun run build
-
-# Create standalone executable
-bun run build:exe
 ```
-
-## Keyboard Shortcuts
-
-| Shortcut | Function |
-|----------|----------|
-| Ctrl + Enter | Run the current code | 
-| Ctrl + S | Save code to the active slot |
-| Alt/⌥ + X | Export scene bank |
-| Alt/⌥ + I | Import scene bank |
-| Escape | Toggle editor visibility |
-| Ctrl + 1-9 | Select slots 1-9 in current bank |
-| Ctrl + ←/→ | Cycle between banks |
-
-## Credits
-
-HYDRACTRL is built on top of [Hydra-Synth](https://hydra.ojack.xyz/) by [Olivia Jack](https://ojack.xyz/). It uses CodeMirror 6 for the editor and Web MIDI API for controller support.

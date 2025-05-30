@@ -342,7 +342,7 @@ function createInfoPanel() {
   aboutSection.className = "info-section";
 
   const aboutText = document.createElement("p");
-  aboutText.innerHTML = `HYDRACTRL is a tool built around <a href="https://hydra.ojack.xyz" target="_blank" style="color:var(--color-text-secondary);text-decoration:underline">hydra</a> designed for live performances. Save up to 64 slots of hydra goodness across 4 scenes. Unlimited banks with the import/export option. Korg Nanopad2 support. Breakout view to easily send your output over the network with OBS or NDI Studio.`;
+  aboutText.innerHTML = `HYDRACTRL is a tool built around <a href="https://hydra.ojack.xyz" target="_blank" style="color:var(--color-text-secondary);text-decoration:underline">hydra</a> designed for live performances. Check out the <a href="https://dxviie.github.io/HYDRACTRL/" style="color:var(--color-text-secondary);text-decoration:underline">GitHub Page</a> for a feature overview.`;
   aboutText.style.margin = "0 0 15px 0";
   aboutText.style.fontSize = "13px";
   aboutText.style.lineHeight = "1.4";
