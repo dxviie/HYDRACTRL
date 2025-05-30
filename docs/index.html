@@ -386,7 +386,7 @@
             <h1 class="logo">HYDRACTRL</h1>
             <p class="subtitle">A Performance Wrapper around <a href="https://hydra.ojack.xyz"
                     aria-label="Hydra by Olivia Jack">Hydra</a> by <a href="https://www.d17e.dev"
-                    aria-label="David Vandenbogaerde">d17e.dev</a></p>
+                    aria-label="David Vandenbogaerde">D17E</a></p>
             <div class="cta-buttons">
                 <a href="https://hydractrl.d17e.dev" class="btn btn-primary"><i class="fas fa-play"></i>Visit
                     HYDRACTRL</a>
@@ -396,125 +396,107 @@
         </div>
     </header>
 
-    <section id="overview">
+    <section id="features">
         <div class="container">
-            <h2>Overview</h2>
-            <p>HYDRACTRL is a specialized tool for live visual performances built on top of <a
-                    href="https://hydra.ojack.xyz/">Hydra-Synth</a>, a
-                JavaScript library created by <a href="https://ojack.xyz/"
-                    style="color: var(--color-accent-primary);">Olivia Jack</a>. HYDRACTRL enhances the Hydra experience
-                with a performance-oriented interface, scene management, MIDI integration, and more.</p>
+            <h2>Features</h2>
+            <p>HYDRACTRL is built on top of <a href="https://hydra.ojack.xyz/">Hydra</a>, a
+                live code-able video synth created by <a href="https://ojack.xyz/"
+                    style="color: var(--color-accent-primary);">Olivia Jack</a>, and offers additional features geared
+                towards live performances where you don't necessarily want to be coding.<br>And because I'm a fan of
+                Synesthesia, I built this as an open-source alternative to it.</p>
 
             <div class="feature-grid">
                 <div class="feature-card">
-                    <img src="assets/scene-management.gif" alt="Scene Management Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
-                    <i class="fas fa-save"></i>
-                    <h3>Scene Management</h3>
-                    <p>Store and recall up to 64 scenes (4 banks of 16 slots) with thumbnail previews for quick access during performances.</p>
+                    <video src="assets/scene-management.mp4" alt="Scene Management Preview"
+                        style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;" autoplay loop muted>
+                    </video>
+                    <div>
+                        <i class="fas fa-save"></i>
+                        <h3>Scene Management</h3>
+                        <p>Store and recall up to 64 scenes (4 banks of 16 slots) with thumbnail previews for quick
+                            access
+                            during performances.</p>
+                    </div>
                 </div>
                 <div class="feature-card">
-                    <img src="assets/midi-integration.gif" alt="MIDI Integration Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
-                    <i class="fas fa-music"></i>
-                    <h3>MIDI Integration</h3>
-                    <p>Control visuals with Korg nanoPAD2, including XY pad for dynamic modulation. Customizable MIDI mapping planned.</p>
+                    <img src="assets/midi-integration.png" alt="MIDI Integration Preview"
+                        style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
+                    <div>
+                        <i class="fas fa-music"></i>
+                        <h3>MIDI Integration</h3>
+                        <p>Control visuals with Korg nanoPAD2, including XY pad for dynamic modulation.</p>
+                    </div>
                 </div>
                 <div class="feature-card">
-                    <img src="assets/code-editor.gif" alt="Advanced Code Editor Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
-                    <i class="fas fa-code"></i>
-                    <h3>Advanced Code Editor</h3>
-                    <p>Powered by CodeMirror 6 with Hydra syntax highlighting, error reporting, and customizable themes for an optimized live coding experience.</p>
+                    <video src="assets/code-editor.mp4" alt="Advanced Code Editor Preview"
+                        style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;" autoplay loop muted>
+                    </video>
+                    <div>
+                        <i class="fas fa-code"></i>
+                        <h3>Advanced Code Editor</h3>
+                        <p>Powered by CodeMirror 6 with Hydra syntax highlighting, code completion, 5 themes and basic
+                            error reporting.</p>
+                    </div>
                 </div>
                 <div class="feature-card">
-                    <img src="assets/xy-pad-physics.gif" alt="XY Pad Physics Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
-                    <i class="fas fa-atom"></i>
-                    <h3>XY Pad Physics Engine</h3>
-                    <p>Utilize the Korg nanoPAD2's XY pad with a built-in physics engine (particle, spring, attractors) for expressive control.</p>
+                    <video src="assets/xy-pad-physics.mp4" alt="XY Pad Physics Preview"
+                        style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;" autoplay loop muted>
+                    </video>
+                    <div>
+                        <i class="fas fa-atom"></i>
+                        <h3>XY Pad Physics Engine</h3>
+                        <p>Utilize the Korg nanoPAD2's XY pad with a built-in basic physics engine for expressive
+                            control.
+                            Also work with your mouse!
+                        </p>
+                    </div>
                 </div>
                 <div class="feature-card">
-                    <img src="assets/audio-reactivity.gif" alt="Audio Reactivity Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
-                    <i class="fas fa-wave-square"></i>
-                    <h3>Audio Reactivity</h3>
-                    <p>Make your visuals dance to the music. Hydra's `a` object provides FFT data, loudness, and more for audio-reactive patches.</p>
+                    <video src="assets/audio-reactivity.mp4" alt="Audio Reactivity Preview"
+                        style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;" autoplay loop muted>
+                    </video>
+                    <div>
+                        <i class="fas fa-wave-square"></i>
+                        <h3>Audio Reactivity</h3>
+                        <p>Make your visuals dance to the music. Hydra's `a` object provides FFT data out of the box for
+                            audio-reactive patches.</p>
+                    </div>
                 </div>
                 <div class="feature-card">
-                    <img src="assets/multiple-themes.gif" alt="Multiple Themes Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
-                    <i class="fas fa-palette"></i>
-                    <h3>Multiple Themes</h3>
-                    <p>5 built-in themes including default dark, light, high contrast, neon 80s, and 90s pop, plus custom theme support.</p>
+                    <img src="assets/builtin-docs.png" alt="Multiple Themes Preview"
+                        style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
+                    <div>
+                        <i class="fas fa-palette"></i>
+                        <h3>Hydra Documentation Built-in</h3>
+                        <p>HYDRACTRL comes with Hydra's documentation built-in, so you can always refer to it while
+                            coding.</p>
+                    </div>
                 </div>
                 <div class="feature-card">
-                    <img src="assets/breakout-view.gif" alt="Breakout View Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
-                    <i class="fas fa-external-link-alt"></i>
-                    <h3>Breakout View</h3>
-                    <p>Send visuals to a second screen or window with precise size control for recordings or projections.</p>
+                    <video src="assets/breakout-view.mp4" alt="Breakout View Preview"
+                        style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;" autoplay loop muted>
+                    </video>
+                    <div>
+                        <i class="fas fa-external-link-alt"></i>
+                        <h3>Breakout View</h3>
+                        <p>Send visuals to a second screen or window with precise size control for recordings or
+                            projections. <a href="https://obsproject.com/">OBS</a> or <a
+                                href="https://ndi.video/">NDI</a> work great.</p>
+                    </div>
                 </div>
                 <div class="feature-card">
-                    <img src="assets/import-export.gif" alt="Import/Export Banks Preview" style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
-                    <i class="fas fa-file-export"></i>
-                    <h3>Import/Export Banks</h3>
-                    <p>Save and share your entire scene banks (all 64 slots) with thumbnail previews for easy organization and collaboration.</p>
+                    <img src="assets/import-export.png" alt="Import/Export Banks Preview"
+                        style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
+                    <div>
+                        <i class="fas fa-file-export"></i>
+                        <h3>Import/Export Banks</h3>
+                        <p>Save and share your entire scene banks (all 64 slots) with thumbnail previews for easy
+                            organization and collaboration.</p>
+                    </div>
                 </div>
             </div>
         </div> <!-- Closes the container for the overview section -->
     </section> <!-- Closes the overview section -->
-        <div class="container">
-            <h2>Key Features</h2>
-
-            <h3>Scene Storage</h3>
-            <p>HYDRACTRL provides a comprehensive scene management system with 4 banks of 16 slots each, giving you
-                quick access to 64 different visual presets during your performance. Each scene stores:</p>
-            <ul>
-                <li>The complete Hydra code that generates your visuals (Base64 encoded)</li>
-                <li>A visual thumbnail for easy recognition</li>
-                <li>Automatic persistence between sessions</li>
-            </ul>
-
-            <h3>Advanced Editor</h3>
-            <p>The integrated code editor is optimized for live coding scenarios:</p>
-            <ul>
-                <li>JavaScript syntax highlighting with Hydra function recognition</li>
-                <li>Error reporting with detailed messages</li>
-                <li>Adjustable window size and position</li>
-                <li>Keyboard shortcuts for faster workflow</li>
-            </ul>
-
-            <h3>MIDI Controller Support</h3>
-            <p>Connect a MIDI controller to trigger scenes during performance:</p>
-            <ul>
-                <li>Optimized for Korg nanoPAD and similar pad controllers</li>
-                <li>Scene bank synchronization with nanoPAD scenes</li>
-                <li>Trigger any of the 16 slots in the current bank with MIDI pads</li>
-            </ul>
-
-            <h3>Visual Theming</h3>
-            <p>Choose from 5 different UI themes to customize your workspace:</p>
-            <div class="theme-selector">
-                <div class="theme theme-default">
-                    <div class="theme-label">Default</div>
-                </div>
-                <div class="theme theme-light">
-                    <div class="theme-label">Light</div>
-                </div>
-                <div class="theme theme-dark">
-                    <div class="theme-label">Dark</div>
-                </div>
-                <div class="theme theme-neon">
-                    <div class="theme-label">Neon 80s</div>
-                </div>
-                <div class="theme theme-pop">
-                    <div class="theme-label">Pop 90s</div>
-                </div>
-            </div>
-
-            <h3>Breakout Window</h3>
-            <p>Send your visuals to a secondary window with precise dimension control:</p>
-            <ul>
-                <li>Predefined dimensions for common resolutions (720p, 1080p, etc.)</li>
-                <li>Perfect for recording, streaming, or projecting your work</li>
-                <li>Synchronized content between main and breakout views</li>
-            </ul>
-        </div>
-    </section>
 
     <section id="shortcuts">
         <div class="container">
@@ -530,32 +512,36 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td><code>Ctrl + Enter</code></td>
+                        <td><code>Ctrl/⌘ + `</code></td>
+                        <td>Toggle UI visibility</td>
+                    </tr>`
+                    <tr>
+                        <td><code>Ctrl/⌘ + Enter</code></td>
                         <td>Run the current code</td>
                     </tr>
                     <tr>
-                        <td><code>Ctrl + S</code></td>
+                        <td><code>Ctrl/⌘ + S</code></td>
                         <td>Save code to the active slot</td>
                     </tr>
                     <tr>
-                        <td><code>Ctrl + X</code></td>
-                        <td>Export scene bank</td>
+                        <td><code>Ctrl/⌘ + y</code></td>
+                        <td>Toggle auto-run</td>
                     </tr>
                     <tr>
-                        <td><code>Ctrl + I</code></td>
-                        <td>Import scene bank</td>
-                    </tr>
-                    <tr>
-                        <td><code>Escape</code></td>
-                        <td>Toggle editor visibility</td>
-                    </tr>
-                    <tr>
-                        <td><code>Ctrl + 1-9</code></td>
+                        <td><code>Alt/⌥ + 1-9</code></td>
                         <td>Select slots 1-9 in the current bank</td>
                     </tr>
                     <tr>
-                        <td><code>Ctrl + ←</code> / <code>Ctrl + →</code></td>
+                        <td><code>Alt/ ⌥ + ←</code> / <code>Alt/⌥ + →</code></td>
                         <td>Cycle between banks</td>
+                    </tr>
+                    <tr>
+                        <td><code>Alt/⌥ + X</code></td>
+                        <td>Export scene bank</td>
+                    </tr>
+                    <tr>
+                        <td><code>Alt/⌥ + I</code></td>
+                        <td>Import scene bank</td>
                     </tr>
                 </tbody>
             </table>
@@ -569,10 +555,11 @@
 
             <div class="credits">
                 <div class="credit-item">
-                    <h3>Hydra-Synth</h3>
-                    <p>The foundation of HYDRACTRL is <a href="https://hydra.ojack.xyz/">Hydra-Synth</a>, a powerful
+                    <h3>Hydra</h3>
+                    <p>The foundation of HYDRACTRL is <a href="https://hydra.ojack.xyz/">Hydra</a>, a powerful
                         JavaScript library
-                        for live coding visuals created by Olivia Jack. Hydra uses WebGL to create stunning visual
+                        for live coding visuals created by <a href="https://ojack.xyz/">Olivia Jack</a>. Hydra uses
+                        WebGL to create stunning visual
                         patterns and is inspired by analog modular synthesizers.</p>
                 </div>
 
@@ -596,35 +583,6 @@
             </div>
         </div>
     </section>
-
-    <section id="getting-started">
-        <div class="container">
-            <h2>Getting Started</h2>
-
-            <h3>Launch the App</h3>
-            <p>To start using HYDRACTRL right away, simply click the "Visit HYDRACTRL" button at the top of this page.
-            </p>
-
-            <h3>Basic Workflow</h3>
-            <ol>
-                <li>Write your Hydra code in the editor (or start with one of the examples)</li>
-                <li>Press <code>Ctrl+Enter</code> to run the code and see the visuals</li>
-                <li>Use <code>Ctrl+S</code> to save your creation to the currently selected slot</li>
-                <li>Build a library of scenes by saving to different slots</li>
-                <li>Use keyboard shortcuts or MIDI controller to switch between scenes during performance</li>
-            </ol>
-
-            <h3>Local Development</h3>
-            <p>To run HYDRACTRL locally or contribute to its development:</p>
-            <ol>
-                <li>Clone the repository: <code>git clone https://github.com/dxviie/HYDRACTRL.git</code></li>
-                <li>Install dependencies: <code>bun install</code></li>
-                <li>Start development server: <code>bun dev</code></li>
-                <li>Build for production: <code>bun run build</code></li>
-            </ol>
-        </div>
-    </section>
-
     <section id="hydra-resources">
         <div class="container">
             <h2>Hydra Resources</h2>
@@ -632,9 +590,10 @@
 
             <ul>
                 <li><a href="https://hydra.ojack.xyz/docs/" style="color: var(--color-accent-primary);">Hydra
-                        Documentation</a> - Official documentation for Hydra-Synth</li>
+                        Documentation</a> - Official documentation for Hydra</li>
                 <li><a href="https://hydra.ojack.xyz/functions/" style="color: var(--color-accent-primary);">Function
                         Reference</a> - Complete listing of Hydra functions</li>
+
                 <li><a href="https://hydra.ojack.xyz/examples/" style="color: var(--color-accent-primary);">Hydra
                         Examples</a> - Gallery of example sketches to learn from</li>
                 <li><a href="https://ojack.xyz/hydra-book/" style="color: var(--color-accent-primary);">Hydra Book</a> -
@@ -655,61 +614,16 @@ osc(10, 0.1, 1.2)
     <footer>
         <div class="container">
             <p>HYDRACTRL is an open-source project built on top of <a href="https://hydra.ojack.xyz/"
-                    style="color: var(--color-accent-primary);">Hydra-Synth</a> by <a href="https://ojack.xyz/">Olivia
+                    style="color: var(--color-accent-primary);">Hydra</a> by <a href="https://ojack.xyz/">Olivia
                     Jack</a></p>
 
             <div class="social-links">
                 <a href="https://github.com/dxviie/HYDRACTRL"><i class="fab fa-github"></i></a>
             </div>
 
-            <p>Made with 🧡 by <a href="https://www.d17e.dev" aria-label="David Vandenbogaerde">d17e.dev</a> </p>
+            <p>Made with <i class="fas fa-heart"></i> by <a href="https://www.d17e.dev"
+                    aria-label="David Vandenbogaerde">D17E</a> </p>
         </div>
-    <section id="keyboard-shortcuts">
-        <div class="container">
-            <h2>Keyboard Shortcuts</h2>
-            <p>Master HYDRACTRL with these essential keyboard shortcuts for a faster workflow:</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Action</th>
-                        <th>Shortcut</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Run current code block</td>
-                        <td><code>Ctrl + Enter</code> or <code>Cmd + Enter</code></td>
-                    </tr>
-                    <tr>
-                        <td>Save code to current slot</td>
-                        <td><code>Ctrl + S</code> or <code>Cmd + S</code></td>
-                    </tr>
-                    <tr>
-                        <td>Select Slot (0-9, A-F)</td>
-                        <td><code>Alt + [0-9]</code> or <code>Option + [0-9]</code> (for slots 0-9)<br>
-                            <code>Alt + [A-F]</code> or <code>Option + [A-F]</code> (for slots 10-15)</td>
-                    </tr>
-                    <tr>
-                        <td>Toggle Fullscreen Editor</td>
-                        <td><code>F11</code> or <code>Ctrl + Cmd + F</code> (macOS)</td>
-                    </tr>
-                    <tr>
-                        <td>Clear current output buffer (hush active buffer)</td>
-                        <td><code>Ctrl + .</code> (period) or <code>Cmd + .</code> (period)</td>
-                    </tr>
-                     <tr>
-                        <td>Clear all output buffers (global hush)</td>
-                        <td><code>Ctrl + Shift + .</code> (period) or <code>Cmd + Shift + .</code> (period)</td>
-                    </tr>
-                    <tr>
-                        <td>Focus Code Editor</td>
-                        <td><code>Esc</code> (when not in fullscreen editor)</td>
-                    </tr>
-                    <!-- Add more shortcuts as needed -->
-                </tbody>
-            </table>
-        </div>
-    </section>
 
     </footer>
 </body>

@@ -674,7 +674,7 @@ async function importDefaultScenesIfEmpty() {
       console.log("No saved scenes found. Importing default extension pack...");
 
       // Fetch the default extension pack
-      const response = await fetch('/assets/banks/default-extension-pack.json');
+      const response = await fetch('/assets/banks/hydractrl-init-basic.json');
       if (!response.ok) {
         throw new Error(`Failed to fetch default extension pack: ${response.status}`);
       }
