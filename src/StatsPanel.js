@@ -783,6 +783,11 @@ export function createStatsPanel() {
     }
   });
 
+  // Also prevent mousedown from bubbling to avoid immediate panel hide
+  infoButton.addEventListener("mousedown", (e) => {
+    e.stopPropagation();
+  });
+
   // Add elements to footer
   footerSection.appendChild(attributionText);
   footerSection.appendChild(infoButton);
