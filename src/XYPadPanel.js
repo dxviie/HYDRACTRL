@@ -48,8 +48,30 @@ export function createXYPadPanel() {
   title.style.color = "var(--color-text-secondary)";
   title.innerHTML = "XY PAD <div style='display: flex; gap: .15rem; align-items: baseline; text-transform: none; margin-left: .7rem;'>(use <pre style='font-family: monospace'>nanoX</pre> & <pre style='font-family: monospace'>nanoY</pre>)</div>"
 
+  // Create the close button
+  const closeButton = document.createElement("button");
+  closeButton.textContent = "×";
+  closeButton.style.background = "none";
+  closeButton.style.border = "none";
+  closeButton.style.fontSize = "16px";
+  closeButton.style.color = "var(--color-text-primary)";
+  closeButton.style.cursor = "pointer";
+  closeButton.style.padding = "0 4px";
+  closeButton.style.lineHeight = "1";
+  closeButton.title = "Close XY Pad";
+
+  // Add hover effect for close button
+  closeButton.addEventListener("mouseover", () => {
+    closeButton.style.color = "var(--color-error)";
+  });
+
+  closeButton.addEventListener("mouseout", () => {
+    closeButton.style.color = "var(--color-text-primary)";
+  });
+
   // Add title and close button to handle
   handle.appendChild(title);
+  handle.appendChild(closeButton);
 
   // Create the XY pad visualization area (4:3 aspect ratio)
   const padArea = document.createElement("div");
@@ -336,6 +358,12 @@ export function createXYPadPanel() {
     panel.style.visibility = show ? "visible" : "hidden";
     localStorage.setItem('hydractrl-xy-pad-visible', show);
   }
+
+  // Close button functionality
+  closeButton.addEventListener("click", (e) => {
+    e.stopPropagation(); // Prevent dragging when clicking close button
+    togglePanel(false);
+  });
 
   // Create panel interface
   const panelInterface = {
