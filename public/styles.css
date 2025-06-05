@@ -290,7 +290,6 @@ body {
   height: 500px;
   background-color: rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important;
   border-radius: 8px;
-  /* overflow: visible !important; */
   z-index: 100;
   box-shadow: 0 4px 15px var(--color-panel-shadow);
   /* backdrop-filter: blur(var(--color-panel-blur)); */
@@ -357,7 +356,6 @@ body {
 .cm-editor {
   background-color: transparent !important;
   height: 100%;
-  overflow: visible !important;
 }
 
 .cm-editor .cm-scroller {
@@ -460,7 +458,6 @@ body {
   display: flex;
   flex: 1 1 auto;
   min-height: 0;
-  overflow: visible;
 }
 
 button {
