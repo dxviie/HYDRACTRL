@@ -333,13 +333,26 @@ export function createSlotsPanel(editor, hydra, runCode) {
 
   // Function to update active slot styling
   async function setActiveSlot(index, loadContent = true) {
-    // Remove active class from previous active slot
-    slotElements[activeSlotIndex].style.border = "1px solid var(--color-bg-tertiary)";
+    // Remove active styling from previous active slot but preserve content indication
+    const prevStorageKey = getStorageKey(currentBank, activeSlotIndex);
+    const prevHasCode = localStorage.getItem(prevStorageKey);
+    const prevThumbnail = localStorage.getItem(`${prevStorageKey}-thumbnail`);
+    
+    if (prevThumbnail) {
+      // Has thumbnail, use normal border
+      slotElements[activeSlotIndex].style.border = "1px solid var(--color-bg-tertiary)";
+    } else if (prevHasCode) {
+      // Has code but no thumbnail, keep colored border
+      slotElements[activeSlotIndex].style.border = "1px solid var(--color-syntax-function)";
+    } else {
+      // Empty slot, default border
+      slotElements[activeSlotIndex].style.border = "1px solid var(--color-bg-tertiary)";
+    }
 
     // Update active slot index
     activeSlotIndex = index;
 
-    // Add active class to new active slot
+    // Add active styling to new active slot
     slotElements[activeSlotIndex].style.border = "2px solid var(--color-perf-medium)";
 
     // Load code from storage if requested
