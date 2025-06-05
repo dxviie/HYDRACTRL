@@ -121,11 +121,41 @@ export function createSlotsPanel(editor, hydra, runCode) {
     bankDots.push(dot);
   }
 
+  // Create dice button for random scenes
+  const diceBtn = document.createElement("div");
+  diceBtn.className = "dice-button";
+  diceBtn.title = "Load random scenes";
+  diceBtn.style.fontSize = "12px";
+  diceBtn.style.width = "16px";
+  diceBtn.style.height = "16px";
+  diceBtn.style.display = "flex";
+  diceBtn.style.alignItems = "center";
+  diceBtn.style.justifyContent = "center";
+  diceBtn.style.cursor = "pointer";
+  diceBtn.style.color = "white";
+  diceBtn.style.marginLeft = "8px";
+  diceBtn.style.borderRadius = "3px";
+  diceBtn.style.transition = "all 0.2s ease";
+  diceBtn.innerHTML = "🎲";
+
+  // Add hover effect
+  diceBtn.addEventListener("mouseover", () => {
+    diceBtn.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
+    diceBtn.style.transform = "scale(1.2)";
+  });
+
+  diceBtn.addEventListener("mouseout", () => {
+    diceBtn.style.backgroundColor = "transparent";
+    diceBtn.style.transform = "scale(1)";
+  });
+
   // Create shortcuts label
   const shortcutsLabel = document.createElement("div");
   shortcutsLabel.className = "shortcut";
   shortcutsLabel.style.marginLeft = "4px";
   shortcutsLabel.innerHTML = "<span style='font-size: 10px; color: var(--color-text-secondary);'>Alt/⌥ + ←/→</span>";
+  
+  dotsContainer.appendChild(diceBtn);
   dotsContainer.appendChild(shortcutsLabel);
 
   // Create icons container
@@ -920,6 +950,144 @@ export function createSlotsPanel(editor, hydra, runCode) {
     }, 1500);
   }
 
+  // Function to load a random JSON file from the banks folder
+  async function loadRandomScenes() {
+    try {
+      // Generate random file number (0-29 for 30 files)
+      const randomFileNumber = Math.floor(Math.random() * 30);
+      const fileName = `bank-${randomFileNumber.toString().padStart(2, '0')}.json`;
+      const fileUrl = `/assets/banks/random/${fileName}`;
+
+      console.log(`Loading random scenes from: ${fileName}`);
+
+      // Fetch the random JSON file
+      const response = await fetch(fileUrl);
+      
+      if (!response.ok) {
+        console.warn(`Failed to load ${fileName}, status: ${response.status}`);
+        // Try a few more random files if the first one fails
+        for (let attempts = 0; attempts < 5; attempts++) {
+          const retryFileNumber = Math.floor(Math.random() * 30);
+          const retryFileName = `bank-${retryFileNumber.toString().padStart(2, '0')}.json`;
+          const retryFileUrl = `/assets/banks/random/${retryFileName}`;
+          
+          const retryResponse = await fetch(retryFileUrl);
+          if (retryResponse.ok) {
+            const scenesData = await retryResponse.json();
+            await processRandomScenes(scenesData, retryFileName);
+            return;
+          }
+        }
+        throw new Error(`Could not load any random scenes after multiple attempts`);
+      }
+
+      const scenesData = await response.json();
+      await processRandomScenes(scenesData, fileName);
+
+    } catch (error) {
+      console.error("Error loading random scenes:", error);
+      
+      // Show error notification
+      const notification = document.createElement("div");
+      notification.className = "saved-notification";
+      notification.style.backgroundColor = "var(--color-error)";
+      notification.textContent = "Failed to load random scenes";
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.classList.add("fade-out");
+        setTimeout(() => {
+          if (notification.parentNode) {
+            document.body.removeChild(notification);
+          }
+        }, 500);
+      }, 1500);
+    }
+  }
+
+  // Helper function to process the loaded random scenes
+  async function processRandomScenes(scenesData, fileName) {
+    // Validate format
+    if (!scenesData.version || !Array.isArray(scenesData.banks)) {
+      throw new Error("Invalid scenes data format");
+    }
+
+    // Clear all existing scenes silently (all 4 banks)
+    for (let bank = 0; bank < 4; bank++) {
+      for (let slot = 0; slot < 16; slot++) {
+        localStorage.removeItem(getStorageKey(bank, slot));
+        localStorage.removeItem(`${getStorageKey(bank, slot)}-thumbnail`);
+        localStorage.removeItem(`${getStorageKey(bank, slot)}-thumbnail-timestamp`);
+      }
+    }
+
+    // Import all banks and slots from the random file
+    scenesData.banks.forEach((bankData) => {
+      const { bankIndex, slots } = bankData;
+
+      if (bankIndex >= 0 && bankIndex < 4 && Array.isArray(slots)) {
+        slots.forEach((slot) => {
+          if (slot.slotIndex >= 0 && slot.slotIndex < 16 && slot.code) {
+            try {
+              // Decode base64 code and handle non-Latin1 characters
+              const decodedCode = decodeURIComponent(atob(slot.code));
+
+              // Save to localStorage
+              const storageKey = getStorageKey(bankIndex, slot.slotIndex);
+              localStorage.setItem(storageKey, decodedCode);
+
+              // Save thumbnail if available in the imported data
+              if (slot.thumbnail) {
+                localStorage.setItem(`${storageKey}-thumbnail`, slot.thumbnail);
+                localStorage.setItem(`${storageKey}-thumbnail-timestamp`, Date.now());
+              }
+            } catch (decodeError) {
+              console.error("Error decoding slot data:", decodeError);
+            }
+          }
+        });
+      }
+    });
+
+    // Reload current bank
+    loadAllSlotsForCurrentBank();
+    updateBankDots();
+
+    // Execute the first slot that has code after loading
+    let firstSlotExecuted = false;
+    for (let bankIndex = 0; bankIndex < 4 && !firstSlotExecuted; bankIndex++) {
+      for (let slotIndex = 0; slotIndex < 16; slotIndex++) {
+        const storageKey = getStorageKey(bankIndex, slotIndex);
+        if (localStorage.getItem(storageKey)) {
+          // Switch to the bank if needed
+          if (bankIndex !== currentBank) {
+            switchBank(bankIndex);
+          }
+          // Set and load the first slot
+          setActiveSlot(slotIndex, true);
+          firstSlotExecuted = true;
+          break;
+        }
+      }
+    }
+
+    // Show subtle notification
+    const notification = document.createElement("div");
+    notification.className = "saved-notification";
+    notification.style.backgroundColor = "var(--color-perf-medium)";
+    notification.textContent = `Loaded ${fileName}`;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.classList.add("fade-out");
+      setTimeout(() => {
+        if (notification.parentNode) {
+          document.body.removeChild(notification);
+        }
+      }, 500);
+    }, 1500);
+  }
+
   // Function to import slots from JSON file
   function importSlots() {
     // Create a file input element
@@ -1043,7 +1211,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
     fileInput.click();
   }
 
-  // Add event listeners for export/import buttons
+  // Add event listeners for export/import/dice buttons
   exportBtn.addEventListener("click", (e) => {
     e.stopPropagation(); // Prevent drag from activating
     exportAllSlots();
@@ -1052,6 +1220,11 @@ export function createSlotsPanel(editor, hydra, runCode) {
   importBtn.addEventListener("click", (e) => {
     e.stopPropagation(); // Prevent drag from activating
     importSlots();
+  });
+
+  diceBtn.addEventListener("click", (e) => {
+    e.stopPropagation(); // Prevent drag from activating
+    loadRandomScenes();
   });
 
   // Add hover effects for export/import buttons
@@ -1089,6 +1262,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
     flashActiveBankDot,
     exportAllSlots,
     importSlots,
+    loadRandomScenes,
   };
 }
 
