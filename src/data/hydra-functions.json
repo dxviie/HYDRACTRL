@@ -1,0 +1,779 @@
+{
+  "categories": {
+    "sources": {
+      "title": "Sources",
+      "color": "#FFAA99",
+      "functions": ["noise", "voronoi", "osc", "shape", "gradient", "solid", "src", "out"]
+    },
+    "color": {
+      "title": "Color",
+      "color": "#CCFF99",
+      "functions": ["brightness", "contrast", "color", "colorama", "invert", "luma", "posterize", "saturate", "thresh", "hue", "r", "g", "b"]
+    },
+    "geometry": {
+      "title": "Geometry",
+      "color": "#FFEE99",
+      "functions": ["kaleid", "pixelate", "repeat", "repeatX", "repeatY", "rotate", "scale", "scroll", "scrollX", "scrollY"]
+    },
+    "blend": {
+      "title": "Blend",
+      "color": "#99FFAA",
+      "functions": ["add", "blend", "diff", "layer", "mask", "mult", "sub"]
+    },
+    "modulate": {
+      "title": "Modulate",
+      "color": "#99ffee",
+      "functions": ["modulate", "modulateHue", "modulateKaleid", "modulatePixelate", "modulateRepeat", "modulateRepeatX", "modulateRepeatY", "modulateRotate", "modulateScale", "modulateScrollX", "modulateScrollY"]
+    },
+    "external": {
+      "title": "External",
+      "color": "#99ccff",
+      "functions": ["initCam", "initImage", "initVideo", "init", "initStream", "initScreen"]
+    },
+    "settings": {
+      "title": "Settings",
+      "color": "#aa99ff",
+      "functions": ["render", "update", "setResolution", "hush", "setFunction", "speed", "bpm", "width", "height", "time", "mouse"]
+    },
+    "array": {
+      "title": "Array",
+      "color": "#ee99ff",
+      "functions": ["fast", "smooth", "ease", "offset", "fit"]
+    },
+    "audio": {
+      "title": "Audio",
+      "color": "#ff99cc",
+      "functions": ["fft", "setBins", "setCutoff", "setScale", "setSmooth", "show"]
+    }
+  },
+  "functions": {
+    "noise": {
+      "description": "Generate Perlin noise",
+      "example": "noise(scale = 10, offset = 0.1).out()",
+      "params": [
+        { "name": "scale", "default": "10", "description": "Scale of noise" },
+        { "name": "offset", "default": "0.1", "description": "Time offset for animation" }
+      ],
+      "syntaxType": "source",
+      "returnType": "texture"
+    },
+    "voronoi": {
+      "description": "Generate 2D voronoi cells",
+      "example": "voronoi(scale = 5, speed = 0.3, blending = 0.3).out()",
+      "params": [
+        { "name": "scale", "default": "5", "description": "Scale of voronoi cells" },
+        { "name": "speed", "default": "0.3", "description": "Speed of cell movement" },
+        { "name": "blending", "default": "0.3", "description": "Blending amount" }
+      ],
+      "syntaxType": "source",
+      "returnType": "texture"
+    },
+    "osc": {
+      "description": "Sine wave oscillator",
+      "example": "osc(frequency = 60, sync = 0.1, offset = 0).out()",
+      "params": [
+        { "name": "frequency", "default": "60", "description": "Frequency of sine" },
+        { "name": "sync", "default": "0.1", "description": "Sync/speed of oscillation" },
+        { "name": "offset", "default": "0", "description": "Color offset" }
+      ],
+      "syntaxType": "source",
+      "returnType": "texture"
+    },
+    "shape": {
+      "description": "Generate a 2D shape",
+      "example": "shape(sides = 3, radius = 0.3, smoothing = 0.01).out()",
+      "params": [
+        { "name": "sides", "default": "3", "description": "Number of sides" },
+        { "name": "radius", "default": "0.3", "description": "Size of shape" },
+        { "name": "smoothing", "default": "0.01", "description": "Amount of edge smoothing" }
+      ],
+      "syntaxType": "source",
+      "returnType": "texture"
+    },
+    "gradient": {
+      "description": "Generate a color gradient",
+      "example": "gradient(speed = 0).out()",
+      "params": [
+        { "name": "speed", "default": "0", "description": "Speed of gradient animation" }
+      ],
+      "syntaxType": "source",
+      "returnType": "texture"
+    },
+    "solid": {
+      "description": "Generate a solid color",
+      "example": "solid(r = 0, g = 0, b = 0, a = 1).out()",
+      "params": [
+        { "name": "r", "default": "0", "description": "Red component (0-1)" },
+        { "name": "g", "default": "0", "description": "Green component (0-1)" },
+        { "name": "b", "default": "0", "description": "Blue component (0-1)" },
+        { "name": "a", "default": "1", "description": "Alpha component (0-1)" }
+      ],
+      "syntaxType": "source",
+      "returnType": "texture"
+    },
+    "src": {
+      "description": "Use an input source buffer",
+      "example": "src(s0).out()",
+      "params": [
+        { "name": "source", "description": "Source buffer to use (s0, s1, s2, s3, o0, o1, o2, o3)" }
+      ],
+      "syntaxType": "source",
+      "returnType": "texture"
+    },
+    "brightness": {
+      "description": "Adjust brightness",
+      "example": "osc().brightness(amount = 0.4).out()",
+      "params": [
+        { "name": "amount", "default": "0.4", "description": "Amount of brightness adjustment" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "contrast": {
+      "description": "Adjust contrast",
+      "example": "osc().contrast(amount = 1.6).out()",
+      "params": [
+        { "name": "amount", "default": "1.6", "description": "Amount of contrast adjustment" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "color": {
+      "description": "Adjust RGB color channels",
+      "example": "osc().color(r = 1, g = 1, b = 1, a = 1).out()",
+      "params": [
+        { "name": "r", "default": "1", "description": "Red adjustment (0-1)" },
+        { "name": "g", "default": "1", "description": "Green adjustment (0-1)" },
+        { "name": "b", "default": "1", "description": "Blue adjustment (0-1)" },
+        { "name": "a", "default": "1", "description": "Alpha adjustment (0-1)" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "colorama": {
+      "description": "Shift HSV values",
+      "example": "osc().colorama(amount = 0.005).out()",
+      "params": [
+        { "name": "amount", "default": "0.005", "description": "Amount of color shift" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "invert": {
+      "description": "Invert colors",
+      "example": "osc().invert(amount = 1).out()",
+      "params": [
+        { "name": "amount", "default": "1", "description": "Amount of color inversion" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "luma": {
+      "description": "Adjust luma",
+      "example": "osc().luma( threshold = 0.5, tolerance = 0.1 ).out()",
+      "params": [
+        { "name": "threshold", "default": "0.5", "description": "Threshold for luma adjustment" },
+        { "name": "tolerance", "default": "0.1", "description": "Tolerance for luma adjustment" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "posterize": {
+      "description": "Posterize colors",
+      "example": "osc().posterize(bins = 3, gamma = 0.6).out()",
+      "params": [
+        { "name": "bins", "default": "3", "description": "Number of bins for posterization" },
+        { "name": "gamma", "default": "0.6", "description": "Gamma correction for posterization" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "hue": {
+      "description": "Adjust hue",
+      "example": "osc().hue(amount = 0.4).out()",
+      "params": [
+        { "name": "amount", "default": "0.4", "description": "Amount of hue adjustment" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "saturate": {
+      "description": "Adjust saturation",
+      "example": "osc().saturate(amount = 2).out()",
+      "params": [
+        { "name": "amount", "default": "2", "description": "Amount of saturation adjustment" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "thresh": {
+      "description": "Threshold colors",
+      "example": "osc().thresh(threshold = 0.5, tolerance = 0.04).out()",
+      "params": [
+        { "name": "threshold", "default": "0.5", "description": "Threshold for thresholding" },
+        { "name": "tolerance", "default": "0.04", "description": "Tolerance for thresholding" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "r": {
+      "description": "Redden colors",
+      "example": "osc().r(scale = 1, offset = 0).out()",
+      "params": [
+        { "name": "scale", "default": "1", "description": "Scale of red adjustment" },
+        { "name": "offset", "default": "0", "description": "Offset of red adjustment" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "g": {
+      "description": "Green colors",
+      "example": "osc().g(scale = 1, offset = 0).out()",
+      "params": [
+        { "name": "scale", "default": "1", "description": "Scale of green adjustment" },
+        { "name": "offset", "default": "0", "description": "Offset of green adjustment" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "b": {
+      "description": "Blue colors",
+      "example": "osc().b(scale = 1, offset = 0).out()",
+      "params": [
+        { "name": "scale", "default": "1", "description": "Scale of blue adjustment" },
+        { "name": "offset", "default": "0", "description": "Offset of blue adjustment" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "kaleid": {
+      "description": "Kaleidoscope effect",
+      "example": "osc().kaleid(nSides = 4).out()",
+      "params": [
+        { "name": "nSides", "default": "4", "description": "Number of sides/reflections" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "pixelate": {
+      "description": "Pixelate the image",
+      "example": "osc().pixelate(pixelX = 20, pixelY = 20).out()",
+      "params": [
+        { "name": "pixelX", "default": "20", "description": "Number of horizontal pixels" },
+        { "name": "pixelY", "default": "20", "description": "Number of vertical pixels" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "repeat": {
+      "description": "Repeat image in a grid",
+      "example": "osc().repeat(repeatX = 3, repeatY = 3, offsetX = 0, offsetY = 0).out()",
+      "params": [
+        { "name": "repeatX", "default": "3", "description": "Number of horizontal repetitions" },
+        { "name": "repeatY", "default": "3", "description": "Number of vertical repetitions" },
+        { "name": "offsetX", "default": "0", "description": "X offset for repetition" },
+        { "name": "offsetY", "default": "0", "description": "Y offset for repetition" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "repeatX": {
+      "description": "Repeat image horizontally",
+      "example": "osc().repeatX(repeatX = 3, offsetX = 0).out()",
+      "params": [
+        { "name": "repeatX", "default": "3", "description": "Number of horizontal repetitions" },
+        { "name": "offsetX", "default": "0", "description": "X offset for repetition" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "repeatY": {
+      "description": "Repeat image vertically",
+      "example": "osc().repeatY(repeatY = 3, offsetY = 0).out()",
+      "params": [
+        { "name": "repeatY", "default": "3", "description": "Number of vertical repetitions" },
+        { "name": "offsetY", "default": "0", "description": "Y offset for repetition" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "rotate": {
+      "description": "Rotate image",
+      "example": "osc().rotate(angle = 10, speed = 0).out()",
+      "params": [
+        { "name": "angle", "default": "10", "description": "Angle of rotation" },
+        { "name": "speed", "default": "0", "description": "Speed of rotation" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "scale": {
+      "description": "Scale image",
+      "example": "osc().scale( amount = 1.5, xMult = 1, yMult = 1, offsetX = 0.5, offsetY = 0.5 ).out()",
+      "params": [
+        { "name": "amount", "default": "1.5", "description": "Scale amount" },
+        { "name": "xMult", "default": "1", "description": "X scale multiplier" },
+        { "name": "yMult", "default": "1", "description": "Y scale multiplier" },
+        { "name": "offsetX", "default": "0.5", "description": "X offset for scaling" },
+        { "name": "offsetY", "default": "0.5", "description": "Y offset for scaling" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "scroll": {
+      "description": "Scroll image",
+      "example": "osc().scroll( scrollX = 0.5, scrollY = 0.5, speedX = 0, speedY = 0 ).out()",
+      "params": [
+        { "name": "scrollX", "default": "0.5", "description": "X scroll amount" },
+        { "name": "scrollY", "default": "0.5", "description": "Y scroll amount" },
+        { "name": "speedX", "default": "0", "description": "X scroll speed" },
+        { "name": "speedY", "default": "0", "description": "Y scroll speed" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "scrollX": {
+      "description": "Scroll image horizontally",
+      "example": "osc().scrollX( scrollX = 0.5, speedX = 0 ).out()",
+      "params": [
+        { "name": "scrollX", "default": "0.5", "description": "X scroll amount" },
+        { "name": "speedX", "default": "0", "description": "X scroll speed" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "scrollY": {
+      "description": "Scroll image vertically",
+      "example": "osc().scrollY( scrollY = 0.5, speedY = 0 ).out()",
+      "params": [
+        { "name": "scrollY", "default": "0.5", "description": "Y scroll amount" },
+        { "name": "speedY", "default": "0", "description": "Y scroll speed" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "add": {
+      "description": "Add textures",
+      "example": "osc().add(texture, amount = 1).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to add" },
+        { "name": "amount", "default": "1", "description": "Amount to add" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "blend": {
+      "description": "Blend textures",
+      "example": "osc().blend(texture, amount = 0.5).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to blend" },
+        { "name": "amount", "default": "0.5", "description": "Amount to blend" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "diff": {
+      "description": "Return absolute difference between textures",
+      "example": "osc().diff(texture).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to diff with" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "layer": {
+      "description": "Layer textures",
+      "example": "osc().layer( texture ).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to layer" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "mask": {
+      "description": "Use one texture as alpha mask for another",
+      "example": "osc().mask(texture).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to use as mask" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "mult": {
+      "description": "Multiply textures",
+      "example": "osc().mult(texture, amount = 1).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to multiply with" },
+        { "name": "amount", "default": "1", "description": "Amount to multiply" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "sub": {
+      "description": "Subtract textures",
+      "example": "osc().sub(texture, amount = 1).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to subtract" },
+        { "name": "amount", "default": "1", "description": "Amount to subtract" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "modulate": {
+      "description": "Modulate texture coordinates with another source",
+      "example": "osc().modulate(texture, amount = 0.1).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to modulate with" },
+        { "name": "amount", "default": "0.1", "description": "Amount to modulate" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "modulateHue": {
+      "description": "Modulate hue with another source",
+      "example": "osc().modulateHue( texture, amount = 1 ).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to modulate with" },
+        { "name": "amount", "default": "1", "description": "Amount to modulate" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "modulateScale": {
+      "description": "Modulate scale with another source",
+      "example": "osc().modulateScale(texture, multiple = 1, offset = 1).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to modulate with" },
+        { "name": "multiple", "default": "1", "description": "Scaling multiplier" },
+        { "name": "offset", "default": "1", "description": "Offset of scaling" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "modulatePixelate": {
+      "description": "Modulate pixelation with another source",
+      "example": "osc().modulatePixelate(texture, multiple = 10, offset = 3).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to modulate with" },
+        { "name": "multiple", "default": "10", "description": "Multiplier for pixelation" },
+        { "name": "offset", "default": "3", "description": "Offset for pixelation" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "modulateRepeat": {
+      "description": "Modulate repeat with another source",
+      "example": "osc().modulateRepeat( texture, repeatX = 3, repeatY = 3, offsetX = 0.5, offsetY = 0.5 ).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to modulate with" },
+        { "name": "repeatX", "default": "3", "description": "Number of horizontal repetitions" },
+        { "name": "repeatY", "default": "3", "description": "Number of vertical repetitions" },
+        { "name": "offsetX", "default": "0.5", "description": "X offset for repetition" },
+        { "name": "offsetY", "default": "0.5", "description": "Y offset for repetition" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "modulateRepeatX": {
+      "description": "Modulate repeatX with another source",
+      "example": "osc().modulateRepeatX( texture, reps = 3, offset = 0.5 ).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to modulate with" },
+        { "name": "reps", "default": "3", "description": "Number of horizontal repetitions" },
+        { "name": "offset", "default": "0.5", "description": "X offset for repetition" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "modulateRepeatY": {
+      "description": "Modulate repeatY with another source",
+      "example": "osc().modulateRepeatY( texture, reps = 3, offset = 0.5 ).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to modulate with" },
+        { "name": "reps", "default": "3", "description": "Number of vertical repetitions" },
+        { "name": "offset", "default": "0.5", "description": "Y offset for repetition" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "modulateRotate": {
+      "description": "Modulate rotation with another source",
+      "example": "osc().modulateRotate(texture, multiple = 1, offset = 0).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to modulate with" },
+        { "name": "multiple", "default": "1", "description": "Multiplier for rotation" },
+        { "name": "offset", "default": "0", "description": "Offset for rotation" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "modulateKaleid": {
+      "description": "Modulate kaleidoscope effect with another source",
+      "example": "osc().modulateKaleid(texture, nSides = 4).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to modulate with" },
+        { "name": "nSides", "default": "4", "description": "Number of sides/reflections" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "modulateScrollX": {
+      "description": "Modulate scrollX with another source",
+      "example": "osc().modulateScrollX( texture, scrollX = 0.5, speedX = 0 ).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to modulate with" },
+        { "name": "scrollX", "default": "0.5", "description": "X scroll amount" },
+        { "name": "speedX", "default": "0", "description": "X scroll speed" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "modulateScrollY": {
+      "description": "Modulate scrollY with another source",
+      "example": "osc().modulateScrollY( texture, scrollY = 0.5, speedY = 0 ).out()",
+      "params": [
+        { "name": "texture", "description": "Texture to modulate with" },
+        { "name": "scrollY", "default": "0.5", "description": "Y scroll amount" },
+        { "name": "speedY", "default": "0", "description": "Y scroll speed" }
+      ],
+      "syntaxType": "method",
+      "returnType": "texture"
+    },
+    "initCam": {
+      "description": "Initialize webcam as an input source (s0, s1, etc.)",
+      "example": "initCam()",
+      "params": [
+        { "name": "index", "default": "0", "description": "Camera index" }
+      ],
+      "syntaxType": "function",
+      "returnType": "void"
+    },
+    "initScreen": {
+      "description": "Initialize screen capture as an input source",
+      "example": "initScreen()",
+      "params": [],
+      "syntaxType": "function",
+      "returnType": "void"
+    },
+    "initVideo": {
+      "description": "Initialize video from URL as an input source",
+      "example": "initVideo(url)",
+      "params": [
+        { "name": "url", "description": "Video URL" }
+      ],
+      "syntaxType": "function",
+      "returnType": "void"
+    },
+    "init": {
+      "description": "Initialize video from URL as an input source",
+      "example": "init({ src: canvas })",
+      "params": [
+        { "name": "options", "description": "Initialization options" }
+      ],
+      "syntaxType": "function",
+      "returnType": "void"
+    },
+    "initImage": {
+      "description": "Initialize image from URL as an input source",
+      "example": "initImage(url)",
+      "params": [
+        { "name": "url", "description": "Image URL" }
+      ],
+      "syntaxType": "function",
+      "returnType": "void"
+    },
+    "out": {
+      "description": "Render to output buffer",
+      "example": "osc().out(buffer = o0)",
+      "params": [
+        { "name": "buffer", "default": "o0", "description": "Buffer to output to (o0, o1, o2, o3)" }
+      ],
+      "syntaxType": "method",
+      "returnType": "void"
+    },
+    "render": {
+      "description": "Render all output buffers",
+      "example": "render(buffer = o0)",
+      "params": [
+        { "name": "buffer", "default": "o0", "description": "Buffer to output to main display (o0, o1, o2, o3)" }
+      ],
+      "syntaxType": "function",
+      "returnType": "void"
+    },
+    "update": {
+      "description": "update is called every frame",
+      "example": "update = () => b += 0.01 * Math.sin(time)",
+      "params": [],
+      "syntaxType": "global",
+      "returnType": "void"
+    },
+    "hush": {
+      "description": "Clear all output buffers",
+      "example": "hush()",
+      "params": [],
+      "syntaxType": "function",
+      "returnType": "void"
+    },
+    "setResolution": {
+      "description": "Set resolution of output",
+      "example": "setResolution(width, height)",
+      "params": [
+        { "name": "width", "description": "Width of output" },
+        { "name": "height", "description": "Height of output" }
+      ],
+      "syntaxType": "function",
+      "returnType": "void"
+    },
+    "setFunction": {
+      "description": "Register a function in hydra",
+      "example": "setFunction(options) - https://hydra.ojack.xyz/api/#functions/setFunction/0",
+      "params": [
+        { "name": "options", "description": "Options object" }
+      ],
+      "syntaxType": "function",
+      "returnType": "void"
+    },
+    "speed": {
+      "description": "Set speed of time",
+      "example": "speed = 1",
+      "params": [
+        { "name": "speed", "description": "Speed of time" }
+      ],
+      "syntaxType": "global",
+      "returnType": "void"
+    },
+    "bpm": {
+      "description": "Set BPM of time",
+      "example": "bpm = 120",
+      "params": [
+        { "name": "bpm", "description": "BPM of time" }
+      ],
+      "syntaxType": "global",
+      "returnType": "void"
+    },
+    "width": {
+      "description": "width of output",
+      "example": "width",
+      "params": [],
+      "syntaxType": "global",
+      "returnType": "number"
+    },
+    "height": {
+      "description": "height of output",
+      "example": "height",
+      "params": [],
+      "syntaxType": "global",
+      "returnType": "number"
+    },
+    "time": {
+      "description": "time",
+      "example": "time",
+      "params": [],
+      "syntaxType": "global",
+      "returnType": "number"
+    },
+    "mouse": {
+      "description": "mouse position",
+      "example": "mouse.x; mouse.y;",
+      "params": [],
+      "syntaxType": "global",
+      "returnType": "object"
+    },
+    "fast": {
+      "description": "Fast array",
+      "example": "fast( speed = 1 )",
+      "params": [
+        { "name": "speed", "default": "1", "description": "Speed of array" }
+      ],
+      "syntaxType": "method",
+      "returnType": "array"
+    },
+    "smooth": {
+      "description": "Smooth array",
+      "example": "smooth( speed = 1 )",
+      "params": [
+        { "name": "speed", "default": "1", "description": "Speed of array" }
+      ],
+      "syntaxType": "method",
+      "returnType": "array"
+    },
+    "ease": {
+      "description": "Ease array",
+      "example": "ease( ease = 'linear' )",
+      "params": [
+        { "name": "ease", "default": "linear", "description": "Easing function" }
+      ],
+      "syntaxType": "method",
+      "returnType": "array"
+    },
+    "offset": {
+      "description": "Offset array",
+      "example": "offset( offset = 0.5 )",
+      "params": [
+        { "name": "offset", "default": "0.5", "description": "Offset of array" }
+      ],
+      "syntaxType": "method",
+      "returnType": "array"
+    },
+    "fit": {
+      "description": "Fit array",
+      "example": "fit( low = 0, high = 1 )",
+      "params": [
+        { "name": "low", "default": "0", "description": "Low value of array" },
+        { "name": "high", "default": "1", "description": "High value of array" }
+      ],
+      "syntaxType": "method",
+      "returnType": "array"
+    },
+    "fft": {
+      "description": "FFT",
+      "example": "a.fft = Array(4)",
+      "params": [],
+      "syntaxType": "property",
+      "returnType": "array"
+    },
+    "setSmooth": {
+      "description": "Set smoothness of FFT",
+      "example": "a.setSmooth( smooth = 0.4 )",
+      "params": [
+        { "name": "smooth", "default": "0.4", "description": "Smoothness of FFT" }
+      ],
+      "syntaxType": "method",
+      "returnType": "void"
+    },
+    "setCutoff": {
+      "description": "Set cutoff of FFT",
+      "example": "a.setCutoff(cutoff = 2)",
+      "params": [
+        { "name": "cutoff", "default": "2", "description": "Cutoff of FFT" }
+      ],
+      "syntaxType": "method",
+      "returnType": "void"
+    },
+    "setScale": {
+      "description": "Set scale of FFT",
+      "example": "a.setScale(scale = 10)",
+      "params": [
+        { "name": "scale", "default": "10", "description": "Scale of FFT" }
+      ],
+      "syntaxType": "method",
+      "returnType": "void"
+    },
+    "show": {
+      "description": "Show FFT",
+      "example": "a.show()",
+      "params": [],
+      "syntaxType": "method",
+      "returnType": "void"
+    },
+    "setBins": {
+      "description": "Set number of FFT bins",
+      "example": "a.setBins(bins = 4)",
+      "params": [
+        { "name": "bins", "default": "4", "description": "Number of FFT bins" }
+      ],
+      "syntaxType": "method",
+      "returnType": "void"
+    }
+  }
+}
