@@ -1,10 +1,10 @@
 // Import utilities
-import { createStatsPanel } from "../StatsPanel.js";
-import { createSlotsPanel } from "../SlotsPanel.js";
-import { createDocPanel } from "../DocPanel.js";
-import { createCodeMirrorEditor } from "../utils/CodeMirrorEditor.js";
-import { createMidiManager } from "../MidiManager.js";
-import { loadPanelPosition, savePanelPosition } from "../utils/PanelStorage.js";
+import {createStatsPanel} from "../StatsPanel.js";
+import {createSlotsPanel} from "../SlotsPanel.js";
+import {createDocPanel} from "../DocPanel.js";
+import {createCodeMirrorEditor} from "../utils/CodeMirrorEditor.js";
+import {createMidiManager} from "../MidiManager.js";
+import {loadPanelPosition, savePanelPosition} from "../utils/PanelStorage.js";
 import P5 from "./p5-wrapper.js";
 
 // Helper function to debounce events
@@ -18,7 +18,7 @@ function debounce(func, wait) {
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
   };
-};
+}
 
 // Default starter code for Hydra
 const DEFAULT_CODE = `// HYDRACTRL Sample
@@ -40,22 +40,13 @@ function initEditor() {
   editorContainer.style.overflow = "auto";
 
   // Initialize tab state with persistent setup code
-  const savedSetupCode = localStorage.getItem("hydractrl-setup-code") || "// Setup code runs once before main code\n// Use this for audio settings, global variables, etc.\n\n";
+  const savedSetupCode = localStorage.getItem("hydractrl-setup-code") || "// Setup code runs once before main code\n// Use this for audio settings, global variables, etc.\n// This only persists in your browser and will not be exported to JSON.\n\n";
   
   const editorTabs = {
     main: { code: DEFAULT_CODE },
     setup: { code: savedSetupCode }
   };
   let currentTab = "main";
-
-  // Auto-save setup code to localStorage when it changes
-  function saveSetupCode() {
-    if (currentTab === "setup") {
-      const setupCode = editor.getCode();
-      localStorage.setItem("hydractrl-setup-code", setupCode);
-      editorTabs.setup.code = setupCode;
-    }
-  }
 
   // Create the hydra editor with CodeMirror
   const editor = createCodeMirrorEditor(editorContent, editorTabs[currentTab].code);
@@ -73,8 +64,7 @@ function initEditor() {
       }
       
       // Switch to new tab
-      const newTab = button.dataset.tab;
-      currentTab = newTab;
+      currentTab = button.dataset.tab;
       
       // Update active tab UI
       tabButtons.forEach(btn => btn.classList.remove("active"));
@@ -101,6 +91,9 @@ function initEditor() {
   editor.getAllCode = () => {
     // Save current editor content first
     editorTabs[currentTab].code = editor.getCode();
+    
+    // Always return setup + main code, regardless of current tab
+    // This ensures setup always runs with the main sketch
     return {
       setup: editorTabs.setup.code,
       main: editorTabs.main.code
@@ -164,77 +157,6 @@ function initEditor() {
   };
 }
 
-// Function to make an element draggable
-function makeDraggable(element, handle, panelId) {
-  let pos1 = 0,
-    pos2 = 0,
-    pos3 = 0,
-    pos4 = 0;
-
-  // Apply saved position if available
-  if (panelId) {
-    const savedPosition = loadPanelPosition(panelId);
-    if (savedPosition) {
-      if (savedPosition.left !== undefined) element.style.left = savedPosition.left + "px";
-      if (savedPosition.top !== undefined) element.style.top = savedPosition.top + "px";
-      if (savedPosition.width !== undefined && savedPosition.width !== "auto")
-        element.style.width = savedPosition.width + "px";
-      if (savedPosition.height !== undefined && savedPosition.height !== "auto")
-        element.style.height = savedPosition.height + "px";
-    }
-  }
-
-  if (handle) {
-    // If handle is specified, use it for dragging
-    handle.onmousedown = dragMouseDown;
-  } else {
-    // Otherwise, use the entire element
-    element.onmousedown = dragMouseDown;
-  }
-
-  function dragMouseDown(e) {
-    e = e || window.event;
-    e.preventDefault();
-    element.classList.add("dragging");
-    // Get the mouse cursor position at startup
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    document.onmouseup = closeDragElement;
-    // Call function whenever the cursor moves
-    document.onmousemove = elementDrag;
-  }
-
-  function elementDrag(e) {
-    e = e || window.event;
-    e.preventDefault();
-    // Calculate new cursor position
-    pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    // Set the element's new position
-    element.style.top = element.offsetTop - pos2 + "px";
-    element.style.left = element.offsetLeft - pos1 + "px";
-  }
-
-  function closeDragElement() {
-    // Stop moving when mouse button is released
-    document.onmouseup = null;
-    document.onmousemove = null;
-    element.classList.remove("dragging");
-
-    // Save position to localStorage if specified
-    if (panelId) {
-      savePanelPosition(panelId, {
-        left: parseInt(element.style.left),
-        top: parseInt(element.style.top),
-        width: element.offsetWidth,
-        height: element.offsetHeight,
-      });
-    }
-  }
-}
-
 // Polyfill for Node.js 'global' that hydra-synth expects in the browser environment
 if (typeof window !== "undefined" && typeof window.global === "undefined") {
   window.global = window;
@@ -279,7 +201,10 @@ async function initHydra() {
     const HydraSynth = hydraModule.default || hydraModule;
 
     // Create a new hydra instance with explicit canvas reference
-    const hydra = new HydraSynth({
+    // Thumbnails are always included in exports (small enough to fit)
+    // We now use tiny 32x32 thumbnails with low quality compression
+
+    return new HydraSynth({
       canvas: canvas,
       detectAudio: true, // Enable audio reactivity for a.fft[]
       enableStreamCapture: false,
@@ -287,11 +212,6 @@ async function initHydra() {
       numSources: 4, // Limit sources for better performance
       precision: "mediump", // Better performance
     });
-
-    // Thumbnails are always included in exports (small enough to fit)
-    // We now use tiny 32x32 thumbnails with low quality compression
-
-    return hydra;
   } catch (error) {
     console.error("Error initializing Hydra:", error);
     throw error; // Re-throw to handle in the calling function
@@ -687,7 +607,7 @@ function makeDraggable(element, handle, panelId) {
   }
 
   // Mouse up handler
-  function onMouseUp(e) {
+  function onMouseUp() {
     if (!isDragging) return;
 
     // Update current position with final offsets
@@ -722,18 +642,17 @@ async function runCode(editor, hydra) {
   try {
     // Get code from editor - check if it has tab support
     let setupCode = "";
-    let mainCode = "";
-    
-    if (editor.getAllCode) {
+    let mainCode;
+
+    if (editor._editor && editor._editor.getAllCode) {
       // Editor has tab support, get both setup and main code
-      const allCode = editor.getAllCode();
+      const allCode = editor._editor.getAllCode();
       setupCode = allCode.setup.trim();
       mainCode = allCode.main.trim();
     } else {
       // Fallback for direct editor access
       mainCode = editor.state ? editor.state.doc.toString() : editor.getCode();
     }
-
     // Remove any existing error notifications
     const existingErrors = document.querySelectorAll(".error-notification");
     existingErrors.forEach((el) => el.remove());
@@ -1008,7 +927,7 @@ function openBreakoutWindow(width = 1280, height = 720) {
 }
 
 // Initialize Hydra in the breakout window
-async function initBreakoutHydra(breakoutWindow, mainHydra) {
+async function initBreakoutHydra(breakoutWindow) {
   try {
     if (!breakoutWindow || !breakoutWindow.document) {
       throw new Error("Invalid breakout window");
@@ -1418,7 +1337,6 @@ async function init() {
           statsPanel.midi.statusText.style.color = "#50fa7b"; // Green
 
           // Add scene information
-          const currentScene = midiManager.getCurrentScene();
           statsPanel.midi.statusText.textContent = `MIDI: ${activeDevice.name}`;
         } else {
           statsPanel.midi.statusText.style.color = "#aaa";
