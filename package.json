@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "bun run build:client && bun --watch src/index.ts",
     "build": "bun run build:client",
+    "build:production": "bun run build:client && bun run inject:analytics",
     "build:client": "bun build src/client/index.js --outdir ./public/assets --minify --target browser --jsx-runtime automatic",
     "build:exe": "bun run build:client && bun build src/index.ts --compile --outfile hydractrl --target bun",
+    "inject:analytics": "bun run scripts/inject-analytics.js",
     "preview": "bun run build && bun src/index.ts",
     "lint": "biome check src/",
     "format": "biome format --write src/",
