@@ -351,8 +351,23 @@ export function createSlotsPanel(editor, hydra, runCode) {
   // Function to save current code to active slot
   async function saveToActiveSlot() {
     try {
-      // Get code from editor
-      const code = editor.state.doc.toString();
+      // Get code from editor - check if it has tab support
+      let codeToSave;
+      if (editor.getAllCode) {
+        // Editor has tab support, save both setup and main code
+        const allCode = editor.getAllCode();
+        codeToSave = JSON.stringify({
+          setup: allCode.setup,
+          main: allCode.main
+        });
+      } else {
+        // Fallback for direct editor access - save as main code only
+        const code = editor.state.doc.toString();
+        codeToSave = JSON.stringify({
+          setup: "",
+          main: code
+        });
+      }
 
       // Store the target bank and slot for screenshot capture
       // This ensures the screenshot goes to the correct slot even if we change slots later
@@ -363,7 +378,7 @@ export function createSlotsPanel(editor, hydra, runCode) {
 
       // Save to localStorage with bank and slot index
       const storageKey = getStorageKey(targetBank, targetSlot);
-      localStorage.setItem(storageKey, code);
+      localStorage.setItem(storageKey, codeToSave);
 
       // Update bank dots to reflect new content
       updateBankDots();
@@ -406,13 +421,36 @@ export function createSlotsPanel(editor, hydra, runCode) {
   // Function to load code from slot
   async function loadSlot(index, runCodeAfterLoad = true) {
     const storageKey = getStorageKey(currentBank, index);
-    const savedCode = localStorage.getItem(storageKey);
+    const savedData = localStorage.getItem(storageKey);
 
-    if (savedCode) {
-      // Load code into editor
-      editor.dispatch({
-        changes: { from: 0, to: editor.state.doc.length, insert: savedCode },
-      });
+    if (savedData) {
+      try {
+        // Try to parse as JSON (new format with setup/main)
+        const parsedData = JSON.parse(savedData);
+        
+        if (parsedData.setup !== undefined || parsedData.main !== undefined) {
+          // New format with setup and main code
+          if (editor.setAllCode) {
+            // Editor has tab support - load both codes
+            editor.setAllCode(parsedData.setup || "", parsedData.main || "");
+          } else {
+            // Fallback: load main code only
+            editor.dispatch({
+              changes: { from: 0, to: editor.state.doc.length, insert: parsedData.main || "" },
+            });
+          }
+        } else {
+          // Old format or unexpected structure - treat as main code
+          editor.dispatch({
+            changes: { from: 0, to: editor.state.doc.length, insert: savedData },
+          });
+        }
+      } catch (e) {
+        // Not JSON - treat as old format (raw code string)
+        editor.dispatch({
+          changes: { from: 0, to: editor.state.doc.length, insert: savedData },
+        });
+      }
 
       // Run the code if requested
       if (runCodeAfterLoad) {

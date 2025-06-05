@@ -39,8 +39,66 @@ function initEditor() {
   editorContainer.style.resize = "both";
   editorContainer.style.overflow = "auto";
 
+  // Initialize tab state
+  const editorTabs = {
+    main: { code: DEFAULT_CODE },
+    setup: { code: "// Setup code runs once before main code\n// Use this for audio settings, global variables, etc.\n\n" }
+  };
+  let currentTab = "main";
+
   // Create the hydra editor with CodeMirror
-  const editor = createCodeMirrorEditor(editorContent, DEFAULT_CODE);
+  const editor = createCodeMirrorEditor(editorContent, editorTabs[currentTab].code);
+
+  // Add tab switching functionality
+  const tabButtons = document.querySelectorAll(".editor-tab");
+  tabButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      // Save current editor content
+      editorTabs[currentTab].code = editor.getCode();
+      
+      // Switch to new tab
+      const newTab = button.dataset.tab;
+      currentTab = newTab;
+      
+      // Update active tab UI
+      tabButtons.forEach(btn => btn.classList.remove("active"));
+      button.classList.add("active");
+      
+      // Load new tab content
+      editor.setCode(editorTabs[currentTab].code);
+      editor.focus();
+    });
+  });
+
+  // Add getter for tab content
+  editor.getTabCode = (tab) => {
+    if (tab === currentTab) {
+      return editor.getCode();
+    }
+    return editorTabs[tab]?.code || "";
+  };
+
+  // Add getter for current tab
+  editor.getCurrentTab = () => currentTab;
+
+  // Add method to get both setup and main code
+  editor.getAllCode = () => {
+    // Save current editor content first
+    editorTabs[currentTab].code = editor.getCode();
+    return {
+      setup: editorTabs.setup.code,
+      main: editorTabs.main.code
+    };
+  };
+
+  // Add method to set both setup and main code
+  editor.setAllCode = (setupCode, mainCode) => {
+    editorTabs.setup.code = setupCode || "";
+    editorTabs.main.code = mainCode || "";
+    
+    // Update current editor content with the appropriate tab
+    editor.setCode(editorTabs[currentTab].code);
+  };
 
   // Make the editor draggable by the handle with position persistence
   makeDraggable(
@@ -643,11 +701,22 @@ function makeDraggable(element, handle, panelId) {
   handle.addEventListener("mousedown", onMouseDown);
 }
 
-// Run hydra code
+// Run hydra code with setup support
 async function runCode(editor, hydra) {
   try {
-    // Get code from editor
-    const code = editor.state.doc.toString();
+    // Get code from editor - check if it has tab support
+    let setupCode = "";
+    let mainCode = "";
+    
+    if (editor.getAllCode) {
+      // Editor has tab support, get both setup and main code
+      const allCode = editor.getAllCode();
+      setupCode = allCode.setup.trim();
+      mainCode = allCode.main.trim();
+    } else {
+      // Fallback for direct editor access
+      mainCode = editor.state ? editor.state.doc.toString() : editor.getCode();
+    }
 
     // Remove any existing error notifications
     const existingErrors = document.querySelectorAll(".error-notification");
@@ -659,6 +728,9 @@ async function runCode(editor, hydra) {
     // Create an async function to execute the code with hydra in scope
     // This allows top-level await support
     const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
+
+    // Combine setup and main code
+    const codeToExecute = setupCode ? `${setupCode}\n\n${mainCode}` : mainCode;
 
     const fn = new AsyncFunction(
       "hydra",
@@ -674,7 +746,7 @@ async function runCode(editor, hydra) {
       
       // Execute the user's code
       try {
-        ${code}
+        ${codeToExecute}
         return { success: true };
       } catch(e) {
         console.error('Error in Hydra code:', e);
