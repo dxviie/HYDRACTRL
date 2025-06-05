@@ -3,7 +3,7 @@
  * A visual representation of the Korg nanoPAD's XY pad
  */
 import { setupPanelPersistence, savePanelPosition } from './utils/PanelStorage.js';
-import { XYPhysics } from './physics/XYPhysics.js';
+import { XYPhysics } from './utils/XYPhysics.js';
 
 export function createXYPadPanel() {
   // Create the panel container
