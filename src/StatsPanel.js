@@ -776,6 +776,13 @@ export function createStatsPanel() {
   // Add click event to show info panel
   infoButton.addEventListener("click", (e) => {
     e.stopPropagation(); // Stop event from bubbling up to document
+    
+    // Check if info panel is already visible
+    const existingPanel = document.getElementById("info-panel");
+    if (existingPanel && existingPanel.style.display !== "none") {
+      return; // Don't show panel if it's already visible
+    }
+    
     if (window.showInfoPanel) {
       window.showInfoPanel();
     } else {
