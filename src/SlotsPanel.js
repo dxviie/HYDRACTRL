@@ -351,22 +351,17 @@ export function createSlotsPanel(editor, hydra, runCode) {
   // Function to save current code to active slot
   async function saveToActiveSlot() {
     try {
-      // Get code from editor - check if it has tab support
+      // Get main code only - setup code is saved separately as user setting
       let codeToSave;
-      if (editor.getAllCode) {
-        // Editor has tab support, save both setup and main code
-        const allCode = editor.getAllCode();
-        codeToSave = JSON.stringify({
-          setup: allCode.setup,
-          main: allCode.main
-        });
+      if (editor.getCurrentTab && editor.getCurrentTab() === "main") {
+        // Save current main tab content
+        codeToSave = editor.getCode();
+      } else if (editor.getTabCode) {
+        // Get main tab content even if not currently active
+        codeToSave = editor.getTabCode("main");
       } else {
-        // Fallback for direct editor access - save as main code only
-        const code = editor.state.doc.toString();
-        codeToSave = JSON.stringify({
-          setup: "",
-          main: code
-        });
+        // Fallback for direct editor access
+        codeToSave = editor.state.doc.toString();
       }
 
       // Store the target bank and slot for screenshot capture
@@ -421,36 +416,22 @@ export function createSlotsPanel(editor, hydra, runCode) {
   // Function to load code from slot
   async function loadSlot(index, runCodeAfterLoad = true) {
     const storageKey = getStorageKey(currentBank, index);
-    const savedData = localStorage.getItem(storageKey);
+    const savedCode = localStorage.getItem(storageKey);
 
-    if (savedData) {
-      try {
-        // Try to parse as JSON (new format with setup/main)
-        const parsedData = JSON.parse(savedData);
-        
-        if (parsedData.setup !== undefined || parsedData.main !== undefined) {
-          // New format with setup and main code
-          if (editor.setAllCode) {
-            // Editor has tab support - load both codes
-            editor.setAllCode(parsedData.setup || "", parsedData.main || "");
-          } else {
-            // Fallback: load main code only
-            editor.dispatch({
-              changes: { from: 0, to: editor.state.doc.length, insert: parsedData.main || "" },
-            });
-          }
-        } else {
-          // Old format or unexpected structure - treat as main code
-          editor.dispatch({
-            changes: { from: 0, to: editor.state.doc.length, insert: savedData },
-          });
+    if (savedCode) {
+      // Load main code into editor - setup code persists separately
+      if (editor.getCurrentTab && editor.getCurrentTab() !== "main") {
+        // Switch to main tab first if not already there
+        const mainTabButton = document.querySelector('.editor-tab[data-tab="main"]');
+        if (mainTabButton) {
+          mainTabButton.click();
         }
-      } catch (e) {
-        // Not JSON - treat as old format (raw code string)
-        editor.dispatch({
-          changes: { from: 0, to: editor.state.doc.length, insert: savedData },
-        });
       }
+      
+      // Load code into editor (this will be main code only)
+      editor.dispatch({
+        changes: { from: 0, to: editor.state.doc.length, insert: savedCode },
+      });
 
       // Run the code if requested
       if (runCodeAfterLoad) {

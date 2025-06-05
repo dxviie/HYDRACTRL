@@ -39,12 +39,23 @@ function initEditor() {
   editorContainer.style.resize = "both";
   editorContainer.style.overflow = "auto";
 
-  // Initialize tab state
+  // Initialize tab state with persistent setup code
+  const savedSetupCode = localStorage.getItem("hydractrl-setup-code") || "// Setup code runs once before main code\n// Use this for audio settings, global variables, etc.\n\n";
+  
   const editorTabs = {
     main: { code: DEFAULT_CODE },
-    setup: { code: "// Setup code runs once before main code\n// Use this for audio settings, global variables, etc.\n\n" }
+    setup: { code: savedSetupCode }
   };
   let currentTab = "main";
+
+  // Auto-save setup code to localStorage when it changes
+  function saveSetupCode() {
+    if (currentTab === "setup") {
+      const setupCode = editor.getCode();
+      localStorage.setItem("hydractrl-setup-code", setupCode);
+      editorTabs.setup.code = setupCode;
+    }
+  }
 
   // Create the hydra editor with CodeMirror
   const editor = createCodeMirrorEditor(editorContent, editorTabs[currentTab].code);
@@ -55,6 +66,11 @@ function initEditor() {
     button.addEventListener("click", () => {
       // Save current editor content
       editorTabs[currentTab].code = editor.getCode();
+      
+      // If leaving setup tab, save to localStorage
+      if (currentTab === "setup") {
+        localStorage.setItem("hydractrl-setup-code", editor.getCode());
+      }
       
       // Switch to new tab
       const newTab = button.dataset.tab;
