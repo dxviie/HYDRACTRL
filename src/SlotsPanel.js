@@ -155,8 +155,8 @@ export function createSlotsPanel(editor, hydra, runCode) {
   shortcutsLabel.style.marginLeft = "4px";
   shortcutsLabel.innerHTML = "<span style='font-size: 10px; color: var(--color-text-secondary);'>Alt/⌥ + ←/→</span>";
   
-  dotsContainer.appendChild(diceBtn);
   dotsContainer.appendChild(shortcutsLabel);
+  dotsContainer.appendChild(diceBtn);
 
   // Create icons container
   const iconsContainer = document.createElement("div");
