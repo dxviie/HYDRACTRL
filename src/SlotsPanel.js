@@ -587,10 +587,17 @@ export function createSlotsPanel(editor, hydra, runCode) {
       if (thumbnail) {
         // If we have a thumbnail, display it
         thumbnailElement.style.backgroundImage = `url(${thumbnail})`;
+        thumbnailElement.style.backgroundColor = "";
+        thumbnailElement.style.opacity = "1";
       } else if (hasCode) {
         // If we have code but no thumbnail, show a colored background
         thumbnailElement.style.backgroundColor = "var(--color-syntax-function)";
-        thumbnailElement.style.opacity = "0.3";
+        thumbnailElement.style.opacity = "0.4";
+        // Add a subtle border to indicate there's code
+        slotElements[i].style.borderColor = "var(--color-syntax-function)";
+      } else {
+        // Reset border for empty slots
+        slotElements[i].style.borderColor = "var(--color-bg-tertiary)";
       }
     }
   }
@@ -950,10 +957,12 @@ export function createSlotsPanel(editor, hydra, runCode) {
 
                       // Always remove existing thumbnail first
                       localStorage.removeItem(`${storageKey}-thumbnail`);
+                      localStorage.removeItem(`${storageKey}-thumbnail-timestamp`);
 
                       // Save thumbnail if available in the imported data
                       if (slot.thumbnail) {
                         localStorage.setItem(`${storageKey}-thumbnail`, slot.thumbnail);
+                        localStorage.setItem(`${storageKey}-thumbnail-timestamp`, Date.now());
                       }
                     } catch (decodeError) {
                       console.error("Error decoding slot data:", decodeError);
@@ -966,6 +975,24 @@ export function createSlotsPanel(editor, hydra, runCode) {
             // Reload current bank
             loadAllSlotsForCurrentBank();
             updateBankDots();
+
+            // Execute the first slot that has code after import
+            let firstSlotExecuted = false;
+            for (let bankIndex = 0; bankIndex < 4 && !firstSlotExecuted; bankIndex++) {
+              for (let slotIndex = 0; slotIndex < 16; slotIndex++) {
+                const storageKey = getStorageKey(bankIndex, slotIndex);
+                if (localStorage.getItem(storageKey)) {
+                  // Switch to the bank if needed
+                  if (bankIndex !== currentBank) {
+                    switchBank(bankIndex);
+                  }
+                  // Set and load the first slot
+                  setActiveSlot(slotIndex, true);
+                  firstSlotExecuted = true;
+                  break;
+                }
+              }
+            }
 
             // Show notification
             const notification = document.createElement("div");
