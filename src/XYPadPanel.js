@@ -44,8 +44,9 @@ export function createXYPadPanel() {
   title.style.fontSize = "12px";
   title.style.fontWeight = "bold";
   title.style.textTransform = "uppercase";
+  title.style.display = "flex";
   title.style.color = "var(--color-text-secondary)";
-  title.textContent = "XY PAD";
+  title.innerHTML = "XY PAD <div style='display: flex; gap: .15rem; align-items: baseline; text-transform: none; margin-left: .7rem;'>(use <pre style='font-family: monospace'>nanoX</pre> & <pre style='font-family: monospace'>nanoY</pre>)</div>"
 
   // Add title and close button to handle
   handle.appendChild(title);

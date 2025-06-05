@@ -755,8 +755,8 @@ export function createStatsPanel() {
 
   // Attribution text with links
   const attributionText = document.createElement("div");
-  attributionText.innerHTML = 'based on <a href="https://hydra.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">hydra</a> by <a href="https://www.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">Olivia Jack</a>.<br> made with <span style="color:var(--color-accent-primary);">♥</span> by <a href="https://d17e.dev" target="_blank" style="color:inherit;text-decoration:underline">D17E</a>';
-  attributionText.style.lineHeight = "1.2";
+  attributionText.innerHTML = 'made with <span style="color:var(--color-accent-primary);">♥</span> by <a href="https://d17e.dev" target="_blank" style="color:inherit;text-decoration:underline">D17E</a><br>based on <a href="https://hydra.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">hydra</a> by <a href="https://www.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">Olivia Jack</a>';
+  attributionText.style.lineHeight = "1.5";
 
   // Info icon button
   const infoButton = document.createElement("button");
