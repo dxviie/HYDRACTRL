@@ -302,7 +302,7 @@
 
         .feature-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 30px;
             margin: 30px 0;
         }
@@ -402,8 +402,7 @@
             <p>HYDRACTRL is built on top of <a href="https://hydra.ojack.xyz/">Hydra</a>, a
                 live code-able video synth created by <a href="https://ojack.xyz/"
                     style="color: var(--color-accent-primary);">Olivia Jack</a>, and offers additional features geared
-                towards live performances where you don't necessarily want to be coding.<br>And because I'm a fan of
-                Synesthesia, I built this as an open-source alternative to it.</p>
+                towards live performances where you don't necessarily want to be coding.</p>
 
             <div class="feature-grid">
                 <div class="feature-card">
@@ -436,6 +435,15 @@
                         <h3>Advanced Code Editor</h3>
                         <p>Powered by CodeMirror 6 with Hydra syntax highlighting, code completion, 5 themes and basic
                             error reporting.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <img src="assets/setup-code.png" alt="Setup code runs before each sketch"
+                         style="width:100%; height:auto; border-radius: 4px; margin-bottom: 10px;">
+                    <div>
+                        <i class="fas fa-gear"></i>
+                        <h3>Setup Code Tab</h3>
+                        <p>The setup code tab allows you to have some code that runs before each sketch. This way you can make sure that your audio settings and globals are always available.</p>
                     </div>
                 </div>
                 <div class="feature-card">
@@ -501,8 +509,6 @@
     <section id="shortcuts">
         <div class="container">
             <h2>Keyboard Shortcuts</h2>
-            <p>HYDRACTRL provides numerous keyboard shortcuts to streamline your workflow during performances:</p>
-
             <table>
                 <thead>
                     <tr>
@@ -514,7 +520,7 @@
                     <tr>
                         <td><code>Ctrl/⌘ + `</code></td>
                         <td>Toggle UI visibility</td>
-                    </tr>`
+                    </tr>
                     <tr>
                         <td><code>Ctrl/⌘ + Enter</code></td>
                         <td>Run the current code</td>
@@ -551,8 +557,6 @@
     <section id="technology">
         <div class="container">
             <h2>Built With</h2>
-            <p>HYDRACTRL combines modern web technologies to create a powerful live coding environment:</p>
-
             <div class="credits">
                 <div class="credit-item">
                     <h3>Hydra</h3>
@@ -593,36 +597,24 @@
                         Documentation</a> - Official documentation for Hydra</li>
                 <li><a href="https://hydra.ojack.xyz/functions/" style="color: var(--color-accent-primary);">Function
                         Reference</a> - Complete listing of Hydra functions</li>
-
-                <li><a href="https://hydra.ojack.xyz/examples/" style="color: var(--color-accent-primary);">Hydra
-                        Examples</a> - Gallery of example sketches to learn from</li>
-                <li><a href="https://ojack.xyz/hydra-book/" style="color: var(--color-accent-primary);">Hydra Book</a> -
-                    Comprehensive guide to creating visuals with Hydra</li>
+                <li><a href="https://hydra.ojack.xyz/garden/" style="color: var(--color-accent-primary);">Hydra Internet Garden</a> - An ever-growing community database of resources, projects, tutorials, and code related to hydra video synth</li>
+                <li><a href="https://hydra-book.glitch.me/" style="color: var(--color-accent-primary);">Hydra Book</a> -
+                    Comprehensive guide to creating visuals with Hydra by <a href="https://naotohieda.com/" alt="Naoto Hieda's webiste" style="color: var(--color-accent-primary);">Naoto Hieda</a></li>
             </ul>
-
-            <h3>Sample Code</h3>
-            <p>Try this simple code in HYDRACTRL to get started:</p>
-            <pre style="background-color: var(--color-bg-editor); padding: 15px; border-radius: 8px; overflow-x: auto;"><code>// Basic oscillator pattern
-osc(10, 0.1, 1.2)
-  .color(0.5, 0.1, 0.9)
-  .rotate(0, 0.1)
-  .modulateScale(osc(3, 0.2))
-  .out()</code></pre>
         </div>
     </section>
 
     <footer>
-        <div class="container">
-            <p>HYDRACTRL is an open-source project built on top of <a href="https://hydra.ojack.xyz/"
-                    style="color: var(--color-accent-primary);">Hydra</a> by <a href="https://ojack.xyz/">Olivia
-                    Jack</a></p>
-
+        <div class="container" style="line-height: .8rem;">
             <div class="social-links">
                 <a href="https://github.com/dxviie/HYDRACTRL"><i class="fab fa-github"></i></a>
             </div>
-
-            <p>Made with <i class="fas fa-heart"></i> by <a href="https://www.d17e.dev"
-                    aria-label="David Vandenbogaerde">D17E</a> </p>
+            <p>HYDRACTRL is Made with <i class="fas fa-heart"></i> by <a href="https://www.d17e.dev"
+                                                                         aria-label="David Vandenbogaerde">D17E</a></p>
+            <p>
+                built on top of <a href="https://hydra.ojack.xyz/"
+                    style="color: var(--color-accent-primary);">Hydra</a> by <a href="https://ojack.xyz/">Olivia
+                    Jack</a></p>
         </div>
 
     </footer>
