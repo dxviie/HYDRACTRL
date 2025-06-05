@@ -29,7 +29,6 @@ function injectAnalytics() {
         break;
       } catch (error) {
         // File doesn't exist, try next path
-        continue;
       }
     }
     
