@@ -348,20 +348,32 @@ function createInfoPanel() {
   panel.id = "info-panel";
   panel.className = "info-panel";
   panel.style.position = "fixed";
-  panel.style.top = "50%";
-  panel.style.left = "50%";
-  panel.style.transform = "translate(-50%, -50%)";
   panel.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important";
   panel.style.borderRadius = "8px";
   panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
   panel.style.backdropFilter = "blur(var(--color-panel-blur))";
   panel.style.zIndex = "1000";
   panel.style.overflow = "hidden";
-  panel.style.width = "500px";
-  panel.style.maxWidth = "90vw";
-  panel.style.maxHeight = "80vh";
   panel.style.display = "flex";
   panel.style.flexDirection = "column";
+
+  if (isMobile) {
+    // Mobile positioning: center on screen
+    panel.style.top = "50%";
+    panel.style.left = "50%";
+    panel.style.transform = "translate(-50%, -50%)";
+    panel.style.width = "90vw";
+    panel.style.maxWidth = "400px";
+    panel.style.maxHeight = "70vh";
+  } else {
+    // Desktop positioning
+    panel.style.top = "50%";
+    panel.style.left = "50%";
+    panel.style.transform = "translate(-50%, -50%)";
+    panel.style.width = "500px";
+    panel.style.maxWidth = "90vw";
+    panel.style.maxHeight = "80vh";
+  }
 
   // Create the header with title and close button
   const header = document.createElement("div");
@@ -438,6 +450,7 @@ function createInfoPanel() {
       if (window.slotsPanel && window.slotsPanel.loadRandomScenes) {
         window.slotsPanel.loadRandomScenes();
       }
+      hideInfoPanel();
     });
 
     aboutSection.appendChild(mobileDiceButton);
@@ -526,8 +539,10 @@ function createInfoPanel() {
 
   // Add everything to content
   content.appendChild(aboutSection);
-  content.appendChild(shortcutsSection);
-  content.appendChild(startupSection);
+  if (!isMobile) {
+    content.appendChild(shortcutsSection);
+    content.appendChild(startupSection);
+  }
 
   // Add header and content to panel
   panel.appendChild(header);
@@ -567,8 +582,10 @@ function createInfoPanel() {
   panel.outsideClickHandler = outsideClickHandler;
   panel.escKeyHandler = escKeyHandler;
 
-  // Make the panel draggable using the header as handle
-  makeDraggable(panel, header, "info-panel");
+  // Make the panel draggable using the header as handle (desktop only)
+  if (!isMobile) {
+    makeDraggable(panel, header, "info-panel");
+  }
 
   return panel;
 }
