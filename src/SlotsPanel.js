@@ -4,16 +4,22 @@
  */
 import { loadPanelPosition, savePanelPosition } from "./utils/PanelStorage.js";
 
-export function createSlotsPanel(editor, hydra, runCode) {
+export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false) {
   // Load saved position or use defaults
   const savedPosition = loadPanelPosition("slots-panel");
 
   // Create the panel container
   const panel = document.createElement("div");
   panel.className = "slots-panel";
-  panel.style.position = "absolute";
+  panel.style.position = mobilePosition ? "fixed" : "absolute";
 
-  if (savedPosition) {
+  if (mobilePosition) {
+    // Mobile positioning: bottom center
+    panel.style.bottom = "20px";
+    panel.style.left = "50%";
+    panel.style.transform = "translateX(-50%)";
+    panel.style.zIndex = "1000";
+  } else if (savedPosition) {
     panel.style.left = savedPosition.left + "px";
     panel.style.top = savedPosition.top + "px";
     // Don't apply width as slots panel has fixed width slots

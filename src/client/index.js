@@ -175,6 +175,72 @@ function isWebGLSupported() {
   }
 }
 
+// Detect if device is mobile or tablet
+function isMobileOrTablet() {
+  // Check user agent for mobile indicators
+  const userAgent = navigator.userAgent.toLowerCase();
+  const mobileKeywords = ['mobile', 'android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'];
+  const hasMobileKeyword = mobileKeywords.some(keyword => userAgent.includes(keyword));
+  
+  // Check screen size (typical mobile/tablet sizes)
+  const isMobileScreen = window.innerWidth <= 1024 || window.innerHeight <= 768;
+  
+  // Check for touch capability
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  
+  // Check device orientation API (common on mobile devices)
+  const hasOrientation = 'orientation' in window;
+  
+  // Return true if any mobile indicator is present
+  return hasMobileKeyword || (isMobileScreen && hasTouch) || hasOrientation;
+}
+
+// Create mobile-only top-left dice button
+function createMobileTopDiceButton() {
+  if (!isMobileOrTablet()) return null;
+
+  const topDiceButton = document.createElement("div");
+  topDiceButton.className = "mobile-top-dice-button";
+  topDiceButton.innerHTML = "🎲";
+  topDiceButton.style.position = "fixed";
+  topDiceButton.style.top = "20px";
+  topDiceButton.style.left = "20px";
+  topDiceButton.style.width = "50px";
+  topDiceButton.style.height = "50px";
+  topDiceButton.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), 0.9)";
+  topDiceButton.style.borderRadius = "50%";
+  topDiceButton.style.display = "flex";
+  topDiceButton.style.alignItems = "center";
+  topDiceButton.style.justifyContent = "center";
+  topDiceButton.style.fontSize = "24px";
+  topDiceButton.style.cursor = "pointer";
+  topDiceButton.style.zIndex = "1001";
+  topDiceButton.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
+  topDiceButton.style.transition = "all 0.2s ease";
+  topDiceButton.title = "Load random scenes";
+
+  // Add hover effect
+  topDiceButton.addEventListener("mouseover", () => {
+    topDiceButton.style.transform = "scale(1.1)";
+    topDiceButton.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), 1)";
+  });
+
+  topDiceButton.addEventListener("mouseout", () => {
+    topDiceButton.style.transform = "scale(1)";
+    topDiceButton.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), 0.9)";
+  });
+
+  // Add click handler
+  topDiceButton.addEventListener("click", () => {
+    if (window.slotsPanel && window.slotsPanel.loadRandomScenes) {
+      window.slotsPanel.loadRandomScenes();
+    }
+  });
+
+  document.body.appendChild(topDiceButton);
+  return topDiceButton;
+}
+
 // Initialize Hydra with proper canvas setup
 async function initHydra() {
   try {
@@ -275,6 +341,8 @@ function createInfoPanel() {
     return document.getElementById("info-panel");
   }
 
+  const isMobile = isMobileOrTablet();
+
   // Create the panel container
   const panel = document.createElement("div");
   panel.id = "info-panel";
@@ -338,13 +406,42 @@ function createInfoPanel() {
   aboutSection.className = "info-section";
 
   const aboutText = document.createElement("p");
-  aboutText.innerHTML = `HYDRACTRL is a tool built around <a href="https://hydra.ojack.xyz" target="_blank" style="color:var(--color-text-secondary);text-decoration:underline">hydra</a> designed for live performances. Check out the <a href="https://dxviie.github.io/HYDRACTRL/" style="color:var(--color-text-secondary);text-decoration:underline">GitHub Page</a> for a feature overview.`;
+  if (isMobile) {
+    aboutText.innerHTML = `This app is designed for desktop, but you can play around here by loading random clips (by clicking on the dice 🎲). For the full experience, visit this site on a desktop computer. Check out the <a href="https://dxviie.github.io/HYDRACTRL/" style="color:var(--color-text-secondary);text-decoration:underline">GitHub Page</a> for more info.`;
+  } else {
+    aboutText.innerHTML = `HYDRACTRL is a tool built around <a href="https://hydra.ojack.xyz" target="_blank" style="color:var(--color-text-secondary);text-decoration:underline">hydra</a> designed for live performances. Check out the <a href="https://dxviie.github.io/HYDRACTRL/" style="color:var(--color-text-secondary);text-decoration:underline">GitHub Page</a> for a feature overview.`;
+  }
   aboutText.style.margin = "0 0 15px 0";
   aboutText.style.fontSize = "13px";
   aboutText.style.lineHeight = "1.4";
   aboutText.style.color = "var(--color-text-secondary)";
 
   aboutSection.appendChild(aboutText);
+
+  // Add big dice button for mobile
+  if (isMobile) {
+    const mobileDiceButton = document.createElement("button");
+    mobileDiceButton.className = "mobile-dice-button";
+    mobileDiceButton.innerHTML = "🎲 Load Random Scenes";
+    mobileDiceButton.style.fontSize = "16px";
+    mobileDiceButton.style.padding = "12px 24px";
+    mobileDiceButton.style.margin = "10px 0";
+    mobileDiceButton.style.backgroundColor = "var(--color-perf-medium)";
+    mobileDiceButton.style.color = "white";
+    mobileDiceButton.style.border = "none";
+    mobileDiceButton.style.borderRadius = "6px";
+    mobileDiceButton.style.cursor = "pointer";
+    mobileDiceButton.style.width = "100%";
+    mobileDiceButton.style.fontWeight = "bold";
+
+    mobileDiceButton.addEventListener("click", () => {
+      if (window.slotsPanel && window.slotsPanel.loadRandomScenes) {
+        window.slotsPanel.loadRandomScenes();
+      }
+    });
+
+    aboutSection.appendChild(mobileDiceButton);
+  }
 
   // Keyboard shortcuts section
   const shortcutsSection = document.createElement("div");
@@ -1020,6 +1117,8 @@ async function runCodeOnAllInstances(editor, mainHydra) {
 // Initialize the application
 async function init() {
   try {
+    const isMobile = isMobileOrTablet();
+    
     const editor = initEditor(); // No longer async
     const hydra = await initHydra();
 
@@ -1266,50 +1365,81 @@ async function init() {
     await runCodeOnAllInstances(editor, hydra);
 
     // Focus the editor initially
-    editor.focus();
+    if (!isMobile) {
+      editor.focus();
+    }
 
-    // Create the stats panel using our simple implementation
-    const statsPanel = createStatsPanel();
+    // Only create certain panels based on device type
+    let statsPanel, docPanel, midiManager;
+    
+    if (!isMobile) {
+      // Create the stats panel using our simple implementation
+      statsPanel = createStatsPanel();
 
-    // Create the documentation panel (hidden by default)
-    const docPanel = createDocPanel();
+      // Create the documentation panel (hidden by default)
+      docPanel = createDocPanel();
 
-    // Connect the docs button to toggle the documentation panel
-    statsPanel.docsButton.addEventListener("click", () => {
-      docPanel.toggle();
-    });
+      // Connect the docs button to toggle the documentation panel
+      statsPanel.docsButton.addEventListener("click", () => {
+        docPanel.toggle();
+      });
+    }
 
     // Import default scenes if there are no saved scenes in localStorage
     await importDefaultScenesIfEmpty();
 
-    // Create the slots panel
-    const slotsPanel = createSlotsPanel(editor, hydra, runCode);
+    // Create the slots panel (always shown, but positioned differently on mobile)
+    const slotsPanel = createSlotsPanel(editor, hydra, runCode, isMobile);
 
-    // Initialize MIDI support with the slots panel
-    const midiManager = createMidiManager(slotsPanel);
+    if (!isMobile) {
+      // Initialize MIDI support with the slots panel (desktop only)
+      midiManager = createMidiManager(slotsPanel);
 
-    // Create XY pad panel
-    import('./../XYPadPanel.js').then(module => {
-      const xyPadPanel = module.createXYPadPanel();
-      window.xyPadPanel = xyPadPanel;
+      // Create XY pad panel (desktop only)
+      import('./../XYPadPanel.js').then(module => {
+        const xyPadPanel = module.createXYPadPanel();
+        window.xyPadPanel = xyPadPanel;
 
-      // Set the XY pad panel in the MIDI manager
-      midiManager.setXYPadPanel(xyPadPanel);
+        // Set the XY pad panel in the MIDI manager
+        midiManager.setXYPadPanel(xyPadPanel);
 
-      // Set initial visibility based on localStorage
-      const xyPadVisible = localStorage.getItem('hydractrl-xy-pad-visible') === 'true';
-      xyPadPanel.togglePanel(xyPadVisible);
-    });
+        // Set initial visibility based on localStorage
+        const xyPadVisible = localStorage.getItem('hydractrl-xy-pad-visible') === 'true';
+        xyPadPanel.togglePanel(xyPadVisible);
+      });
+    }
+
+    // Create mobile-specific UI elements
+    if (isMobile) {
+      createMobileTopDiceButton();
+      
+      // Hide the editor container for mobile
+      const editorContainer = document.getElementById("editor-container");
+      if (editorContainer) {
+        editorContainer.style.display = "none";
+      }
+      
+      // Show info panel immediately on mobile
+      setTimeout(() => {
+        showInfoPanel();
+      }, 500);
+    }
 
     // Apply UI visibility state after all panels are created
     applyUiVisibility();
 
-    // Initialize MIDI access
-    const midiSupported = midiManager.init();
+    // Initialize MIDI access (desktop only)
+    let midiSupported = false;
+    if (!isMobile && midiManager) {
+      midiSupported = midiManager.init();
+    }
 
     // Create updateMidiDeviceList function at the global scope so it can be
     // called from multiple places in the code
     window.updateMidiDeviceList = function () {
+      // Skip if on mobile or no stats panel
+      if (isMobile || !statsPanel || !midiManager) return;
+      
       // Clear device container except for the buttons
       while (statsPanel.midi.deviceContainer.children.length > 2) {
         statsPanel.midi.deviceContainer.removeChild(statsPanel.midi.deviceContainer.lastChild);
@@ -1368,8 +1498,8 @@ async function init() {
     };
 
 
-    // Update the stats panel with MIDI info if supported
-    if (midiSupported) {
+    // Update the stats panel with MIDI info if supported (desktop only)
+    if (midiSupported && statsPanel) {
       statsPanel.midi.statusText.textContent = "MIDI: Initializing...";
 
       // Add refresh button
@@ -1497,17 +1627,17 @@ async function init() {
           window.updateMidiDeviceList();
         }
       }, 1000);
-    } else {
+    } else if (statsPanel) {
       statsPanel.midi.statusText.textContent = "MIDI: Not supported";
       statsPanel.midi.statusText.style.color = "#ff5555"; // Red
     }
 
-    // Create global flag for moving to next slot on save
+    // Create global flag for moving to next slot on save (desktop only)
     // Load from localStorage or default to false
     window.moveToNextSlotOnSave = localStorage.getItem("hydractrl-move-to-next-slot") === "true";
 
-    // Set the checkbox state based on saved preference
-    if (statsPanel.slots && statsPanel.slots.moveToNextSlotCheckbox) {
+    // Set the checkbox state based on saved preference (desktop only)
+    if (!isMobile && statsPanel && statsPanel.slots && statsPanel.slots.moveToNextSlotCheckbox) {
       statsPanel.slots.moveToNextSlotCheckbox.checked = window.moveToNextSlotOnSave;
 
       // Update the flag when checkbox is changed
@@ -1625,16 +1755,17 @@ async function init() {
     window.hideInfoPanel = hideInfoPanel;
     window.toggleEditor = toggleEditor; // Expose toggle editor function
 
-    // Check if we should show the info panel on startup
-    if (localStorage.getItem("hydractrl-show-info-on-startup") !== "false") {
+    // Check if we should show the info panel on startup (desktop only, mobile shows it automatically)
+    if (!isMobile && localStorage.getItem("hydractrl-show-info-on-startup") !== "false") {
       // Slight delay to allow UI to initialize
       setTimeout(() => {
         showInfoPanel();
       }, 500);
     }
 
-    // Set up size buttons functionality
-    statsPanel.display.sizeButtons.forEach((button) => {
+    // Set up size buttons functionality (desktop only)
+    if (!isMobile && statsPanel && statsPanel.display && statsPanel.display.sizeButtons) {
+      statsPanel.display.sizeButtons.forEach((button) => {
       button.addEventListener("click", () => {
         const width = parseInt(button.dataset.width);
         const height = parseInt(button.dataset.height);
@@ -1666,8 +1797,8 @@ async function init() {
       });
     });
 
-    // Set up breakout button functionality
-    statsPanel.display.breakoutButton.addEventListener("click", async () => {
+      // Set up breakout button functionality (desktop only)
+      statsPanel.display.breakoutButton.addEventListener("click", async () => {
       // If window is already open, close it
       if (window.breakoutWindow && !window.breakoutWindow.closed) {
         window.breakoutWindow.close();
@@ -1737,6 +1868,7 @@ async function init() {
         statsPanel.display.breakoutButton.style.backgroundColor = "";
       }
     });
+    }
   } catch (error) {
     console.error("Error initializing application:", error);
   }
