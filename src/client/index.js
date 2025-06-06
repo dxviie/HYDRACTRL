@@ -195,6 +195,47 @@ function isMobileOrTablet() {
   return hasMobileKeyword || (isMobileScreen && hasTouch) || hasOrientation;
 }
 
+// Create visual code overlay for mobile
+function createCodeOverlay() {
+  if (!isMobileOrTablet()) return null;
+
+  const overlay = document.createElement("div");
+  overlay.className = "code-overlay";
+  overlay.id = "code-overlay";
+
+  const textarea = document.createElement("textarea");
+  textarea.readOnly = true;
+  textarea.value = DEFAULT_CODE;
+  
+  overlay.appendChild(textarea);
+  document.body.appendChild(overlay);
+
+  // Function to update overlay content
+  const updateOverlay = (code) => {
+    if (textarea) {
+      textarea.value = code || "";
+    }
+  };
+
+  // Function to toggle overlay visibility
+  const toggleOverlay = (visible) => {
+    if (visible) {
+      overlay.classList.add("visible");
+    } else {
+      overlay.classList.remove("visible");
+    }
+  };
+
+  // Expose methods globally for easy access
+  window.codeOverlay = {
+    update: updateOverlay,
+    toggle: toggleOverlay,
+    element: overlay
+  };
+
+  return overlay;
+}
+
 // Create mobile-only top-left dice button
 function createMobileTopDiceButton() {
   if (!isMobileOrTablet()) return null;
@@ -895,6 +936,11 @@ function loadCode(editor) {
     editor.dispatch({
       changes: { from: 0, to: editor.state.doc.length, insert: savedCode },
     });
+    
+    // Update mobile code overlay if available
+    if (window.codeOverlay) {
+      window.codeOverlay.update(savedCode);
+    }
   }
 }
 
@@ -1381,6 +1427,12 @@ async function init() {
     // Run initial code
     await runCodeOnAllInstances(editor, hydra);
 
+    // Update mobile code overlay with initial code
+    if (isMobile && window.codeOverlay) {
+      const currentCode = editor.state ? editor.state.doc.toString() : DEFAULT_CODE;
+      window.codeOverlay.update(currentCode);
+    }
+
     // Focus the editor initially
     if (!isMobile) {
       editor.focus();
@@ -1429,6 +1481,7 @@ async function init() {
     // Create mobile-specific UI elements
     if (isMobile) {
       createMobileTopDiceButton();
+      createCodeOverlay();
       
       // Hide the editor container for mobile
       const editorContainer = document.getElementById("editor-container");

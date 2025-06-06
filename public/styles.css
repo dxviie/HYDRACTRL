@@ -809,3 +809,69 @@ input[type="range"]:active::-moz-range-thumb {
 .theme-nineties-pop input[type="checkbox"]:checked {
   background: linear-gradient(45deg, #ff66cc, #6666ff);
 }
+
+/* Visual Code Overlay for Mobile */
+.code-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 2;
+  font-family: monospace;
+  color: white;
+  mix-blend-mode: difference;
+  overflow: hidden;
+  padding: 20px;
+  margin-top: 4rem;
+  box-sizing: border-box;
+}
+
+.code-overlay.visible {
+  display: block;
+}
+
+.code-overlay textarea {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  color: inherit;
+  line-height: 1.4;
+  white-space: pre;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  padding: 0;
+  margin: 0;
+  mix-blend-mode: inherit;
+}
+
+/* Responsive font sizing for code overlay */
+@media screen and (max-width: 480px) {
+  .code-overlay {
+    font-size: clamp(8px, 2.5vw, 12px);
+  }
+}
+
+@media screen and (min-width: 481px) and (max-width: 768px) {
+  .code-overlay {
+    font-size: clamp(10px, 2vw, 14px);
+  }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .code-overlay {
+    font-size: clamp(12px, 1.5vw, 16px);
+  }
+}
+
+@media screen and (min-width: 1025px) {
+  .code-overlay {
+    font-size: clamp(14px, 1.2vw, 18px);
+  }
+}

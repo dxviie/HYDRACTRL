@@ -482,6 +482,11 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
         changes: { from: 0, to: editor.state.doc.length, insert: savedCode },
       });
 
+      // Update mobile code overlay if available
+      if (window.codeOverlay) {
+        window.codeOverlay.update(savedCode);
+      }
+
       // Run the code if requested
       if (runCodeAfterLoad) {
         await runCode(editor, hydra);
