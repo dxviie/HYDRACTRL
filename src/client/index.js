@@ -1427,11 +1427,7 @@ async function init() {
     // Run initial code
     await runCodeOnAllInstances(editor, hydra);
 
-    // Update mobile code overlay with initial code
-    if (isMobile && window.codeOverlay) {
-      const currentCode = editor.state ? editor.state.doc.toString() : DEFAULT_CODE;
-      window.codeOverlay.update(currentCode);
-    }
+    // Update mobile code overlay with initial code (moved to after slots panel creation)
 
     // Focus the editor initially
     if (!isMobile) {

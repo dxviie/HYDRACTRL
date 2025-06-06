@@ -394,6 +394,14 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
     // Load code from storage if requested
     if (loadContent) {
       await loadSlot(activeSlotIndex);
+      
+      // Additional overlay update for mobile (in case the loadSlot update didn't work)
+      if (window.codeOverlay) {
+        setTimeout(() => {
+          const currentCode = editor.state ? editor.state.doc.toString() : "";
+          window.codeOverlay.update(currentCode);
+        }, 50);
+      }
     }
   }
 
