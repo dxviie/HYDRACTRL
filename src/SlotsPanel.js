@@ -262,6 +262,9 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
   // Store slot elements for easy access
   const slotElements = [];
 
+  // Load saved slot size or use default
+  const savedSlotSize = localStorage.getItem("hydractrl-slot-size") || "40";
+
   // Create 16 slots
   for (let i = 0; i < 16; i++) {
     const slot = document.createElement("div");
@@ -270,8 +273,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
     slot.style.backgroundColor = "var(--color-bg-editor)";
     slot.style.borderRadius = "4px";
     slot.style.cursor = "pointer";
-    slot.style.height = "40px";
-    slot.style.width = "40px";
+    slot.style.height = savedSlotSize + "px";
+    slot.style.width = savedSlotSize + "px";
     slot.style.display = "flex";
     slot.style.justifyContent = "center";
     slot.style.alignItems = "center";

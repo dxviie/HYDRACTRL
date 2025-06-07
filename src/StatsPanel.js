@@ -527,6 +527,82 @@ export function createStatsPanel() {
   slotsTitle.style.fontWeight = "bold";
   slotsTitle.textContent = "SLOTS";
 
+  // Create slot size slider section
+  const slotSizeSection = document.createElement("div");
+  slotSizeSection.style.marginTop = "8px";
+  slotSizeSection.style.display = "flex";
+  slotSizeSection.style.flexDirection = "column";
+  slotSizeSection.style.gap = "6px";
+
+  // Slot size label
+  const slotSizeLabel = document.createElement("div");
+  slotSizeLabel.style.fontSize = "11px";
+  slotSizeLabel.style.color = "var(--color-text-primary)";
+  slotSizeLabel.textContent = "Slot Size";
+
+  // Slider container with value display
+  const slotSizeSliderContainer = document.createElement("div");
+  slotSizeSliderContainer.style.display = "flex";
+  slotSizeSliderContainer.style.alignItems = "center";
+  slotSizeSliderContainer.style.gap = "8px";
+  slotSizeSliderContainer.style.width = "100%";
+
+  // Slot size slider
+  const slotSizeSlider = document.createElement("input");
+  slotSizeSlider.type = "range";
+  slotSizeSlider.min = "40";
+  slotSizeSlider.max = "100";
+  slotSizeSlider.step = "5";
+  
+  // Load saved slot size or use default (smallest size)
+  const savedSlotSize = localStorage.getItem("hydractrl-slot-size") || "40";
+  slotSizeSlider.value = savedSlotSize;
+  slotSizeSlider.style.flex = "1";
+  slotSizeSlider.style.margin = "0";
+
+  // Slot size value display
+  const slotSizeValue = document.createElement("span");
+  slotSizeValue.style.fontSize = "11px";
+  slotSizeValue.style.fontFamily = "monospace";
+  slotSizeValue.style.color = "var(--color-text-primary)";
+  slotSizeValue.style.minWidth = "24px";
+  slotSizeValue.style.textAlign = "center";
+  slotSizeValue.textContent = savedSlotSize + "px";
+
+  // Function to update slot sizes in SlotsPanel
+  function updateSlotSizes(size) {
+    // Update CSS custom property for slot size
+    document.documentElement.style.setProperty('--slot-size', size + 'px');
+    
+    // Apply to all slot elements directly
+    const slotElements = document.querySelectorAll('.slot');
+    slotElements.forEach(slot => {
+      slot.style.height = size + 'px';
+      slot.style.width = size + 'px';
+    });
+
+    // Save to localStorage
+    localStorage.setItem("hydractrl-slot-size", size);
+  }
+
+  // Update slot sizes when slider changes
+  slotSizeSlider.addEventListener("input", () => {
+    const size = slotSizeSlider.value;
+    slotSizeValue.textContent = size + "px";
+    updateSlotSizes(parseInt(size));
+  });
+
+  // Apply initial slot size
+  updateSlotSizes(parseInt(savedSlotSize));
+
+  // Add elements to slider container
+  slotSizeSliderContainer.appendChild(slotSizeSlider);
+  slotSizeSliderContainer.appendChild(slotSizeValue);
+
+  // Add elements to slot size section
+  slotSizeSection.appendChild(slotSizeLabel);
+  slotSizeSection.appendChild(slotSizeSliderContainer);
+
   // Create move to next slot option
   const moveToNextSlotOption = document.createElement("div");
   moveToNextSlotOption.style.display = "flex";
@@ -555,6 +631,7 @@ export function createStatsPanel() {
 
   // Add elements to slots section
   slotsSection.appendChild(slotsTitle);
+  slotsSection.appendChild(slotSizeSection);
   slotsSection.appendChild(moveToNextSlotOption);
 
   // Display section title
