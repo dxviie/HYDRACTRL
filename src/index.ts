@@ -4,7 +4,13 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const publicDir = join(__dirname, "..", "public");
+
+// When running as executable, public dir is relative to executable location
+// When running in dev/build, public dir is relative to project root
+const isExecutable = process.execPath.endsWith("hydractrl.exe") || process.execPath.endsWith("hydractrl");
+const publicDir = isExecutable 
+  ? join(dirname(process.execPath), "hydractrl-public")
+  : join(__dirname, "..", "public");
 
 // Load HTML and serve static assets
 const indexHtml = readFileSync(join(publicDir, "index.html"), "utf-8");

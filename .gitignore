@@ -40,3 +40,5 @@ Thumbs.db
 **/.claude/settings.local.json
 
 /public/assets/banks/saved_sketches_glitch_editor_30_2021.json
+/hydractrl-public/
+*.exe

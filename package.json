@@ -8,6 +8,8 @@
     "build:production": "bun run build:client && bun run inject:analytics",
     "build:client": "bun build src/client/index.js --outdir ./public/assets --minify --target browser --jsx-runtime automatic",
     "build:exe": "bun run build:client && bun build src/index.ts --compile --outfile hydractrl --target bun",
+    "build:exe:full": "bun run build:exe && bun run copy:public",
+    "copy:public": "node -e \"require('fs').cpSync('public', 'hydractrl-public', {recursive: true})\"",
     "inject:analytics": "bun run scripts/inject-analytics.js",
     "preview": "bun run build && bun src/index.ts",
     "lint": "biome check src/",
