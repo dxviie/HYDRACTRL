@@ -5,7 +5,6 @@ import {createDocPanel} from "../DocPanel.js";
 import {createCodeMirrorEditor} from "../utils/CodeMirrorEditor.js";
 import {createMidiManager} from "../MidiManager.js";
 import {loadPanelPosition, savePanelPosition} from "../utils/PanelStorage.js";
-import P5 from "./p5-wrapper.js";
 
 // Helper function to debounce events
 function debounce(func, wait) {
@@ -1207,7 +1206,9 @@ async function init() {
       }
     };
 
-    window.P5 = P5; // Expose P5 globally for use in the editor
+    const { P5Wrapper } = await import("./p5-wrapper.ts");
+
+    window.P5 = P5Wrapper; // Expose P5 globally for use in the editor
 
     // Store references to these globally
     window.mainHydra = hydra;

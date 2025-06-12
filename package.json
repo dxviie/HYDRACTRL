@@ -33,7 +33,9 @@
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
     "@iconify-json/fe": "^1.2.2",
+    "@types/p5": "^1.7.6",
     "@types/web": "^0.0.137",
-    "bun-types": "latest"
+    "bun-types": "latest",
+    "p5": "^1.9.0"
   }
 }
