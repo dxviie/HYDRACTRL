@@ -86,4 +86,13 @@ const app = new Elysia()
   })
   .listen(3000);
 
-console.log(`HYDRACTRL running at http://localhost:${app.server?.port}`);
+console.log(`
+╔═══════════════════════════════════════════════════════════════╗
+║                         HYDRACTRL                             ║
+║                                                               ║
+║  🎛️  Live visual performance tool powered by hydra-synth      ║
+║  🌐  Server running at http://localhost:${app.server?.port}                  ║
+║  💫  Ready for visual synthesis                               ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+`);
