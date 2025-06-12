@@ -44,7 +44,7 @@ const app = new Elysia()
       
       return new Response(content, { headers: { "Content-Type": contentType } });
     } catch (err) {
-      console.error(`Failed to serve asset: ${path}`, err);
+      console.error(`Failed to serve asset: ${path}`);
       return new Response("Not found", { status: 404 });
     }
   })
@@ -80,7 +80,7 @@ const app = new Elysia()
       
       return new Response(content, { headers: { "Content-Type": contentType } });
     } catch (err) {
-      console.error(`Failed to serve file: ${path}`, err);
+      console.error(`Failed to serve file: ${path}`);
       return new Response("Not found", { status: 404 });
     }
   })
