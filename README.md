@@ -46,3 +46,25 @@ await s0.initVideo("http://localhost:3000/my-video.mp4");
 Supported formats:
 - **Images**: `.jpg`, `.jpeg`, `.png`, `.svg`, `.ico`
 - **Videos**: `.mp4`, `.webm`, `.ogg`, `.avi`, `.mov`
+
+## Sharing Sketches as URLs
+
+Press `Alt/⌥ + U` to copy a link with your current sketch encoded in the URL.
+Opening such a link loads and runs the sketch without touching the recipient's
+saved banks — nothing is persisted unless they explicitly save it.
+
+## Plugins
+
+New features are built as plugins on a small plugin system with an event bus,
+quota-safe storage and error isolation (a broken plugin can't take down a live
+set). See [docs/PLUGINS.md](./docs/PLUGINS.md) for how to write one, and
+`src/client/plugins/` for the built-in examples (URL sketch sharing, audio
+watchdog).
+
+## Development
+
+```bash
+bun run lint   # Biome checks (enforced in CI)
+bun test       # unit tests (enforced in CI)
+bun run build  # build the client bundle
+```
