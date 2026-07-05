@@ -26,14 +26,15 @@ export function createStatsPanel() {
 
   // Load saved opacity or use default
   const panelOpacity = localStorage.getItem("hydractrl-panel-opacity") || "90";
-  const opacityDecimal = parseInt(panelOpacity) / 100;
+  const opacityDecimal = Number.parseInt(panelOpacity) / 100;
 
   // Add panel opacity CSS variable if it doesn't exist
-  if (!document.documentElement.style.getPropertyValue('--panel-opacity')) {
-    document.documentElement.style.setProperty('--panel-opacity', opacityDecimal);
+  if (!document.documentElement.style.getPropertyValue("--panel-opacity")) {
+    document.documentElement.style.setProperty("--panel-opacity", opacityDecimal);
   }
 
-  panel.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important";
+  panel.style.backgroundColor =
+    "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important";
   panel.style.borderRadius = "8px";
   panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
   panel.style.backdropFilter = "blur(var(--color-panel-blur))";
@@ -83,7 +84,8 @@ export function createStatsPanel() {
   docsButton.style.justifyContent = "center";
   docsButton.style.transition = "all 0.2s ease";
   docsButton.title = "Hydra Functions Reference";
-  docsButton.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='3.5' d='M12 9.8V20m0-10.2c0-1.704.107-3.584-1.638-4.473C9.72 5 8.88 5 7.2 5H4.6C3.364 5 3 5.437 3 6.6v8.8c0 .568-.036 1.195.546 1.491c.214.109.493.109 1.052.109H7.43c2.377 0 3.26 1.036 4.569 3m0-10.2c0-1.704-.108-3.584 1.638-4.473C14.279 5 15.12 5 16.8 5h2.6c1.235 0 1.6.436 1.6 1.6v8.8c0 .567.035 1.195-.546 1.491c-.213.109-.493.109-1.052.109h-2.833c-2.377 0-3.26 1.036-4.57 3'/></svg>";
+  docsButton.innerHTML =
+    "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='3.5' d='M12 9.8V20m0-10.2c0-1.704.107-3.584-1.638-4.473C9.72 5 8.88 5 7.2 5H4.6C3.364 5 3 5.437 3 6.6v8.8c0 .568-.036 1.195.546 1.491c.214.109.493.109 1.052.109H7.43c2.377 0 3.26 1.036 4.569 3m0-10.2c0-1.704-.108-3.584 1.638-4.473C14.279 5 15.12 5 16.8 5h2.6c1.235 0 1.6.436 1.6 1.6v8.8c0 .567.035 1.195-.546 1.491c-.213.109-.493.109-1.052.109h-2.833c-2.377 0-3.26 1.036-4.57 3'/></svg>";
   docsButton.style.opacity = "0.7";
 
   docsButton.addEventListener("mouseenter", () => {
@@ -172,8 +174,8 @@ export function createStatsPanel() {
   xyPadButton.textContent = "Show XY Pad";
 
   // Set initial button text based on localStorage
-  const xyPadVisible = localStorage.getItem('hydractrl-xy-pad-visible') === 'true';
-  xyPadButton.textContent = xyPadVisible ? 'Hide XY Pad' : 'Show XY Pad';
+  const xyPadVisible = localStorage.getItem("hydractrl-xy-pad-visible") === "true";
+  xyPadButton.textContent = xyPadVisible ? "Hide XY Pad" : "Show XY Pad";
 
   xyPadButton.addEventListener("click", () => {
     const xyPadPanelElement = document.querySelector(".xy-pad-panel");
@@ -184,8 +186,8 @@ export function createStatsPanel() {
     xyPadPanelElement.style.visibility = newVisible ? "visible" : "hidden";
 
     // Update localStorage and button text
-    localStorage.setItem('hydractrl-xy-pad-visible', newVisible);
-    xyPadButton.textContent = newVisible ? 'Hide XY Pad' : 'Show XY Pad';
+    localStorage.setItem("hydractrl-xy-pad-visible", newVisible);
+    xyPadButton.textContent = newVisible ? "Hide XY Pad" : "Show XY Pad";
   });
 
   // Create MIDI mapping display
@@ -267,7 +269,7 @@ export function createStatsPanel() {
       bgTertiary: "rgba(60, 60, 60, 0.7)",
       textPrimary: "#f5f5f5",
       textSecondary: "#aaa",
-      className: ""
+      className: "",
     },
     {
       name: "light",
@@ -277,7 +279,7 @@ export function createStatsPanel() {
       bgTertiary: "rgba(200, 200, 200, 0.8)",
       textPrimary: "#333333",
       textSecondary: "#666666",
-      className: "theme-light"
+      className: "theme-light",
     },
     {
       name: "dark",
@@ -287,7 +289,7 @@ export function createStatsPanel() {
       bgTertiary: "rgba(35, 35, 35, 0.8)",
       textPrimary: "#ffffff",
       textSecondary: "#cccccc",
-      className: "theme-dark"
+      className: "theme-dark",
     },
     {
       name: "neon-eighties",
@@ -307,7 +309,7 @@ export function createStatsPanel() {
       bgTertiary: "rgba(255, 215, 0, 0.7)",
       textPrimary: "#333333",
       textSecondary: "#222222",
-      className: "theme-nineties-pop"
+      className: "theme-nineties-pop",
     },
   ];
 
@@ -374,11 +376,11 @@ export function createStatsPanel() {
 
       // Get the current opacity value
       const currentOpacity = localStorage.getItem("hydractrl-panel-opacity") || "90";
-      const opacityDecimal = parseInt(currentOpacity) / 100;
+      const opacityDecimal = Number.parseInt(currentOpacity) / 100;
 
       // Re-apply the opacity to all panels with the new theme colors
       setTimeout(() => {
-        applyPanelOpacity(parseInt(currentOpacity));
+        applyPanelOpacity(Number.parseInt(currentOpacity));
       }, 50);
     });
   });
@@ -432,13 +434,13 @@ export function createStatsPanel() {
     const opacityDecimal = opacity / 100;
 
     // Apply to CSS variables using custom property
-    document.documentElement.style.setProperty('--panel-opacity', opacityDecimal);
+    document.documentElement.style.setProperty("--panel-opacity", opacityDecimal);
 
     // Add or update style element for global panel styling
-    let styleEl = document.getElementById('panel-opacity-styles');
+    let styleEl = document.getElementById("panel-opacity-styles");
     if (!styleEl) {
-      styleEl = document.createElement('style');
-      styleEl.id = 'panel-opacity-styles';
+      styleEl = document.createElement("style");
+      styleEl.id = "panel-opacity-styles";
       document.head.appendChild(styleEl);
     }
 
@@ -457,15 +459,15 @@ export function createStatsPanel() {
   }
 
   // Apply initial opacity
-  applyPanelOpacity(parseInt(savedOpacity));
+  applyPanelOpacity(Number.parseInt(savedOpacity));
 
   // Function to update range slider progress visualization
   function updateRangeProgress(slider) {
-    const min = parseInt(slider.min);
-    const max = parseInt(slider.max);
-    const val = parseInt(slider.value);
+    const min = Number.parseInt(slider.min);
+    const max = Number.parseInt(slider.max);
+    const val = Number.parseInt(slider.value);
     const percentage = ((val - min) * 100) / (max - min);
-    slider.style.setProperty('--range-progress', `${percentage}%`);
+    slider.style.setProperty("--range-progress", `${percentage}%`);
   }
 
   // Set initial progress visualization
@@ -480,7 +482,7 @@ export function createStatsPanel() {
     updateRangeProgress(opacitySlider);
 
     // Apply the opacity
-    applyPanelOpacity(parseInt(opacity));
+    applyPanelOpacity(Number.parseInt(opacity));
 
     // Save to localStorage
     localStorage.setItem("hydractrl-panel-opacity", opacity);
@@ -553,7 +555,7 @@ export function createStatsPanel() {
   slotSizeSlider.min = "40";
   slotSizeSlider.max = "100";
   slotSizeSlider.step = "5";
-  
+
   // Load saved slot size or use default (smallest size)
   const savedSlotSize = localStorage.getItem("hydractrl-slot-size") || "40";
   slotSizeSlider.value = savedSlotSize;
@@ -572,13 +574,13 @@ export function createStatsPanel() {
   // Function to update slot sizes in SlotsPanel
   function updateSlotSizes(size) {
     // Update CSS custom property for slot size
-    document.documentElement.style.setProperty('--slot-size', size + 'px');
-    
+    document.documentElement.style.setProperty("--slot-size", size + "px");
+
     // Apply to all slot elements directly
-    const slotElements = document.querySelectorAll('.slot');
-    slotElements.forEach(slot => {
-      slot.style.height = size + 'px';
-      slot.style.width = size + 'px';
+    const slotElements = document.querySelectorAll(".slot");
+    slotElements.forEach((slot) => {
+      slot.style.height = size + "px";
+      slot.style.width = size + "px";
     });
 
     // Save to localStorage
@@ -589,11 +591,11 @@ export function createStatsPanel() {
   slotSizeSlider.addEventListener("input", () => {
     const size = slotSizeSlider.value;
     slotSizeValue.textContent = size + "px";
-    updateSlotSizes(parseInt(size));
+    updateSlotSizes(Number.parseInt(size));
   });
 
   // Apply initial slot size
-  updateSlotSizes(parseInt(savedSlotSize));
+  updateSlotSizes(Number.parseInt(savedSlotSize));
 
   // Add elements to slider container
   slotSizeSliderContainer.appendChild(slotSizeSlider);
@@ -690,7 +692,7 @@ export function createStatsPanel() {
   selectedSizeIndicator.textContent = "No size selected";
 
   // Create a variable to track the selected size
-  let selectedSize = null;
+  const selectedSize = null;
 
   sizes.forEach((size) => {
     const sizeButton = document.createElement("button");
@@ -745,7 +747,6 @@ export function createStatsPanel() {
   fpsValue.style.fontWeight = "bold";
   fpsValue.style.color = "white";
   fpsValue.textContent = "0";
-
 
   // Detailed metrics
   const details = document.createElement("div");
@@ -832,12 +833,14 @@ export function createStatsPanel() {
 
   // Attribution text with links
   const attributionText = document.createElement("div");
-  attributionText.innerHTML = 'made with <span style="color:var(--color-accent-primary);">♥</span> by <a href="https://d17e.dev" target="_blank" style="color:inherit;text-decoration:underline">D17E</a><br>based on <a href="https://hydra.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">hydra</a> by <a href="https://www.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">Olivia Jack</a>';
+  attributionText.innerHTML =
+    'made with <span style="color:var(--color-accent-primary);">♥</span> by <a href="https://d17e.dev" target="_blank" style="color:inherit;text-decoration:underline">D17E</a><br>based on <a href="https://hydra.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">hydra</a> by <a href="https://www.ojack.xyz" target="_blank" style="color:inherit;text-decoration:underline">Olivia Jack</a>';
   attributionText.style.lineHeight = "1.5";
 
   // Info icon button
   const infoButton = document.createElement("button");
-  infoButton.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/><path d='M12 16v-5h-.5m0 5h1M12 8.5V8'/></g></svg>";
+  infoButton.innerHTML =
+    "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/><path d='M12 16v-5h-.5m0 5h1M12 8.5V8'/></g></svg>";
   infoButton.style.background = "none";
   infoButton.style.width = "32px";
   infoButton.style.height = "32px";
@@ -853,13 +856,13 @@ export function createStatsPanel() {
   // Add click event to show info panel
   infoButton.addEventListener("click", (e) => {
     e.stopPropagation(); // Stop event from bubbling up to document
-    
+
     // Check if info panel is already visible
     const existingPanel = document.getElementById("info-panel");
     if (existingPanel && existingPanel.style.display !== "none") {
       return; // Don't show panel if it's already visible
     }
-    
+
     if (window.showInfoPanel) {
       window.showInfoPanel();
     } else {
@@ -926,8 +929,8 @@ export function createStatsPanel() {
   // Add window resize event listener to ensure panel stays on screen
   window.addEventListener("resize", () => {
     // Get current panel position
-    const left = parseInt(panel.style.left || "0");
-    const top = parseInt(panel.style.top || "0");
+    const left = Number.parseInt(panel.style.left || "0");
+    const top = Number.parseInt(panel.style.top || "0");
 
     // Ensure the panel stays within the viewport bounds
     const minVisiblePart = 100; // Minimum visible part in pixels
@@ -968,7 +971,7 @@ export function createStatsPanel() {
   let lastTime = performance.now();
   let lastUpdateTime = 0;
   // Get update interval from performance settings or use default
-  let updateInterval = window.hydraPerformanceSettings?.statsUpdateInterval || 500;
+  const updateInterval = window.hydraPerformanceSettings?.statsUpdateInterval || 500;
   let frameTimeSum = 0;
   let frameTimeSamples = 0;
 
@@ -1050,7 +1053,7 @@ export function createStatsPanel() {
       section: slotsSection,
       moveToNextSlotCheckbox: moveToNextSlotCheckbox,
     },
-    docsButton // Expose docs button for external access
+    docsButton, // Expose docs button for external access
   };
 }
 
@@ -1075,9 +1078,9 @@ function makeDraggable(element, handle, panelId) {
       const rect = element.getBoundingClientRect();
 
       // Calculate position based on right alignment
-      const rightOffset = parseInt(element.style.right || "0");
+      const rightOffset = Number.parseInt(element.style.right || "0");
       currentX = window.innerWidth - rect.width - rightOffset;
-      currentY = parseInt(element.style.top || "0");
+      currentY = Number.parseInt(element.style.top || "0");
 
       // Set explicit left position based on current right position
       element.style.left = currentX + "px";
@@ -1086,8 +1089,8 @@ function makeDraggable(element, handle, panelId) {
       element.style.right = "";
     } else {
       // Already positioned by left/top (from saved position or default)
-      currentX = parseInt(element.style.left || "0");
-      currentY = parseInt(element.style.top || "0");
+      currentX = Number.parseInt(element.style.left || "0");
+      currentY = Number.parseInt(element.style.top || "0");
     }
 
     // Save initial position if we have a panelId
@@ -1117,8 +1120,8 @@ function makeDraggable(element, handle, panelId) {
 
     // Get current element position from inline style
     // This fixes the initial jump by using the stored position
-    currentX = parseInt(element.style.left || "0");
-    currentY = parseInt(element.style.top || "0");
+    currentX = Number.parseInt(element.style.left || "0");
+    currentY = Number.parseInt(element.style.top || "0");
 
     // Start dragging
     isDragging = true;
@@ -1157,8 +1160,8 @@ function makeDraggable(element, handle, panelId) {
     if (!isDragging) return;
 
     // Update current position with final offsets
-    currentX = parseInt(element.style.left || "0");
-    currentY = parseInt(element.style.top || "0");
+    currentX = Number.parseInt(element.style.left || "0");
+    currentY = Number.parseInt(element.style.top || "0");
 
     // Save position to localStorage if we have a panelId
     if (panelId) {

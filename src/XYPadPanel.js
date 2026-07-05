@@ -2,8 +2,8 @@
  * XY Pad Panel
  * A visual representation of the Korg nanoPAD's XY pad
  */
-import { setupPanelPersistence, savePanelPosition } from './utils/PanelStorage.js';
-import { XYPhysics } from './utils/XYPhysics.js';
+import { savePanelPosition, setupPanelPersistence } from "./utils/PanelStorage.js";
+import { XYPhysics } from "./utils/XYPhysics.js";
 
 export function createXYPadPanel() {
   // Create the panel container
@@ -14,14 +14,18 @@ export function createXYPadPanel() {
   panel.style.borderRadius = "4px";
   panel.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.3)";
   panel.style.zIndex = "9";
-  panel.style.visibility = 'hidden';
-  panel.style.transition = 'opacity 0.3s ease, visibility 0.3s ease';
+  panel.style.visibility = "hidden";
+  panel.style.transition = "opacity 0.3s ease, visibility 0.3s ease";
 
   // Only show the panel if MIDI is available
-  if (window.midiManager && window.midiManager.isConnected() && window.midiManager.getActiveDevice()?.name.toLowerCase().includes('nanopad')) {
-    if (localStorage.getItem('hydractrl-xy-pad-visible') !== 'false') {
-      panel.style.visibility = 'visible';
-      panel.style.opacity = '1';
+  if (
+    window.midiManager &&
+    window.midiManager.isConnected() &&
+    window.midiManager.getActiveDevice()?.name.toLowerCase().includes("nanopad")
+  ) {
+    if (localStorage.getItem("hydractrl-xy-pad-visible") !== "false") {
+      panel.style.visibility = "visible";
+      panel.style.opacity = "1";
     }
   }
 
@@ -46,7 +50,8 @@ export function createXYPadPanel() {
   title.style.textTransform = "uppercase";
   title.style.display = "flex";
   title.style.color = "var(--color-text-secondary)";
-  title.innerHTML = "XY PAD <div style='display: flex; gap: .15rem; align-items: baseline; text-transform: none; margin-left: .7rem;'>(use <pre style='font-family: monospace'>nanoX</pre> & <pre style='font-family: monospace'>nanoY</pre>)</div>"
+  title.innerHTML =
+    "XY PAD <div style='display: flex; gap: .15rem; align-items: baseline; text-transform: none; margin-left: .7rem;'>(use <pre style='font-family: monospace'>nanoX</pre> & <pre style='font-family: monospace'>nanoY</pre>)</div>";
 
   // Create the close button
   const closeButton = document.createElement("button");
@@ -186,14 +191,19 @@ export function createXYPadPanel() {
   document.body.appendChild(panel);
 
   // Set up panel position persistence (only for position, not size)
-  const { savePosition } = setupPanelPersistence(panel, 'xy-pad', {
-    left: 20,
-    top: 20,
-  }, {
-    width: 256, // 240px pad + 16px margins
-    height: 'fit-content',
-    skipSizeRestore: true // Don't restore size from localStorage
-  });
+  const { savePosition } = setupPanelPersistence(
+    panel,
+    "xy-pad",
+    {
+      left: 20,
+      top: 20,
+    },
+    {
+      width: 256, // 240px pad + 16px margins
+      height: "fit-content",
+      skipSizeRestore: true, // Don't restore size from localStorage
+    },
+  );
 
   // Initialize physics system
   const physics = new XYPhysics(padArea.offsetWidth, padArea.offsetHeight, { historySize: 3 });
@@ -202,10 +212,11 @@ export function createXYPadPanel() {
   // Track pad interaction state and physics values
   let isPadActive = false;
   let isCoiling = false;
-  let indicatorPixelX = 0, indicatorPixelY = 0;
+  let indicatorPixelX = 0,
+    indicatorPixelY = 0;
 
   // Make the panel draggable
-  makeDraggable(panel, handle, 'xy-pad');
+  makeDraggable(panel, handle, "xy-pad");
 
   // --- Coil Interaction Logic ---
   const handleCoilMove = (e) => {
@@ -247,7 +258,7 @@ export function createXYPadPanel() {
 
     const velocityScale = 3; // Adjust this to control launch speed
     physics.vx = dxPixels * velocityScale;
-    physics.vy = - dyPixels * velocityScale;
+    physics.vy = -dyPixels * velocityScale;
 
     // Physics will resume in the animate loop if isPhysicsEnabled is true
     // isPadActive remains false, user needs to click pad or indicator again
@@ -274,12 +285,15 @@ export function createXYPadPanel() {
     // Ensure physics.x and physics.y are up-to-date if not actively moving
     const currentIndicatorRect = indicator.getBoundingClientRect();
     const padAreaRect = padArea.getBoundingClientRect();
-    indicatorPixelX = (currentIndicatorRect.left + currentIndicatorRect.width / 2) - padAreaRect.left;
-    indicatorPixelY = (currentIndicatorRect.top + currentIndicatorRect.height / 2) - padAreaRect.top;
+    indicatorPixelX = currentIndicatorRect.left + currentIndicatorRect.width / 2 - padAreaRect.left;
+    indicatorPixelY = currentIndicatorRect.top + currentIndicatorRect.height / 2 - padAreaRect.top;
 
     // Update physics object's internal position to match the visual indicator before coiling
     // This ensures the coil starts from the visually correct point if physics was idle.
-    physics.setPosition(indicatorPixelX / padArea.offsetWidth, 1 - (indicatorPixelY / padArea.offsetHeight));
+    physics.setPosition(
+      indicatorPixelX / padArea.offsetWidth,
+      1 - indicatorPixelY / padArea.offsetHeight,
+    );
 
     coilLine.setAttribute("x1", indicatorPixelX);
     coilLine.setAttribute("y1", indicatorPixelY);
@@ -331,8 +345,8 @@ export function createXYPadPanel() {
 
   function updatePhysicsParams() {
     physics.updateParams({
-      friction: parseFloat(frictionControl.slider.value),
-      bounce: parseFloat(bounceControl.slider.value)
+      friction: Number.parseFloat(frictionControl.slider.value),
+      bounce: Number.parseFloat(bounceControl.slider.value),
     });
   }
 
@@ -346,7 +360,9 @@ export function createXYPadPanel() {
     const top = (1 - y) * padArea.offsetHeight; // Invert Y axis to match MIDI orientation
     indicator.style.left = `${left}px`;
     indicator.style.top = `${top}px`;
-    indicator.style.backgroundColor = isActive ? "var(--color-text-primary)" : "var(--color-text-secondary)";
+    indicator.style.backgroundColor = isActive
+      ? "var(--color-text-primary)"
+      : "var(--color-text-secondary)";
     indicator.style.opacity = isActive ? "1" : "0.5";
 
     // Return normalized values for MIDI output
@@ -356,7 +372,7 @@ export function createXYPadPanel() {
   // Show/hide panel
   function togglePanel(show) {
     panel.style.visibility = show ? "visible" : "hidden";
-    localStorage.setItem('hydractrl-xy-pad-visible', show);
+    localStorage.setItem("hydractrl-xy-pad-visible", show);
   }
 
   // Close button functionality
@@ -373,7 +389,7 @@ export function createXYPadPanel() {
     updateFromMIDIY,
     handlePadRelease,
     togglePanel,
-    isVisible: () => panel.style.visibility === "visible"
+    isVisible: () => panel.style.visibility === "visible",
   };
 
   // Register with MIDI manager if available
@@ -405,9 +421,9 @@ function makeDraggable(element, handle, panelId) {
       const rect = element.getBoundingClientRect();
 
       // Calculate position based on right alignment
-      const rightOffset = parseInt(element.style.right || "0");
+      const rightOffset = Number.parseInt(element.style.right || "0");
       currentX = window.innerWidth - rect.width - rightOffset;
-      currentY = parseInt(element.style.top || "0");
+      currentY = Number.parseInt(element.style.top || "0");
 
       // Set explicit left position based on current right position
       element.style.left = currentX + "px";
@@ -416,8 +432,8 @@ function makeDraggable(element, handle, panelId) {
       element.style.right = "";
     } else {
       // Already positioned by left/top (from saved position or default)
-      currentX = parseInt(element.style.left || "0");
-      currentY = parseInt(element.style.top || "0");
+      currentX = Number.parseInt(element.style.left || "0");
+      currentY = Number.parseInt(element.style.top || "0");
     }
 
     // Save initial position if we have a panelId
@@ -447,8 +463,8 @@ function makeDraggable(element, handle, panelId) {
 
     // Get current element position from inline style
     // This fixes the initial jump by using the stored position
-    currentX = parseInt(element.style.left || "0");
-    currentY = parseInt(element.style.top || "0");
+    currentX = Number.parseInt(element.style.left || "0");
+    currentY = Number.parseInt(element.style.top || "0");
 
     // Start dragging
     isDragging = true;
@@ -487,8 +503,8 @@ function makeDraggable(element, handle, panelId) {
     if (!isDragging) return;
 
     // Update current position with final offsets
-    currentX = parseInt(element.style.left || "0");
-    currentY = parseInt(element.style.top || "0");
+    currentX = Number.parseInt(element.style.left || "0");
+    currentY = Number.parseInt(element.style.top || "0");
 
     // Save position to localStorage if we have a panelId
     if (panelId) {
