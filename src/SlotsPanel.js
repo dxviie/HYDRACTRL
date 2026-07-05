@@ -4,7 +4,7 @@
  */
 import { loadPanelPosition, savePanelPosition } from "./utils/PanelStorage.js";
 
-export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false) {
+export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false, options = {}) {
   // Load saved position or use defaults
   const savedPosition = loadPanelPosition("slots-panel");
 
@@ -625,18 +625,24 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
           // Create thumbnail image from the small canvas with very low quality
           const thumbnail = tmpCanvas.toDataURL("image/jpeg", 0.4); // Use JPEG with 40% quality for smaller size
 
-          // Save thumbnail to localStorage with bank and slot index
-          // We use the target indices here to ensure we're saving to the correct slot
-          localStorage.setItem(
-            `${getStorageKey(targetBankIndex, targetSlotIndex)}-thumbnail`,
-            thumbnail,
-          );
+          // Save thumbnail to localStorage with bank and slot index.
+          // We use the target indices to ensure we save to the correct slot.
+          // This runs in an async callback, so the outer try/catch can't see a
+          // QuotaExceededError — guard it here (thumbnails are the main quota eater).
+          try {
+            localStorage.setItem(
+              `${getStorageKey(targetBankIndex, targetSlotIndex)}-thumbnail`,
+              thumbnail,
+            );
 
-          // Store timestamp for age-based purging
-          localStorage.setItem(
-            `${getStorageKey(targetBankIndex, targetSlotIndex)}-thumbnail-timestamp`,
-            Date.now(),
-          );
+            // Store timestamp for age-based purging
+            localStorage.setItem(
+              `${getStorageKey(targetBankIndex, targetSlotIndex)}-thumbnail-timestamp`,
+              Date.now(),
+            );
+          } catch (storageError) {
+            console.warn("Could not save slot thumbnail (storage full?):", storageError);
+          }
 
           // Update the slot thumbnail if the target bank is visible
           if (targetBankIndex === currentBank) {
@@ -887,8 +893,16 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
     }
   });
 
-  // Load all saved slots
-  loadAllSlots();
+  // Load all saved slots. When the app was opened with a sketch in the URL
+  // (#sketch=...), keep the editor content instead of loading slot 0 into it.
+  if (options.keepEditorContent) {
+    title.textContent = `SCENE ${currentBank + 1}`;
+    loadAllSlotsForCurrentBank();
+    updateBankDots();
+    setActiveSlot(0, false);
+  } else {
+    loadAllSlots();
+  }
 
   // Flash the active bank dot for visual feedback
   function flashActiveBankDot(bankIndex) {

@@ -5,6 +5,21 @@ import { createSlotsPanel } from "../SlotsPanel.js";
 import { createStatsPanel } from "../StatsPanel.js";
 import { createCodeMirrorEditor } from "../utils/CodeMirrorEditor.js";
 import { loadPanelPosition, savePanelPosition } from "../utils/PanelStorage.js";
+import { createEventBus } from "./core/EventBus.js";
+import { createPluginHost } from "./core/PluginHost.js";
+import { createSafeStorage } from "./core/Storage.js";
+import { notify, notifyError, notifySuccess } from "./core/notify.js";
+import { createAudioWatchdogPlugin } from "./plugins/AudioWatchdogPlugin.js";
+import { createUrlSharePlugin, readSketchFromHash } from "./plugins/UrlSharePlugin.js";
+
+// Shared application services: safe storage (never throws on quota errors or
+// in private mode) and the event bus that panels and plugins communicate through.
+const storage = createSafeStorage({
+  onWriteError: () => {
+    notifyError("Storage is full — changes may not persist. Export your banks and clear space.");
+  },
+});
+const events = createEventBus();
 
 // Helper function to debounce events
 function debounce(func, wait) {
@@ -526,6 +541,8 @@ function createInfoPanel() {
   // Define shortcuts
   const shortcuts = [
     { keys: "Ctrl/⌘ + `", action: "Toggle UI visibility" },
+    { keys: "Esc", action: "Bring back hidden UI" },
+    { keys: "Alt/⌥ + U", action: "Copy sketch as shareable URL" },
     { keys: "Ctrl/⌘ + Enter", action: "Run code" },
     { keys: "Ctrl/⌘ + S", action: "Save code" },
     { keys: "Ctrl/⌘ + Y", action: "Toggle Auto Run" },
@@ -876,51 +893,31 @@ async function runCode(editor, hydra) {
   }
 }
 
-// Toggle editor and panel visibility
-function toggleEditor() {
+// Show or hide the editor and all panels. Uses the visibility property to
+// preserve layout. This is the single source of truth for UI visibility —
+// used by the toggle button, the keyboard shortcut and startup restore.
+function setUiVisibility(visible) {
   const editorContainer = document.getElementById("editor-container");
   const statsPanelElement = document.querySelector(".stats-panel");
   const slotsPanelElement = document.querySelector(".slots-panel");
   const docPanelElement = document.querySelector(".doc-panel");
   const xyPadPanelElement = document.querySelector(".xy-pad-panel");
 
-  // Get visibility states from localStorage
-  const isVisible = localStorage.getItem("hydractrl-ui-visible") !== "false";
-  const xyPadVisible = localStorage.getItem("hydractrl-xy-pad-visible") === "true";
+  const xyPadVisible = storage.get("hydractrl-xy-pad-visible") === "true";
+  const visibility = visible ? "visible" : "hidden";
 
-  if (isVisible) {
-    // Hide the editor and panels using visibility property to preserve layout
-    editorContainer.style.visibility = "hidden";
+  if (editorContainer) editorContainer.style.visibility = visibility;
+  if (statsPanelElement) statsPanelElement.style.visibility = visibility;
+  if (slotsPanelElement) slotsPanelElement.style.visibility = visibility;
+  if (docPanelElement) docPanelElement.style.visibility = visibility;
+  // Only touch the XY pad if it's supposed to be visible
+  if (xyPadPanelElement && xyPadVisible) xyPadPanelElement.style.visibility = visibility;
 
-    // Hide all panels if they exist
-    if (statsPanelElement) statsPanelElement.style.visibility = "hidden";
-    if (slotsPanelElement) slotsPanelElement.style.visibility = "hidden";
-    if (docPanelElement) docPanelElement.style.visibility = "hidden";
-    // Only hide XY pad if it's supposed to be visible
-    if (xyPadPanelElement && xyPadVisible) xyPadPanelElement.style.visibility = "hidden";
+  document.body.classList.toggle("ui-hidden", !visible);
+  storage.set("hydractrl-ui-visible", visible ? "true" : "false");
+  events.emit("ui:visibility", { visible });
 
-    // Add a CSS class to the body to indicate hidden UI
-    document.body.classList.add("ui-hidden");
-
-    // Store the new visibility state
-    localStorage.setItem("hydractrl-ui-visible", "false");
-  } else {
-    // Show the editor and panels
-    editorContainer.style.visibility = "visible";
-
-    // Show all panels if they exist
-    if (statsPanelElement) statsPanelElement.style.visibility = "visible";
-    if (slotsPanelElement) slotsPanelElement.style.visibility = "visible";
-    if (docPanelElement) docPanelElement.style.visibility = "visible";
-    // Only show XY pad if it's supposed to be visible
-    if (xyPadPanelElement && xyPadVisible) xyPadPanelElement.style.visibility = "visible";
-
-    // Remove the hidden UI class
-    document.body.classList.remove("ui-hidden");
-
-    // Store the new visibility state
-    localStorage.setItem("hydractrl-ui-visible", "true");
-
+  if (visible) {
     // Focus the editor and trigger resize after showing
     setTimeout(() => {
       if (window._editorProxy) {
@@ -932,10 +929,16 @@ function toggleEditor() {
   }
 }
 
+// Toggle editor and panel visibility
+function toggleEditor() {
+  const isVisible = storage.get("hydractrl-ui-visible") !== "false";
+  setUiVisibility(!isVisible);
+}
+
 // Save code to local storage
 function saveCode(editor) {
   const code = editor.state.doc.toString();
-  localStorage.setItem("hydractrl-code", code);
+  storage.set("hydractrl-code", code);
 }
 
 // Load code from local storage
@@ -999,14 +1002,15 @@ async function importDefaultScenesIfEmpty() {
                 // Decode base64 code and handle non-Latin1 characters
                 const decodedCode = decodeURIComponent(atob(slot.code));
 
-                // Save to localStorage using the same key format as SlotsPanel
+                // Save using the same key format as SlotsPanel; storage.set is
+                // quota-safe so a full store can't abort the whole import
                 const storageKey = getStorageKey(bankIndex, slot.slotIndex);
-                localStorage.setItem(storageKey, decodedCode);
+                storage.set(storageKey, decodedCode);
 
                 // Save thumbnail if available in the imported data
                 if (slot.thumbnail) {
-                  localStorage.setItem(`${storageKey}-thumbnail`, slot.thumbnail);
-                  localStorage.setItem(`${storageKey}-thumbnail-timestamp`, Date.now());
+                  storage.set(`${storageKey}-thumbnail`, slot.thumbnail);
+                  storage.set(`${storageKey}-thumbnail-timestamp`, Date.now());
                 }
               } catch (decodeError) {
                 console.error("Error decoding slot data:", decodeError);
@@ -1016,20 +1020,7 @@ async function importDefaultScenesIfEmpty() {
         }
       });
 
-      // Show notification
-      const notification = document.createElement("div");
-      notification.className = "saved-notification";
-      notification.textContent = "Default scenes imported successfully!";
-      document.body.appendChild(notification);
-
-      setTimeout(() => {
-        notification.classList.add("fade-out");
-        setTimeout(() => {
-          if (notification.parentNode) {
-            document.body.removeChild(notification);
-          }
-        }, 500);
-      }, 2000);
+      notify("Default scenes imported successfully!");
 
       return true;
     } catch (error) {
@@ -1193,25 +1184,11 @@ async function init() {
     const editor = initEditor(); // No longer async
     const hydra = await initHydra();
 
-    // Apply UI visibility state from localStorage right after panels are created
+    // Apply UI visibility state from localStorage right after panels are created.
+    // Only applies when explicitly hidden, so first-time users see the UI.
     const applyUiVisibility = () => {
-      const isVisible = localStorage.getItem("hydractrl-ui-visible");
-
-      // Only apply if explicitly set to false (hidden)
-      if (isVisible === "false") {
-        const editorContainer = document.getElementById("editor-container");
-        const statsPanelElement = document.querySelector(".stats-panel");
-        const slotsPanelElement = document.querySelector(".slots-panel");
-        const docPanelElement = document.querySelector(".doc-panel");
-
-        // Hide all UI elements using visibility to preserve layout
-        if (editorContainer) editorContainer.style.visibility = "hidden";
-        if (statsPanelElement) statsPanelElement.style.visibility = "hidden";
-        if (slotsPanelElement) statsPanelElement.style.visibility = "hidden";
-        if (docPanelElement) docPanelElement.style.visibility = "hidden";
-
-        // Add a CSS class to the body to indicate hidden UI
-        document.body.classList.add("ui-hidden");
+      if (storage.get("hydractrl-ui-visible") === "false") {
+        setUiVisibility(false);
       }
     };
 
@@ -1289,19 +1266,7 @@ async function init() {
         }
       } else {
         // Show temporary "Saved!" notification only if not using slots
-        const savedNotification = document.createElement("div");
-        savedNotification.className = "saved-notification";
-        savedNotification.textContent = "Saved!";
-        document.body.appendChild(savedNotification);
-
-        setTimeout(() => {
-          savedNotification.classList.add("fade-out");
-          setTimeout(() => {
-            if (savedNotification.parentNode) {
-              document.body.removeChild(savedNotification);
-            }
-          }, 500);
-        }, 1500);
+        notify("Saved!", { duration: 1500 });
       }
 
       editor.focus(); // Return focus to editor after saving
@@ -1343,13 +1308,22 @@ async function init() {
         editor.focus();
       }
 
-      // Ctrl/Cmd+` (backtick) to toggle editor visibility
-      if (e.key === "`" && (e.ctrlKey || e.metaKey)) {
+      // Ctrl/Cmd+` (backtick) to toggle editor visibility.
+      // Match on the physical key (e.code) so this works on international
+      // keyboard layouts where "`" needs a modifier or doesn't exist (issue #7).
+      if (e.code === "Backquote" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         toggleEditor();
       }
 
-      if ((e.altKey || e.optKey) && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+      // Escape always brings the UI back when it is hidden, so there is a
+      // layout-independent way to recover from a hidden UI (issue #7).
+      if (e.key === "Escape" && document.body.classList.contains("ui-hidden")) {
+        e.preventDefault();
+        setUiVisibility(true);
+      }
+
+      if (e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
         // Hexadecimal keys 0-F (physical keys) to select slots 0-15
         let slotIndex = -1;
         const keyCode = e.code; // Use e.code for physical key identification
@@ -1391,7 +1365,7 @@ async function init() {
       }
 
       // Alt+Left/Right arrow keys to cycle between banks (only when no MIDI device is connected)
-      if ((e.altKey || e.optKey) && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+      if (e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
         if (e.code === "ArrowLeft" && window.slotsPanel && window.slotsPanel.cycleBank) {
           /* Use e.code */
           // Check if MIDI device is connected
@@ -1434,8 +1408,17 @@ async function init() {
       }
     });
 
-    // Load saved code if available
-    loadCode(editor);
+    // A sketch shared via URL (#sketch=...) takes precedence over saved code
+    // and is deliberately NOT persisted — the user's banks stay untouched
+    // unless they explicitly save (issue #5).
+    const urlSketch = readSketchFromHash(window.location.hash);
+    if (urlSketch !== null) {
+      editor.dispatch({ changes: { insert: urlSketch } });
+      notify("Loaded sketch from URL (not saved to your banks)");
+    } else {
+      // Load saved code if available
+      loadCode(editor);
+    }
 
     // Run initial code
     await runCodeOnAllInstances(editor, hydra);
@@ -1467,7 +1450,10 @@ async function init() {
     await importDefaultScenesIfEmpty();
 
     // Create the slots panel (always shown, but positioned differently on mobile)
-    const slotsPanel = createSlotsPanel(editor, hydra, runCode, isMobile);
+    const slotsPanel = createSlotsPanel(editor, hydra, runCode, isMobile, {
+      // Don't let slot 0 overwrite a sketch that was loaded from the URL
+      keepEditorContent: urlSketch !== null,
+    });
 
     if (!isMobile) {
       // Initialize MIDI support with the slots panel (desktop only)
@@ -1612,21 +1598,7 @@ async function init() {
           // Update UI
           window.updateMidiDeviceList();
 
-          // Show temporary notification
-          const notification = document.createElement("div");
-          notification.className = "saved-notification";
-          notification.style.backgroundColor = "rgba(80, 250, 123, 0.8)";
-          notification.textContent = `Synced nanoPAD Scene ${currentBank + 1} with Bank ${currentBank + 1}`;
-          document.body.appendChild(notification);
-
-          setTimeout(() => {
-            notification.classList.add("fade-out");
-            setTimeout(() => {
-              if (notification.parentNode) {
-                document.body.removeChild(notification);
-              }
-            }, 500);
-          }, 2000);
+          notifySuccess(`Synced nanoPAD Scene ${currentBank + 1} with Bank ${currentBank + 1}`);
         }
       });
 
@@ -1644,21 +1616,7 @@ async function init() {
           if (confirm("Reset MIDI mapping to defaults?")) {
             window.midiManager.resetToDefaultMapping();
 
-            // Show temporary notification
-            const notification = document.createElement("div");
-            notification.className = "saved-notification";
-            notification.style.backgroundColor = "rgba(255, 120, 120, 0.8)";
-            notification.textContent = "MIDI mapping reset to defaults";
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-              notification.classList.add("fade-out");
-              setTimeout(() => {
-                if (notification.parentNode) {
-                  document.body.removeChild(notification);
-                }
-              }, 500);
-            }, 2000);
+            notifyError("MIDI mapping reset to defaults", { duration: 2000 });
           }
         }
       });
@@ -1776,20 +1734,7 @@ async function init() {
       if (nextBank < currentBank) {
         console.log("Wrapping around to first bank, showing warning");
         // We're going back to bank 0 from bank 3, show a warning popup
-        const fullNotification = document.createElement("div");
-        fullNotification.className = "saved-notification";
-        fullNotification.style.backgroundColor = "var(--color-error)";
-        fullNotification.textContent = "All banks full! Can't advance further.";
-        document.body.appendChild(fullNotification);
-
-        setTimeout(() => {
-          fullNotification.classList.add("fade-out");
-          setTimeout(() => {
-            if (fullNotification.parentNode) {
-              document.body.removeChild(fullNotification);
-            }
-          }, 500);
-        }, 1500);
+        notifyError("All banks full! Can't advance further.", { duration: 1500 });
 
         // Don't advance to next slot in this case
         return false;
@@ -1836,6 +1781,38 @@ async function init() {
     window.showInfoPanel = showInfoPanel; // Expose info panel functions
     window.hideInfoPanel = hideInfoPanel;
     window.toggleEditor = toggleEditor; // Expose toggle editor function
+
+    // Set up the plugin system. Plugins receive a stable context object and
+    // communicate with the rest of the app through the event bus, so they
+    // can be added or removed without touching the core (see docs/PLUGINS.md).
+    const pluginContext = {
+      hydra,
+      editor,
+      runCode: () => runCodeOnAllInstances(editor, hydra),
+      events,
+      storage,
+      notify,
+      getPanels: () => ({
+        stats: statsPanel,
+        slots: slotsPanel,
+        doc: docPanel,
+        xyPad: window.xyPadPanel,
+      }),
+    };
+    const pluginHost = createPluginHost(pluginContext);
+    pluginHost.register(createUrlSharePlugin());
+    pluginHost.register(createAudioWatchdogPlugin());
+    pluginHost.init();
+
+    // Public extension point: external code (console, userscripts, future
+    // built-ins) can register plugins via window.hydractrl.
+    window.hydractrl = {
+      version: "0.0.1",
+      events,
+      storage,
+      plugins: pluginHost,
+      registerPlugin: (plugin) => pluginHost.register(plugin),
+    };
 
     // Check if we should show the info panel on startup (desktop only, mobile shows it automatically)
     if (!isMobile && localStorage.getItem("hydractrl-show-info-on-startup") !== "false") {
@@ -1953,6 +1930,11 @@ async function init() {
     }
   } catch (error) {
     console.error("Error initializing application:", error);
+    // Never fail silently into a black screen: tell the user what happened.
+    showErrorNotification(
+      `HYDRACTRL failed to start: ${error.message || error}. ` +
+        "Check the console for details (WebGL support is required).",
+    );
   }
 }
 
