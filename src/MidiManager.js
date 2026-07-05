@@ -8,7 +8,7 @@ let midiAccess = null;
 let activeDevice = null;
 let isConnected = false;
 let xyPadPanel = null;
-let xyPadValues = { x: 0, y: 0 };
+const xyPadValues = { x: 0, y: 0 };
 
 export function createMidiManager(slotsPanel) {
   // Initialize global XY pad values
@@ -63,11 +63,9 @@ export function createMidiManager(slotsPanel) {
 
     console.log(
       "MIDI Debug Info: If your scene buttons aren't recognized, " +
-      "press them and check the console log to see their MIDI messages. " +
-      "Then you can add them to the supported patterns.",
+        "press them and check the console log to see their MIDI messages. " +
+        "Then you can add them to the supported patterns.",
     );
-
-
 
     return true;
   }
@@ -110,7 +108,7 @@ export function createMidiManager(slotsPanel) {
     isConnected = true;
 
     // Check if it's a nanoPAD or similar
-    isNanoPad = device.name.toLowerCase().includes('nanopad');
+    isNanoPad = device.name.toLowerCase().includes("nanopad");
     showMidiStatus(`Connected to ${device.name}`, false);
 
     console.log(`MIDI connected: ${activeDevice.name}`);
@@ -192,7 +190,7 @@ export function createMidiManager(slotsPanel) {
         }
 
         // Update XY pad panel if available
-        if (xyPadPanel && typeof xyPadPanel.updateFromMIDI === 'function') {
+        if (xyPadPanel && typeof xyPadPanel.updateFromMIDI === "function") {
           xyPadPanel.updateFromMIDI(xyPadValues.x, xyPadValues.y);
         }
 
@@ -249,7 +247,7 @@ export function createMidiManager(slotsPanel) {
             lastBankChange = now;
             handlePossibleSceneChange(sceneNumber);
           } else {
-            console.debug(`Throttling nanoPAD2 scene change to prevent XY pad interference`);
+            console.debug("Throttling nanoPAD2 scene change to prevent XY pad interference");
           }
         }
       }
@@ -627,14 +625,14 @@ export function createMidiManager(slotsPanel) {
     startLearnMode: (callback) => {
       isLearning = true;
       learnCallback = callback;
-      showMidiStatus('Press a pad to map it...', false);
+      showMidiStatus("Press a pad to map it...", false);
     },
 
     // Cancel MIDI learn mode
     cancelLearnMode: () => {
       isLearning = false;
       learnCallback = null;
-      showMidiStatus('MIDI learn cancelled', false);
+      showMidiStatus("MIDI learn cancelled", false);
     },
 
     // Check if we're in learn mode
@@ -644,7 +642,7 @@ export function createMidiManager(slotsPanel) {
     setXYPadPanel: (panel) => {
       xyPadPanel = panel;
       // Initialize with current values if they exist
-      if (panel && typeof panel.updateFromMIDI === 'function' && xyPadValues.x !== undefined) {
+      if (panel && typeof panel.updateFromMIDI === "function" && xyPadValues.x !== undefined) {
         panel.updateFromMIDI(xyPadValues.x, xyPadValues.y);
       }
     },

@@ -91,7 +91,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
 
     // Add hover effect
     dot.addEventListener("mouseover", () => {
-      const bank = parseInt(dot.dataset.bank);
+      const bank = Number.parseInt(dot.dataset.bank);
       if (bank !== currentBank) {
         // Highlight with a brighter version of its current color
         if (bankHasContent(bank)) {
@@ -159,8 +159,9 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
   const shortcutsLabel = document.createElement("div");
   shortcutsLabel.className = "shortcut";
   shortcutsLabel.style.marginLeft = "4px";
-  shortcutsLabel.innerHTML = "<span style='font-size: 10px; color: var(--color-text-secondary);'>Alt/⌥ + ←/→</span>";
-  
+  shortcutsLabel.innerHTML =
+    "<span style='font-size: 10px; color: var(--color-text-secondary);'>Alt/⌥ + ←/→</span>";
+
   dotsContainer.appendChild(shortcutsLabel);
   dotsContainer.appendChild(diceBtn);
 
@@ -185,7 +186,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
   exportBtn.style.cursor = "pointer";
   exportBtn.style.color = "white";
   exportBtn.style.fontWeight = "bold";
-  exportBtn.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M12 16.5v-9M8.5 11L12 7.5l3.5 3.5'/><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/></g></svg>"
+  exportBtn.innerHTML =
+    "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M12 16.5v-9M8.5 11L12 7.5l3.5 3.5'/><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/></g></svg>";
   // Create import button
   const importBtn = document.createElement("div");
   importBtn.className = "slots-import";
@@ -199,7 +201,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
   importBtn.style.cursor = "pointer";
   importBtn.style.color = "white";
   importBtn.style.fontWeight = "bold";
-  importBtn.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' style='transform: rotate(180deg);' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M12 16.5v-9M8.5 11L12 7.5l3.5 3.5'/><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/></g></svg>"
+  importBtn.innerHTML =
+    "<svg xmlns='http://www.w3.org/2000/svg' style='transform: rotate(180deg);' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M12 16.5v-9M8.5 11L12 7.5l3.5 3.5'/><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/></g></svg>";
 
   // Add icons to container
   iconsContainer.appendChild(exportBtn);
@@ -223,7 +226,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
   clearBtn.style.display = "flex";
   clearBtn.style.alignItems = "center";
   clearBtn.style.justifyContent = "center";
-  clearBtn.innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6zM15 9l-6 6m0-6l6 6'/></svg>"
+  clearBtn.innerHTML =
+    "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6zM15 9l-6 6m0-6l6 6'/></svg>";
 
   // Add hover effect
   clearBtn.addEventListener("mouseover", () => {
@@ -290,7 +294,9 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
     index.style.right = "4px";
     index.style.fontSize = "12px";
     index.style.fontWeight = "bold";
-    index.innerHTML = "<span style='font-size: 8px; margin-right: 2px;'>Alt/⌥ +</span>" + i.toString(16).toUpperCase();
+    index.innerHTML =
+      "<span style='font-size: 8px; margin-right: 2px;'>Alt/⌥ +</span>" +
+      i.toString(16).toUpperCase();
 
     // Thumbnail container for preview images
     const thumbnail = document.createElement("div");
@@ -376,7 +382,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
     const prevStorageKey = getStorageKey(currentBank, activeSlotIndex);
     const prevHasCode = localStorage.getItem(prevStorageKey);
     const prevThumbnail = localStorage.getItem(`${prevStorageKey}-thumbnail`);
-    
+
     if (prevThumbnail) {
       // Has thumbnail, use normal border
       slotElements[activeSlotIndex].style.border = "1px solid var(--color-bg-tertiary)";
@@ -397,7 +403,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
     // Load code from storage if requested
     if (loadContent) {
       await loadSlot(activeSlotIndex);
-      
+
       // Additional overlay update for mobile (in case the loadSlot update didn't work)
       if (window.codeOverlay) {
         setTimeout(() => {
@@ -487,7 +493,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
           mainTabButton.click();
         }
       }
-      
+
       // Load code into editor (this will be main code only)
       editor.dispatch({
         changes: { from: 0, to: editor.state.doc.length, insert: savedCode },
@@ -514,7 +520,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
     try {
       // Calculate total localStorage size
       let totalSize = 0;
-      let thumbnailKeys = [];
+      const thumbnailKeys = [];
 
       // Iterate through all localStorage keys
       for (let i = 0; i < localStorage.length; i++) {
@@ -526,11 +532,11 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
         totalSize += size;
 
         // Collect thumbnail keys for potential purging
-        if (key.includes('-thumbnail')) {
+        if (key.includes("-thumbnail")) {
           thumbnailKeys.push({
             key,
             size,
-            timeStamp: Number(localStorage.getItem(key + '-timestamp') || Date.now())
+            timeStamp: Number(localStorage.getItem(key + "-timestamp") || Date.now()),
           });
         }
       }
@@ -541,7 +547,9 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
       // If we're approaching the 5MB limit, start purging thumbnails
       // Starting with oldest ones first
       if (totalSizeMB > 4.5) {
-        console.warn(`LocalStorage usage high (${totalSizeMB.toFixed(2)}MB). Purging old thumbnails.`);
+        console.warn(
+          `LocalStorage usage high (${totalSizeMB.toFixed(2)}MB). Purging old thumbnails.`,
+        );
 
         // Sort thumbnails by timestamp (oldest first)
         thumbnailKeys.sort((a, b) => a.timeStamp - b.timeStamp);
@@ -549,7 +557,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
         // Purge thumbnails until we get below 4MB
         for (const item of thumbnailKeys) {
           localStorage.removeItem(item.key);
-          localStorage.removeItem(item.key + '-timestamp');
+          localStorage.removeItem(item.key + "-timestamp");
 
           totalSize -= item.size;
           const newSizeMB = totalSize / (1024 * 1024);
@@ -602,18 +610,33 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
           ctx.imageSmoothingQuality = "high";
 
           // Draw the main canvas scaled down to our tiny canvas
-          ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height,
-            0, 0, thumbnailSize, thumbnailSize);
+          ctx.drawImage(
+            canvas,
+            0,
+            0,
+            canvas.width,
+            canvas.height,
+            0,
+            0,
+            thumbnailSize,
+            thumbnailSize,
+          );
 
           // Create thumbnail image from the small canvas with very low quality
           const thumbnail = tmpCanvas.toDataURL("image/jpeg", 0.4); // Use JPEG with 40% quality for smaller size
 
           // Save thumbnail to localStorage with bank and slot index
           // We use the target indices here to ensure we're saving to the correct slot
-          localStorage.setItem(`${getStorageKey(targetBankIndex, targetSlotIndex)}-thumbnail`, thumbnail);
+          localStorage.setItem(
+            `${getStorageKey(targetBankIndex, targetSlotIndex)}-thumbnail`,
+            thumbnail,
+          );
 
           // Store timestamp for age-based purging
-          localStorage.setItem(`${getStorageKey(targetBankIndex, targetSlotIndex)}-thumbnail-timestamp`, Date.now());
+          localStorage.setItem(
+            `${getStorageKey(targetBankIndex, targetSlotIndex)}-thumbnail-timestamp`,
+            Date.now(),
+          );
 
           // Update the slot thumbnail if the target bank is visible
           if (targetBankIndex === currentBank) {
@@ -691,10 +714,16 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
   // Function to clear all slots
   function clearAllSlots() {
     // Create confirmation options
-    const options = ["Clear Current Bank", "Clear All Banks", "Clear All Thumbnails Only", "Cancel"];
+    const options = [
+      "Clear Current Bank",
+      "Clear All Banks",
+      "Clear All Thumbnails Only",
+      "Cancel",
+    ];
 
     // Show dialog with options
-    const message = "What would you like to clear?\n\n" +
+    const message =
+      "What would you like to clear?\n\n" +
       "1. Clear Current Bank - Removes all slots in the current bank\n" +
       "2. Clear All Banks - Removes all slots in all banks\n" +
       "3. Clear All Thumbnails Only - Keeps code but removes all thumbnails to save space";
@@ -712,7 +741,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
 
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.includes('-thumbnail')) {
+        if (key && key.includes("-thumbnail")) {
           localStorage.removeItem(key);
           thumbnailCount++;
         }
@@ -839,8 +868,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
   // Add window resize event listener to ensure panel stays on screen
   window.addEventListener("resize", () => {
     // Get current panel position
-    const left = parseInt(panel.style.left || "0");
-    const top = parseInt(panel.style.top || "0");
+    const left = Number.parseInt(panel.style.left || "0");
+    const top = Number.parseInt(panel.style.top || "0");
 
     // Ensure the panel stays within the viewport bounds
     const minVisiblePart = 100; // Minimum visible part in pixels
@@ -977,22 +1006,22 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
     try {
       // Generate random file number (0-29 for 30 files)
       const randomFileNumber = Math.floor(Math.random() * 30);
-      const fileName = `bank-${randomFileNumber.toString().padStart(2, '0')}.json`;
+      const fileName = `bank-${randomFileNumber.toString().padStart(2, "0")}.json`;
       const fileUrl = `/assets/banks/random/${fileName}`;
 
       console.log(`Loading random scenes from: ${fileName}`);
 
       // Fetch the random JSON file
       const response = await fetch(fileUrl);
-      
+
       if (!response.ok) {
         console.warn(`Failed to load ${fileName}, status: ${response.status}`);
         // Try a few more random files if the first one fails
         for (let attempts = 0; attempts < 5; attempts++) {
           const retryFileNumber = Math.floor(Math.random() * 30);
-          const retryFileName = `bank-${retryFileNumber.toString().padStart(2, '0')}.json`;
+          const retryFileName = `bank-${retryFileNumber.toString().padStart(2, "0")}.json`;
           const retryFileUrl = `/assets/banks/random/${retryFileName}`;
-          
+
           const retryResponse = await fetch(retryFileUrl);
           if (retryResponse.ok) {
             const scenesData = await retryResponse.json();
@@ -1000,15 +1029,14 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false)
             return;
           }
         }
-        throw new Error(`Could not load any random scenes after multiple attempts`);
+        throw new Error("Could not load any random scenes after multiple attempts");
       }
 
       const scenesData = await response.json();
       await processRandomScenes(scenesData, fileName);
-
     } catch (error) {
       console.error("Error loading random scenes:", error);
-      
+
       // Show error notification
       const notification = document.createElement("div");
       notification.className = "saved-notification";
@@ -1309,11 +1337,11 @@ function makeDraggable(element, handle, panelId) {
       const rect = element.getBoundingClientRect();
 
       // Calculate position based on right alignment
-      const rightOffset = parseInt(element.style.right || "0");
+      const rightOffset = Number.parseInt(element.style.right || "0");
       currentX = window.innerWidth - rect.width - rightOffset;
 
       // Calculate position based on bottom alignment
-      const bottomOffset = parseInt(element.style.bottom || "0");
+      const bottomOffset = Number.parseInt(element.style.bottom || "0");
       currentY = window.innerHeight - rect.height - bottomOffset;
 
       // Set explicit left and top position
@@ -1325,8 +1353,8 @@ function makeDraggable(element, handle, panelId) {
       element.style.right = "";
     } else {
       // Already positioned by left/top (from saved position or default)
-      currentX = parseInt(element.style.left || "0");
-      currentY = parseInt(element.style.top || "0");
+      currentX = Number.parseInt(element.style.left || "0");
+      currentY = Number.parseInt(element.style.top || "0");
     }
 
     // Ensure the panel stays within the viewport bounds
@@ -1376,8 +1404,8 @@ function makeDraggable(element, handle, panelId) {
     initialY = e.clientY;
 
     // Get current element position from inline style
-    currentX = parseInt(element.style.left || "0");
-    currentY = parseInt(element.style.top || "0");
+    currentX = Number.parseInt(element.style.left || "0");
+    currentY = Number.parseInt(element.style.top || "0");
 
     // Start dragging
     isDragging = true;
@@ -1416,8 +1444,8 @@ function makeDraggable(element, handle, panelId) {
     if (!isDragging) return;
 
     // Update current position with final offsets
-    currentX = parseInt(element.style.left || "0");
-    currentY = parseInt(element.style.top || "0");
+    currentX = Number.parseInt(element.style.left || "0");
+    currentY = Number.parseInt(element.style.top || "0");
 
     // Save position to localStorage if we have a panelId
     if (panelId) {

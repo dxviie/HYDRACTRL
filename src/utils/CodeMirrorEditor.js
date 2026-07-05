@@ -3,16 +3,16 @@
  * Uses CodeMirror 6 with JavaScript mode for syntax highlighting
  */
 
-import { EditorState, Compartment } from "@codemirror/state";
-import { EditorView, keymap, lineNumbers, highlightActiveLineGutter } from "@codemirror/view";
-import { history, defaultKeymap, historyKeymap, indentWithTab } from "@codemirror/commands";
+import { CompletionContext, autocompletion, startCompletion } from "@codemirror/autocomplete";
+import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
 import { javascript } from "@codemirror/lang-javascript";
+import { Compartment, EditorState } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
+import { EditorView, highlightActiveLineGutter, keymap, lineNumbers } from "@codemirror/view";
 import { dracula } from "@uiw/codemirror-theme-dracula";
-import { monokai } from "@uiw/codemirror-theme-monokai";
 import { eclipse } from "@uiw/codemirror-theme-eclipse";
+import { monokai } from "@uiw/codemirror-theme-monokai";
 import { solarizedDark } from "@uiw/codemirror-theme-solarized";
-import { autocompletion, CompletionContext, startCompletion } from "@codemirror/autocomplete";
 import hydraData from "../data/hydra-functions.json" assert { type: "json" };
 
 // Language compartment for JavaScript with Hydra extensions
@@ -61,12 +61,12 @@ const hydraFunctions = Object.fromEntries(
     name,
     {
       description: func.description,
-      params: func.params.map(param => 
-        param.default ? `${param.name} = ${param.default}` : param.name
+      params: func.params.map((param) =>
+        param.default ? `${param.name} = ${param.default}` : param.name,
       ),
-      example: func.example
-    }
-  ])
+      example: func.example,
+    },
+  ]),
 );
 
 // Add some P5 related functions that aren't in the JSON data
@@ -90,7 +90,7 @@ const p5Functions = {
   mouseMoved: {
     description: "P5 mouseMoved event function",
     params: [],
-  }
+  },
 };
 
 // Merge hydra functions with P5 functions
@@ -107,19 +107,17 @@ const hydraKeywords = Object.keys(hydraFunctions);
 function hydraCompletions(context) {
   // Check for function names
   const functionMatch = context.matchBefore(/\w*$/);
-  if (functionMatch.from == functionMatch.to && !context.explicit) {
+  if (functionMatch.from === functionMatch.to && !context.explicit) {
     return null;
   }
 
   // Generate completions for Hydra function names
   const matchText = functionMatch.text.toLowerCase();
   const completions = Object.keys(hydraFunctions)
-    .filter(keyword => keyword.toLowerCase().startsWith(matchText))
-    .map(keyword => {
+    .filter((keyword) => keyword.toLowerCase().startsWith(matchText))
+    .map((keyword) => {
       const funcData = hydraFunctions[keyword];
-      const paramInfo = funcData.params.length > 0
-        ? `(${funcData.params.join(", ")})`
-        : "()";
+      const paramInfo = funcData.params.length > 0 ? `(${funcData.params.join(", ")})` : "()";
 
       return {
         label: keyword,
@@ -127,31 +125,36 @@ function hydraCompletions(context) {
         detail: paramInfo,
         info: `${funcData.description}`,
         apply: keyword + "(", // Add opening parenthesis for function call
-        boost: 1
+        boost: 1,
       };
     });
 
   // Check for method chaining (like .color(), .rotate(), etc.)
   const methodMatch = context.matchBefore(/\.\w*$/);
-  if (methodMatch && methodMatch.from != methodMatch.to) {
+  if (methodMatch && methodMatch.from !== methodMatch.to) {
     const methodText = methodMatch.text.substring(1).toLowerCase(); // Remove the dot
     const methodCompletions = Object.keys(hydraFunctions)
-      .filter(keyword => {
+      .filter((keyword) => {
         // Use syntaxType from JSON data if available, otherwise use legacy exclusion list
         const funcData = hydraData.functions[keyword];
-        const isMethodOrChainable = funcData ? 
-          (funcData.syntaxType === "method" || funcData.syntaxType === "property") :
-          // Legacy fallback: exclude known source functions
-          !(keyword === "osc" || keyword === "noise" || keyword === "voronoi" || 
-            keyword === "shape" || keyword === "gradient" || keyword === "src" || keyword === "solid");
-        
+        const isMethodOrChainable = funcData
+          ? funcData.syntaxType === "method" || funcData.syntaxType === "property"
+          : // Legacy fallback: exclude known source functions
+            !(
+              keyword === "osc" ||
+              keyword === "noise" ||
+              keyword === "voronoi" ||
+              keyword === "shape" ||
+              keyword === "gradient" ||
+              keyword === "src" ||
+              keyword === "solid"
+            );
+
         return isMethodOrChainable && keyword.toLowerCase().startsWith(methodText);
       })
-      .map(keyword => {
+      .map((keyword) => {
         const funcData = hydraFunctions[keyword];
-        const paramInfo = funcData.params.length > 0
-          ? `(${funcData.params.join(", ")})`
-          : "()";
+        const paramInfo = funcData.params.length > 0 ? `(${funcData.params.join(", ")})` : "()";
 
         return {
           label: keyword,
@@ -159,7 +162,7 @@ function hydraCompletions(context) {
           detail: paramInfo,
           info: `${funcData.description} \n\nExample: ${funcData.example} `,
           apply: keyword + "(", // Add opening parenthesis for function call
-          boost: 1
+          boost: 1,
         };
       });
 
@@ -167,7 +170,7 @@ function hydraCompletions(context) {
       return {
         from: methodMatch.from + 1, // +1 to account for the dot
         options: methodCompletions,
-        validFor: /^\w*$/
+        validFor: /^\w*$/,
       };
     }
   }
@@ -177,7 +180,7 @@ function hydraCompletions(context) {
     return {
       from: functionMatch.from,
       options: completions,
-      validFor: /^\w*$/
+      validFor: /^\w*$/,
     };
   }
 
@@ -225,8 +228,8 @@ export function createCodeMirrorEditor(container, initialCode = "") {
       // Add Ctrl+Space for manual trigger of completion
       key: "Ctrl-Space",
       mac: "Cmd-Space",
-      run: startCompletion
-    }
+      run: startCompletion,
+    },
   ]);
 
   // Function to get the appropriate theme based on body class
@@ -239,7 +242,7 @@ export function createCodeMirrorEditor(container, initialCode = "") {
       }
     }
     // Default to the default theme if no matching class is found
-    return themeMapping["default"];
+    return themeMapping.default;
   }
 
   // Create initial editor state
@@ -264,8 +267,8 @@ export function createCodeMirrorEditor(container, initialCode = "") {
         activateOnTyping: true,
         defaultKeymap: true,
         icons: true,
-        closeOnBlur: true
-      })
+        closeOnBlur: true,
+      }),
     ],
   });
 

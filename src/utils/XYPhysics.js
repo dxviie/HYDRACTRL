@@ -15,14 +15,14 @@ export class XYPhysics {
     this.vy = 0;
 
     // Position history for velocity calculation
-    this.historySize = options.historySize ?? 5;  // Number of points to keep
+    this.historySize = options.historySize ?? 5; // Number of points to keep
     this.xHistory = [];
     this.yHistory = [];
     this.timeHistory = [];
 
     // Physics parameters (with defaults)
-    this.friction = options.friction ?? 0;  // Friction (0-1), higher means more friction
-    this.bounce = options.bounce ?? 1;     // Bounciness (0-1)
+    this.friction = options.friction ?? 0; // Friction (0-1), higher means more friction
+    this.bounce = options.bounce ?? 1; // Bounciness (0-1)
     this.velocityLimit = options.velocityLimit ?? 2000; // Max velocity to prevent instability
 
     // Animation frame handling
@@ -37,7 +37,7 @@ export class XYPhysics {
     const dt = deltaTime / 1000;
 
     // Apply friction (1 - friction to invert the behavior)
-    const frictionFactor = Math.pow(1 - this.friction, dt * 60); // Scale friction by framerate
+    const frictionFactor = (1 - this.friction) ** (dt * 60); // Scale friction by framerate
     this.vx *= frictionFactor;
     this.vy *= frictionFactor;
 

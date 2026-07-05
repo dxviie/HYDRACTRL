@@ -1,10 +1,10 @@
+import { createDocPanel } from "../DocPanel.js";
+import { createMidiManager } from "../MidiManager.js";
+import { createSlotsPanel } from "../SlotsPanel.js";
 // Import utilities
-import {createStatsPanel} from "../StatsPanel.js";
-import {createSlotsPanel} from "../SlotsPanel.js";
-import {createDocPanel} from "../DocPanel.js";
-import {createCodeMirrorEditor} from "../utils/CodeMirrorEditor.js";
-import {createMidiManager} from "../MidiManager.js";
-import {loadPanelPosition, savePanelPosition} from "../utils/PanelStorage.js";
+import { createStatsPanel } from "../StatsPanel.js";
+import { createCodeMirrorEditor } from "../utils/CodeMirrorEditor.js";
+import { loadPanelPosition, savePanelPosition } from "../utils/PanelStorage.js";
 
 // Helper function to debounce events
 function debounce(func, wait) {
@@ -39,11 +39,13 @@ function initEditor() {
   editorContainer.style.overflow = "auto";
 
   // Initialize tab state with persistent setup code
-  const savedSetupCode = localStorage.getItem("hydractrl-setup-code") || "// Setup code runs once before main code\n// Use this for audio settings, global variables, etc.\n// This only persists in your browser and will not be exported to JSON.\n\n";
-  
+  const savedSetupCode =
+    localStorage.getItem("hydractrl-setup-code") ||
+    "// Setup code runs once before main code\n// Use this for audio settings, global variables, etc.\n// This only persists in your browser and will not be exported to JSON.\n\n";
+
   const editorTabs = {
     main: { code: DEFAULT_CODE },
-    setup: { code: savedSetupCode }
+    setup: { code: savedSetupCode },
   };
   let currentTab = "main";
 
@@ -52,23 +54,23 @@ function initEditor() {
 
   // Add tab switching functionality
   const tabButtons = document.querySelectorAll(".editor-tab");
-  tabButtons.forEach(button => {
+  tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
       // Save current editor content
       editorTabs[currentTab].code = editor.getCode();
-      
+
       // If leaving setup tab, save to localStorage
       if (currentTab === "setup") {
         localStorage.setItem("hydractrl-setup-code", editor.getCode());
       }
-      
+
       // Switch to new tab
       currentTab = button.dataset.tab;
-      
+
       // Update active tab UI
-      tabButtons.forEach(btn => btn.classList.remove("active"));
+      tabButtons.forEach((btn) => btn.classList.remove("active"));
       button.classList.add("active");
-      
+
       // Load new tab content
       editor.setCode(editorTabs[currentTab].code);
       editor.focus();
@@ -90,12 +92,12 @@ function initEditor() {
   editor.getAllCode = () => {
     // Save current editor content first
     editorTabs[currentTab].code = editor.getCode();
-    
+
     // Always return setup + main code, regardless of current tab
     // This ensures setup always runs with the main sketch
     return {
       setup: editorTabs.setup.code,
-      main: editorTabs.main.code
+      main: editorTabs.main.code,
     };
   };
 
@@ -103,34 +105,32 @@ function initEditor() {
   editor.setAllCode = (setupCode, mainCode) => {
     editorTabs.setup.code = setupCode || "";
     editorTabs.main.code = mainCode || "";
-    
+
     // Update current editor content with the appropriate tab
     editor.setCode(editorTabs[currentTab].code);
   };
 
   // Make the editor draggable by the handle with position persistence
-  makeDraggable(
-    editorContainer,
-    document.getElementById("editor-handle"),
-    "editor-panel",
-  );
+  makeDraggable(editorContainer, document.getElementById("editor-handle"), "editor-panel");
 
   // Add a resize observer to save dimensions when resized
-  const resizeObserver = new ResizeObserver(debounce(() => {
-    // Skip saving if editor is being dragged to avoid conflicts
-    if (editorContainer.classList.contains("dragging")) return;
+  const resizeObserver = new ResizeObserver(
+    debounce(() => {
+      // Skip saving if editor is being dragged to avoid conflicts
+      if (editorContainer.classList.contains("dragging")) return;
 
-    // Get the position and dimensions
-    const position = {
-      left: parseInt(editorContainer.style.left || "0"),
-      top: parseInt(editorContainer.style.top || "0"),
-      width: editorContainer.offsetWidth,
-      height: editorContainer.offsetHeight,
-    };
+      // Get the position and dimensions
+      const position = {
+        left: Number.parseInt(editorContainer.style.left || "0"),
+        top: Number.parseInt(editorContainer.style.top || "0"),
+        width: editorContainer.offsetWidth,
+        height: editorContainer.offsetHeight,
+      };
 
-    // Save to localStorage
-    savePanelPosition("editor-panel", position);
-  }, 100));
+      // Save to localStorage
+      savePanelPosition("editor-panel", position);
+    }, 100),
+  );
 
   // Start observing the editor container
   resizeObserver.observe(editorContainer);
@@ -178,18 +178,26 @@ function isWebGLSupported() {
 function isMobileOrTablet() {
   // Check user agent for mobile indicators
   const userAgent = navigator.userAgent.toLowerCase();
-  const mobileKeywords = ['mobile', 'android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'];
-  const hasMobileKeyword = mobileKeywords.some(keyword => userAgent.includes(keyword));
-  
+  const mobileKeywords = [
+    "mobile",
+    "android",
+    "iphone",
+    "ipad",
+    "ipod",
+    "blackberry",
+    "windows phone",
+  ];
+  const hasMobileKeyword = mobileKeywords.some((keyword) => userAgent.includes(keyword));
+
   // Check screen size (typical mobile/tablet sizes)
   const isMobileScreen = window.innerWidth <= 1024 || window.innerHeight <= 768;
-  
+
   // Check for touch capability
-  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  
+  const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
   // Check device orientation API (common on mobile devices)
-  const hasOrientation = 'orientation' in window;
-  
+  const hasOrientation = "orientation" in window;
+
   // Return true if any mobile indicator is present
   return hasMobileKeyword || (isMobileScreen && hasTouch) || hasOrientation;
 }
@@ -205,7 +213,7 @@ function createCodeOverlay() {
   const textarea = document.createElement("textarea");
   textarea.readOnly = true;
   textarea.value = DEFAULT_CODE;
-  
+
   overlay.appendChild(textarea);
   document.body.appendChild(overlay);
 
@@ -229,7 +237,7 @@ function createCodeOverlay() {
   window.codeOverlay = {
     update: updateOverlay,
     toggle: toggleOverlay,
-    element: overlay
+    element: overlay,
   };
 
   return overlay;
@@ -290,8 +298,8 @@ async function initHydra() {
     }
 
     // Get or create the canvas element
-    let canvasContainer = document.getElementById("hydra-canvas");
-    let canvas = document.createElement("canvas");
+    const canvasContainer = document.getElementById("hydra-canvas");
+    const canvas = document.createElement("canvas");
     canvas.width = canvasContainer.clientWidth || 500;
     canvas.height = canvasContainer.clientHeight || 400;
     canvas.style.width = "100%";
@@ -388,7 +396,8 @@ function createInfoPanel() {
   panel.id = "info-panel";
   panel.className = "info-panel";
   panel.style.position = "fixed";
-  panel.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important";
+  panel.style.backgroundColor =
+    "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important";
   panel.style.borderRadius = "8px";
   panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
   panel.style.backdropFilter = "blur(var(--color-panel-blur))";
@@ -523,11 +532,11 @@ function createInfoPanel() {
     { keys: "Alt/⌥ + 0-9 / A-F", action: "Select slot 1 to 16 (HEX)" },
     { keys: "Alt/⌥ + ←/→", action: "Cycle between banks (only when no MIDI connected)" },
     { keys: "Alt/⌥ + X", action: "Export all slots" },
-    { keys: "Alt/⌥ + I", action: "Import slots file" }
+    { keys: "Alt/⌥ + I", action: "Import slots file" },
   ];
 
   // Add shortcuts to table
-  shortcuts.forEach(shortcut => {
+  shortcuts.forEach((shortcut) => {
     const row = document.createElement("tr");
     row.style.borderBottom = "1px solid var(--color-bg-tertiary)";
 
@@ -561,7 +570,8 @@ function createInfoPanel() {
   const showOnStartupCheckbox = document.createElement("input");
   showOnStartupCheckbox.type = "checkbox";
   showOnStartupCheckbox.id = "show-on-startup";
-  showOnStartupCheckbox.checked = localStorage.getItem("hydractrl-show-info-on-startup") !== "false"; // Default to true
+  showOnStartupCheckbox.checked =
+    localStorage.getItem("hydractrl-show-info-on-startup") !== "false"; // Default to true
 
   const showOnStartupLabel = document.createElement("label");
   showOnStartupLabel.htmlFor = "show-on-startup";
@@ -687,7 +697,7 @@ function makeDraggable(element, handle, panelId) {
   setTimeout(() => {
     // Load saved position or get current position
     const savedPosition = panelId ? loadPanelPosition(panelId) : null;
-    
+
     if (savedPosition) {
       currentX = savedPosition.left;
       currentY = savedPosition.top;
@@ -725,8 +735,8 @@ function makeDraggable(element, handle, panelId) {
     initialY = e.clientY;
 
     // Get current element position from inline style
-    currentX = parseInt(element.style.left || "0");
-    currentY = parseInt(element.style.top || "0");
+    currentX = Number.parseInt(element.style.left || "0");
+    currentY = Number.parseInt(element.style.top || "0");
 
     // Start dragging
     isDragging = true;
@@ -765,8 +775,8 @@ function makeDraggable(element, handle, panelId) {
     if (!isDragging) return;
 
     // Update current position with final offsets
-    currentX = parseInt(element.style.left || "0");
-    currentY = parseInt(element.style.top || "0");
+    currentX = Number.parseInt(element.style.left || "0");
+    currentY = Number.parseInt(element.style.top || "0");
 
     // Save position to localStorage if we have a panelId
     if (panelId) {
@@ -816,7 +826,7 @@ async function runCode(editor, hydra) {
 
     // Create an async function to execute the code with hydra in scope
     // This allows top-level await support
-    const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor;
+    const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
 
     // Combine setup and main code
     const codeToExecute = setupCode ? `${setupCode}\n\n${mainCode}` : mainCode;
@@ -935,7 +945,7 @@ function loadCode(editor) {
     editor.dispatch({
       changes: { from: 0, to: editor.state.doc.length, insert: savedCode },
     });
-    
+
     // Update mobile code overlay if available
     if (window.codeOverlay) {
       window.codeOverlay.update(savedCode);
@@ -966,7 +976,7 @@ async function importDefaultScenesIfEmpty() {
       console.log("No saved scenes found. Importing default extension pack...");
 
       // Fetch the default extension pack
-      const response = await fetch('/assets/banks/hydractrl-init-basic.json');
+      const response = await fetch("/assets/banks/hydractrl-init-basic.json");
       if (!response.ok) {
         throw new Error(`Failed to fetch default extension pack: ${response.status}`);
       }
@@ -1093,8 +1103,8 @@ async function initBreakoutHydra(breakoutWindow) {
     }
 
     // Get or create the canvas element in the breakout window
-    let canvasContainer = breakoutWindow.document.getElementById("hydra-canvas-breakout");
-    let canvas = breakoutWindow.document.createElement("canvas");
+    const canvasContainer = breakoutWindow.document.getElementById("hydra-canvas-breakout");
+    const canvas = breakoutWindow.document.createElement("canvas");
     canvas.width = breakoutWindow.innerWidth || 500;
     canvas.height = breakoutWindow.innerHeight || 400;
     canvas.style.width = "100%";
@@ -1120,15 +1130,14 @@ async function initBreakoutHydra(breakoutWindow) {
     });
 
     // Define loadScript function in breakout window
-    breakoutWindow.loadScript = function (url) {
-      return new Promise((resolve, reject) => {
+    breakoutWindow.loadScript = (url) =>
+      new Promise((resolve, reject) => {
         const script = breakoutWindow.document.createElement("script");
         script.src = url;
         script.onload = resolve;
         script.onerror = reject;
         breakoutWindow.document.head.appendChild(script);
       });
-    };
 
     // Copy existing global variables and functions to breakout window
     if (window.hydraText) {
@@ -1180,7 +1189,7 @@ async function runCodeOnAllInstances(editor, mainHydra) {
 async function init() {
   try {
     const isMobile = isMobileOrTablet();
-    
+
     const editor = initEditor(); // No longer async
     const hydra = await initHydra();
 
@@ -1346,19 +1355,20 @@ async function init() {
         const keyCode = e.code; // Use e.code for physical key identification
 
         // Handle Digit0 to Digit9 for slots 0-9
-        if (keyCode.startsWith('Digit')) {
-          const digit = parseInt(keyCode.substring(5)); // e.g., "Digit0" -> 0
-          if (!isNaN(digit) && digit >= 0 && digit <= 9) {
+        if (keyCode.startsWith("Digit")) {
+          const digit = Number.parseInt(keyCode.substring(5)); // e.g., "Digit0" -> 0
+          if (!Number.isNaN(digit) && digit >= 0 && digit <= 9) {
             slotIndex = digit; // Digit0 maps to slot 0, Digit1 to 1, ..., Digit9 to 9
           }
         }
         // Handle KeyA to KeyF for slots 10-15
-        else if (keyCode.startsWith('Key')) {
+        else if (keyCode.startsWith("Key")) {
           const keyChar = keyCode.substring(3); // e.g., "KeyA" -> "A"
-          if (keyChar.length === 1) { // Ensure it's a single character like 'A', not 'F1' etc.
+          if (keyChar.length === 1) {
+            // Ensure it's a single character like 'A', not 'F1' etc.
             const charCode = keyChar.charCodeAt(0);
-            if (charCode >= 'A'.charCodeAt(0) && charCode <= 'F'.charCodeAt(0)) {
-              slotIndex = charCode - 'A'.charCodeAt(0) + 10; // KeyA maps to slot 10
+            if (charCode >= "A".charCodeAt(0) && charCode <= "F".charCodeAt(0)) {
+              slotIndex = charCode - "A".charCodeAt(0) + 10; // KeyA maps to slot 10
             }
           }
         }
@@ -1382,7 +1392,8 @@ async function init() {
 
       // Alt+Left/Right arrow keys to cycle between banks (only when no MIDI device is connected)
       if ((e.altKey || e.optKey) && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-        if (e.code === "ArrowLeft" && window.slotsPanel && window.slotsPanel.cycleBank) { /* Use e.code */
+        if (e.code === "ArrowLeft" && window.slotsPanel && window.slotsPanel.cycleBank) {
+          /* Use e.code */
           // Check if MIDI device is connected
           const midiConnected =
             window.midiManager &&
@@ -1401,7 +1412,8 @@ async function init() {
           }
         }
 
-        if (e.code === "ArrowRight" && window.slotsPanel && window.slotsPanel.cycleBank) { /* Use e.code */
+        if (e.code === "ArrowRight" && window.slotsPanel && window.slotsPanel.cycleBank) {
+          /* Use e.code */
           // Check if MIDI device is connected
           const midiConnected =
             window.midiManager &&
@@ -1437,7 +1449,7 @@ async function init() {
 
     // Only create certain panels based on device type
     let statsPanel, docPanel, midiManager;
-    
+
     if (!isMobile) {
       // Create the stats panel using our simple implementation
       statsPanel = createStatsPanel();
@@ -1462,7 +1474,7 @@ async function init() {
       midiManager = createMidiManager(slotsPanel);
 
       // Create XY pad panel (desktop only)
-      import('./../XYPadPanel.js').then(module => {
+      import("./../XYPadPanel.js").then((module) => {
         const xyPadPanel = module.createXYPadPanel();
         window.xyPadPanel = xyPadPanel;
 
@@ -1470,7 +1482,7 @@ async function init() {
         midiManager.setXYPadPanel(xyPadPanel);
 
         // Set initial visibility based on localStorage
-        const xyPadVisible = localStorage.getItem('hydractrl-xy-pad-visible') === 'true';
+        const xyPadVisible = localStorage.getItem("hydractrl-xy-pad-visible") === "true";
         xyPadPanel.togglePanel(xyPadVisible);
       });
     }
@@ -1479,13 +1491,13 @@ async function init() {
     if (isMobile) {
       createMobileTopDiceButton();
       createCodeOverlay();
-      
+
       // Hide the editor container for mobile
       const editorContainer = document.getElementById("editor-container");
       if (editorContainer) {
         editorContainer.style.display = "none";
       }
-      
+
       // Show info panel immediately on mobile
       setTimeout(() => {
         showInfoPanel();
@@ -1503,10 +1515,10 @@ async function init() {
 
     // Create updateMidiDeviceList function at the global scope so it can be
     // called from multiple places in the code
-    window.updateMidiDeviceList = function () {
+    window.updateMidiDeviceList = () => {
       // Skip if on mobile or no stats panel
       if (isMobile || !statsPanel || !midiManager) return;
-      
+
       // Clear device container except for the buttons
       while (statsPanel.midi.deviceContainer.children.length > 2) {
         statsPanel.midi.deviceContainer.removeChild(statsPanel.midi.deviceContainer.lastChild);
@@ -1563,7 +1575,6 @@ async function init() {
         statsPanel.midi.deviceContainer.appendChild(deviceButton);
       });
     };
-
 
     // Update the stats panel with MIDI info if supported (desktop only)
     if (midiSupported && statsPanel) {
@@ -1716,19 +1727,23 @@ async function init() {
     }
 
     // Function to move to the next slot after saving
-    window.moveToNextSlot = function (savedSlotInfo) {
+    window.moveToNextSlot = (savedSlotInfo) => {
       if (!window.slotsPanel || !window.moveToNextSlotOnSave) return;
 
       console.log("moveToNextSlot called with:", savedSlotInfo);
 
       // Verify we have valid savedSlotInfo
-      if (!savedSlotInfo || typeof savedSlotInfo !== 'object' ||
-        savedSlotInfo.bank === undefined || savedSlotInfo.slot === undefined) {
+      if (
+        !savedSlotInfo ||
+        typeof savedSlotInfo !== "object" ||
+        savedSlotInfo.bank === undefined ||
+        savedSlotInfo.slot === undefined
+      ) {
         console.error("Invalid savedSlotInfo:", savedSlotInfo);
         // Fall back to current slot
         savedSlotInfo = {
           bank: window.slotsPanel.getBank(),
-          slot: window.slotsPanel.getActiveSlotIndex()
+          slot: window.slotsPanel.getActiveSlotIndex(),
         };
         console.log("Using fallback slot info:", savedSlotInfo);
       }
@@ -1741,13 +1756,13 @@ async function init() {
 
       // Validate inputs and calculate next slot index
       // If values are NaN, default to sensible values
-      if (isNaN(currentBank) || isNaN(currentSlot)) {
+      if (Number.isNaN(currentBank) || Number.isNaN(currentSlot)) {
         console.error("Invalid bank or slot (NaN detected):", currentBank, currentSlot);
         return false;
       }
 
       // Calculate next slot index
-      let nextSlot = (currentSlot + 1) % 16;
+      const nextSlot = (currentSlot + 1) % 16;
       let nextBank = currentBank;
 
       // If we're at the last slot of the current bank, go to the first slot of the next bank
@@ -1833,108 +1848,108 @@ async function init() {
     // Set up size buttons functionality (desktop only)
     if (!isMobile && statsPanel && statsPanel.display && statsPanel.display.sizeButtons) {
       statsPanel.display.sizeButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const width = parseInt(button.dataset.width);
-        const height = parseInt(button.dataset.height);
-        const label = button.dataset.label;
+        button.addEventListener("click", () => {
+          const width = Number.parseInt(button.dataset.width);
+          const height = Number.parseInt(button.dataset.height);
+          const label = button.dataset.label;
 
-        if (isNaN(width) || isNaN(height)) {
-          return;
-        }
-
-        // Store the selected size
-        statsPanel.display.selectedSize = { width, height, label };
-
-        // Update the selected size indicator
-        statsPanel.display.selectedSizeIndicator.textContent = `Selected: ${label}`;
-
-        // Enable the breakout button
-        statsPanel.display.breakoutButton.disabled = false;
-        statsPanel.display.breakoutButton.style.opacity = "1";
-        statsPanel.display.breakoutButton.title = `Open breakout window at ${width}×${height}`;
-
-        // Highlight the selected button and unhighlight others
-        statsPanel.display.sizeButtons.forEach((btn) => {
-          if (btn === button) {
-            btn.style.backgroundColor = "rgba(80, 250, 123, 0.3)";
-          } else {
-            btn.style.backgroundColor = "";
+          if (Number.isNaN(width) || Number.isNaN(height)) {
+            return;
           }
+
+          // Store the selected size
+          statsPanel.display.selectedSize = { width, height, label };
+
+          // Update the selected size indicator
+          statsPanel.display.selectedSizeIndicator.textContent = `Selected: ${label}`;
+
+          // Enable the breakout button
+          statsPanel.display.breakoutButton.disabled = false;
+          statsPanel.display.breakoutButton.style.opacity = "1";
+          statsPanel.display.breakoutButton.title = `Open breakout window at ${width}×${height}`;
+
+          // Highlight the selected button and unhighlight others
+          statsPanel.display.sizeButtons.forEach((btn) => {
+            if (btn === button) {
+              btn.style.backgroundColor = "rgba(80, 250, 123, 0.3)";
+            } else {
+              btn.style.backgroundColor = "";
+            }
+          });
         });
       });
-    });
 
       // Set up breakout button functionality (desktop only)
       statsPanel.display.breakoutButton.addEventListener("click", async () => {
-      // If window is already open, close it
-      if (window.breakoutWindow && !window.breakoutWindow.closed) {
-        window.breakoutWindow.close();
-        window.breakoutHydra = null;
-        window.breakoutWindow = null;
+        // If window is already open, close it
+        if (window.breakoutWindow && !window.breakoutWindow.closed) {
+          window.breakoutWindow.close();
+          window.breakoutHydra = null;
+          window.breakoutWindow = null;
 
-        // Reset button
-        statsPanel.display.breakoutButton.textContent = "Breakout View";
-        statsPanel.display.breakoutButton.style.backgroundColor = "";
-        return;
-      }
-
-      // Check if a size is selected
-      if (!statsPanel.display.selectedSize) {
-        showErrorNotification("Please select a window size first");
-        return;
-      }
-
-      const { width, height } = statsPanel.display.selectedSize;
-
-      // Open a new breakout window with the selected size
-      const breakoutWindow = openBreakoutWindow(width, height);
-      if (!breakoutWindow) {
-        return; // Error already shown by openBreakoutWindow
-      }
-
-      // Store reference to window
-      window.breakoutWindow = breakoutWindow;
-
-      try {
-        // Initialize Hydra in the breakout window
-        window.breakoutHydra = await initBreakoutHydra(breakoutWindow, hydra);
-
-        // Update the breakout window title to include size
-        const { label } = statsPanel.display.selectedSize;
-        breakoutWindow.document.title = `HYDRACTRL Breakout - ${label}`;
-
-        // Run the current code in the breakout window
-        await runCode(editor, window.breakoutHydra);
-
-        // Update button text and style
-        statsPanel.display.breakoutButton.textContent = "Close Breakout";
-        statsPanel.display.breakoutButton.style.backgroundColor = "rgba(255, 120, 120, 0.3)";
-
-        // Event handler for window close
-        window.breakoutWindow.addEventListener("beforeunload", () => {
           // Reset button
           statsPanel.display.breakoutButton.textContent = "Breakout View";
           statsPanel.display.breakoutButton.style.backgroundColor = "";
-
-          window.breakoutHydra = null;
-          window.breakoutWindow = null;
-        });
-      } catch (error) {
-        console.error("Error initializing breakout view:", error);
-        showErrorNotification(`Failed to initialize breakout view: ${error.message}`);
-
-        // Clean up on failure
-        if (window.breakoutWindow) {
-          window.breakoutWindow.close();
-          window.breakoutWindow = null;
+          return;
         }
-        window.breakoutHydra = null;
 
-        // Reset button
-        statsPanel.display.breakoutButton.textContent = "Breakout View";
-        statsPanel.display.breakoutButton.style.backgroundColor = "";
-      }
-    });
+        // Check if a size is selected
+        if (!statsPanel.display.selectedSize) {
+          showErrorNotification("Please select a window size first");
+          return;
+        }
+
+        const { width, height } = statsPanel.display.selectedSize;
+
+        // Open a new breakout window with the selected size
+        const breakoutWindow = openBreakoutWindow(width, height);
+        if (!breakoutWindow) {
+          return; // Error already shown by openBreakoutWindow
+        }
+
+        // Store reference to window
+        window.breakoutWindow = breakoutWindow;
+
+        try {
+          // Initialize Hydra in the breakout window
+          window.breakoutHydra = await initBreakoutHydra(breakoutWindow, hydra);
+
+          // Update the breakout window title to include size
+          const { label } = statsPanel.display.selectedSize;
+          breakoutWindow.document.title = `HYDRACTRL Breakout - ${label}`;
+
+          // Run the current code in the breakout window
+          await runCode(editor, window.breakoutHydra);
+
+          // Update button text and style
+          statsPanel.display.breakoutButton.textContent = "Close Breakout";
+          statsPanel.display.breakoutButton.style.backgroundColor = "rgba(255, 120, 120, 0.3)";
+
+          // Event handler for window close
+          window.breakoutWindow.addEventListener("beforeunload", () => {
+            // Reset button
+            statsPanel.display.breakoutButton.textContent = "Breakout View";
+            statsPanel.display.breakoutButton.style.backgroundColor = "";
+
+            window.breakoutHydra = null;
+            window.breakoutWindow = null;
+          });
+        } catch (error) {
+          console.error("Error initializing breakout view:", error);
+          showErrorNotification(`Failed to initialize breakout view: ${error.message}`);
+
+          // Clean up on failure
+          if (window.breakoutWindow) {
+            window.breakoutWindow.close();
+            window.breakoutWindow = null;
+          }
+          window.breakoutHydra = null;
+
+          // Reset button
+          statsPanel.display.breakoutButton.textContent = "Breakout View";
+          statsPanel.display.breakoutButton.style.backgroundColor = "";
+        }
+      });
     }
   } catch (error) {
     console.error("Error initializing application:", error);

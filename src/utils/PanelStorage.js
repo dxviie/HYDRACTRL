@@ -90,12 +90,12 @@ export function setupPanelPersistence(element, panelId, defaultPosition = {}, op
   if (options.skipSizeRestore) {
     // Use size from options, not from saved position
     if (options.width !== undefined) {
-      element.style.width = typeof options.width === 'number' ? 
-        options.width + "px" : options.width;
+      element.style.width =
+        typeof options.width === "number" ? options.width + "px" : options.width;
     }
     if (options.height !== undefined) {
-      element.style.height = typeof options.height === 'number' ? 
-        options.height + "px" : options.height;
+      element.style.height =
+        typeof options.height === "number" ? options.height + "px" : options.height;
     }
   } else {
     // Use saved size if available
@@ -120,8 +120,8 @@ export function setupPanelPersistence(element, panelId, defaultPosition = {}, op
   // Function to save current position and optionally size
   function savePosition() {
     const currentPosition = {
-      left: parseInt(element.style.left || "0"),
-      top: parseInt(element.style.top || "0")
+      left: Number.parseInt(element.style.left || "0"),
+      top: Number.parseInt(element.style.top || "0"),
     };
 
     // Only save size if not using skipSizeRestore
@@ -143,14 +143,14 @@ export function setupPanelPersistence(element, panelId, defaultPosition = {}, op
  * @returns {function} An enhanced makeDraggable function
  */
 export function enhanceMakeDraggable(makeDraggable) {
-  return function (element, handle, panelId) {
+  return (element, handle, panelId) => {
     // Keep track of the persistence controller
     let persistence = null;
 
     if (panelId) {
       const defaultPosition = {
-        left: parseInt(element.style.left || "20"),
-        top: parseInt(element.style.top || "20"),
+        left: Number.parseInt(element.style.left || "20"),
+        top: Number.parseInt(element.style.top || "20"),
         width: element.offsetWidth || "auto",
         height: element.offsetHeight || "auto",
       };

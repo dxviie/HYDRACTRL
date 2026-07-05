@@ -8,12 +8,37 @@
     "color": {
       "title": "Color",
       "color": "#CCFF99",
-      "functions": ["brightness", "contrast", "color", "colorama", "invert", "luma", "posterize", "saturate", "thresh", "hue", "r", "g", "b"]
+      "functions": [
+        "brightness",
+        "contrast",
+        "color",
+        "colorama",
+        "invert",
+        "luma",
+        "posterize",
+        "saturate",
+        "thresh",
+        "hue",
+        "r",
+        "g",
+        "b"
+      ]
     },
     "geometry": {
       "title": "Geometry",
       "color": "#FFEE99",
-      "functions": ["kaleid", "pixelate", "repeat", "repeatX", "repeatY", "rotate", "scale", "scroll", "scrollX", "scrollY"]
+      "functions": [
+        "kaleid",
+        "pixelate",
+        "repeat",
+        "repeatX",
+        "repeatY",
+        "rotate",
+        "scale",
+        "scroll",
+        "scrollX",
+        "scrollY"
+      ]
     },
     "blend": {
       "title": "Blend",
@@ -23,7 +48,19 @@
     "modulate": {
       "title": "Modulate",
       "color": "#99ffee",
-      "functions": ["modulate", "modulateHue", "modulateKaleid", "modulatePixelate", "modulateRepeat", "modulateRepeatX", "modulateRepeatY", "modulateRotate", "modulateScale", "modulateScrollX", "modulateScrollY"]
+      "functions": [
+        "modulate",
+        "modulateHue",
+        "modulateKaleid",
+        "modulatePixelate",
+        "modulateRepeat",
+        "modulateRepeatX",
+        "modulateRepeatY",
+        "modulateRotate",
+        "modulateScale",
+        "modulateScrollX",
+        "modulateScrollY"
+      ]
     },
     "external": {
       "title": "External",
@@ -33,7 +70,19 @@
     "settings": {
       "title": "Settings",
       "color": "#aa99ff",
-      "functions": ["render", "update", "setResolution", "hush", "setFunction", "speed", "bpm", "width", "height", "time", "mouse"]
+      "functions": [
+        "render",
+        "update",
+        "setResolution",
+        "hush",
+        "setFunction",
+        "speed",
+        "bpm",
+        "width",
+        "height",
+        "time",
+        "mouse"
+      ]
     },
     "array": {
       "title": "Array",
@@ -93,9 +142,7 @@
     "gradient": {
       "description": "Generate a color gradient",
       "example": "gradient(speed = 0).out()",
-      "params": [
-        { "name": "speed", "default": "0", "description": "Speed of gradient animation" }
-      ],
+      "params": [{ "name": "speed", "default": "0", "description": "Speed of gradient animation" }],
       "syntaxType": "source",
       "returnType": "texture"
     },
@@ -153,18 +200,14 @@
     "colorama": {
       "description": "Shift HSV values",
       "example": "osc().colorama(amount = 0.005).out()",
-      "params": [
-        { "name": "amount", "default": "0.005", "description": "Amount of color shift" }
-      ],
+      "params": [{ "name": "amount", "default": "0.005", "description": "Amount of color shift" }],
       "syntaxType": "method",
       "returnType": "texture"
     },
     "invert": {
       "description": "Invert colors",
       "example": "osc().invert(amount = 1).out()",
-      "params": [
-        { "name": "amount", "default": "1", "description": "Amount of color inversion" }
-      ],
+      "params": [{ "name": "amount", "default": "1", "description": "Amount of color inversion" }],
       "syntaxType": "method",
       "returnType": "texture"
     },
@@ -191,9 +234,7 @@
     "hue": {
       "description": "Adjust hue",
       "example": "osc().hue(amount = 0.4).out()",
-      "params": [
-        { "name": "amount", "default": "0.4", "description": "Amount of hue adjustment" }
-      ],
+      "params": [{ "name": "amount", "default": "0.4", "description": "Amount of hue adjustment" }],
       "syntaxType": "method",
       "returnType": "texture"
     },
@@ -375,27 +416,21 @@
     "diff": {
       "description": "Return absolute difference between textures",
       "example": "osc().diff(texture).out()",
-      "params": [
-        { "name": "texture", "description": "Texture to diff with" }
-      ],
+      "params": [{ "name": "texture", "description": "Texture to diff with" }],
       "syntaxType": "method",
       "returnType": "texture"
     },
     "layer": {
       "description": "Layer textures",
       "example": "osc().layer( texture ).out()",
-      "params": [
-        { "name": "texture", "description": "Texture to layer" }
-      ],
+      "params": [{ "name": "texture", "description": "Texture to layer" }],
       "syntaxType": "method",
       "returnType": "texture"
     },
     "mask": {
       "description": "Use one texture as alpha mask for another",
       "example": "osc().mask(texture).out()",
-      "params": [
-        { "name": "texture", "description": "Texture to use as mask" }
-      ],
+      "params": [{ "name": "texture", "description": "Texture to use as mask" }],
       "syntaxType": "method",
       "returnType": "texture"
     },
@@ -542,9 +577,7 @@
     "initCam": {
       "description": "Initialize webcam as an input source (s0, s1, etc.)",
       "example": "initCam()",
-      "params": [
-        { "name": "index", "default": "0", "description": "Camera index" }
-      ],
+      "params": [{ "name": "index", "default": "0", "description": "Camera index" }],
       "syntaxType": "function",
       "returnType": "void"
     },
@@ -558,27 +591,21 @@
     "initVideo": {
       "description": "Initialize video from URL as an input source",
       "example": "initVideo(url)",
-      "params": [
-        { "name": "url", "description": "Video URL" }
-      ],
+      "params": [{ "name": "url", "description": "Video URL" }],
       "syntaxType": "function",
       "returnType": "void"
     },
     "init": {
       "description": "Initialize video from URL as an input source",
       "example": "init({ src: canvas })",
-      "params": [
-        { "name": "options", "description": "Initialization options" }
-      ],
+      "params": [{ "name": "options", "description": "Initialization options" }],
       "syntaxType": "function",
       "returnType": "void"
     },
     "initImage": {
       "description": "Initialize image from URL as an input source",
       "example": "initImage(url)",
-      "params": [
-        { "name": "url", "description": "Image URL" }
-      ],
+      "params": [{ "name": "url", "description": "Image URL" }],
       "syntaxType": "function",
       "returnType": "void"
     },
@@ -595,7 +622,11 @@
       "description": "Render all output buffers",
       "example": "render(buffer = o0)",
       "params": [
-        { "name": "buffer", "default": "o0", "description": "Buffer to output to main display (o0, o1, o2, o3)" }
+        {
+          "name": "buffer",
+          "default": "o0",
+          "description": "Buffer to output to main display (o0, o1, o2, o3)"
+        }
       ],
       "syntaxType": "function",
       "returnType": "void"
@@ -627,27 +658,21 @@
     "setFunction": {
       "description": "Register a function in hydra",
       "example": "setFunction(options) - https://hydra.ojack.xyz/api/#functions/setFunction/0",
-      "params": [
-        { "name": "options", "description": "Options object" }
-      ],
+      "params": [{ "name": "options", "description": "Options object" }],
       "syntaxType": "function",
       "returnType": "void"
     },
     "speed": {
       "description": "Set speed of time",
       "example": "speed = 1",
-      "params": [
-        { "name": "speed", "description": "Speed of time" }
-      ],
+      "params": [{ "name": "speed", "description": "Speed of time" }],
       "syntaxType": "global",
       "returnType": "void"
     },
     "bpm": {
       "description": "Set BPM of time",
       "example": "bpm = 120",
-      "params": [
-        { "name": "bpm", "description": "BPM of time" }
-      ],
+      "params": [{ "name": "bpm", "description": "BPM of time" }],
       "syntaxType": "global",
       "returnType": "void"
     },
@@ -682,36 +707,28 @@
     "fast": {
       "description": "Fast array",
       "example": "fast( speed = 1 )",
-      "params": [
-        { "name": "speed", "default": "1", "description": "Speed of array" }
-      ],
+      "params": [{ "name": "speed", "default": "1", "description": "Speed of array" }],
       "syntaxType": "method",
       "returnType": "array"
     },
     "smooth": {
       "description": "Smooth array",
       "example": "smooth( speed = 1 )",
-      "params": [
-        { "name": "speed", "default": "1", "description": "Speed of array" }
-      ],
+      "params": [{ "name": "speed", "default": "1", "description": "Speed of array" }],
       "syntaxType": "method",
       "returnType": "array"
     },
     "ease": {
       "description": "Ease array",
       "example": "ease( ease = 'linear' )",
-      "params": [
-        { "name": "ease", "default": "linear", "description": "Easing function" }
-      ],
+      "params": [{ "name": "ease", "default": "linear", "description": "Easing function" }],
       "syntaxType": "method",
       "returnType": "array"
     },
     "offset": {
       "description": "Offset array",
       "example": "offset( offset = 0.5 )",
-      "params": [
-        { "name": "offset", "default": "0.5", "description": "Offset of array" }
-      ],
+      "params": [{ "name": "offset", "default": "0.5", "description": "Offset of array" }],
       "syntaxType": "method",
       "returnType": "array"
     },
@@ -735,27 +752,21 @@
     "setSmooth": {
       "description": "Set smoothness of FFT",
       "example": "a.setSmooth( smooth = 0.4 )",
-      "params": [
-        { "name": "smooth", "default": "0.4", "description": "Smoothness of FFT" }
-      ],
+      "params": [{ "name": "smooth", "default": "0.4", "description": "Smoothness of FFT" }],
       "syntaxType": "method",
       "returnType": "void"
     },
     "setCutoff": {
       "description": "Set cutoff of FFT",
       "example": "a.setCutoff(cutoff = 2)",
-      "params": [
-        { "name": "cutoff", "default": "2", "description": "Cutoff of FFT" }
-      ],
+      "params": [{ "name": "cutoff", "default": "2", "description": "Cutoff of FFT" }],
       "syntaxType": "method",
       "returnType": "void"
     },
     "setScale": {
       "description": "Set scale of FFT",
       "example": "a.setScale(scale = 10)",
-      "params": [
-        { "name": "scale", "default": "10", "description": "Scale of FFT" }
-      ],
+      "params": [{ "name": "scale", "default": "10", "description": "Scale of FFT" }],
       "syntaxType": "method",
       "returnType": "void"
     },
@@ -769,9 +780,7 @@
     "setBins": {
       "description": "Set number of FFT bins",
       "example": "a.setBins(bins = 4)",
-      "params": [
-        { "name": "bins", "default": "4", "description": "Number of FFT bins" }
-      ],
+      "params": [{ "name": "bins", "default": "4", "description": "Number of FFT bins" }],
       "syntaxType": "method",
       "returnType": "void"
     }
