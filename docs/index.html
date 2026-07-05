@@ -415,6 +415,25 @@
                             organization and collaboration.</p>
                     </div>
                 </div>
+                <div class="feature-card">
+                    <div>
+                        <i class="fas fa-link"></i>
+                        <h3>Share Sketches as URLs</h3>
+                        <p>Press <code>Alt/⌥ + U</code> to copy a link with your current sketch encoded right in the
+                            URL. Anyone opening it sees your sketch running instantly — without touching their own
+                            saved scenes. Perfect for sharing patches in chats and on socials.</p>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div>
+                        <i class="fas fa-puzzle-piece"></i>
+                        <h3>Plugin System</h3>
+                        <p>New features are built as plugins on a small core with an event bus and error isolation —
+                            a broken plugin can't take down a live set. Want to build your own? Check out the
+                            <a href="https://github.com/dxviie/HYDRACTRL/blob/main/docs/PLUGINS.md">plugin
+                                documentation</a>.</p>
+                    </div>
+                </div>
             </div>
         </div> <!-- Closes the container for the overview section -->
     </section> <!-- Closes the overview section -->
@@ -432,7 +451,11 @@
                 <tbody>
                     <tr>
                         <td><code>Ctrl/⌘ + `</code></td>
-                        <td>Toggle UI visibility</td>
+                        <td>Toggle UI visibility (works on any keyboard layout)</td>
+                    </tr>
+                    <tr>
+                        <td><code>Esc</code></td>
+                        <td>Bring back the hidden UI</td>
                     </tr>
                     <tr>
                         <td><code>Ctrl/⌘ + Enter</code></td>
@@ -443,16 +466,20 @@
                         <td>Save code to the active slot</td>
                     </tr>
                     <tr>
-                        <td><code>Ctrl/⌘ + y</code></td>
+                        <td><code>Ctrl/⌘ + Y</code></td>
                         <td>Toggle auto-run</td>
                     </tr>
                     <tr>
-                        <td><code>Alt/⌥ + 1-9</code></td>
-                        <td>Select slots 1-9 in the current bank</td>
+                        <td><code>Alt/⌥ + U</code></td>
+                        <td>Copy the current sketch as a shareable URL</td>
+                    </tr>
+                    <tr>
+                        <td><code>Alt/⌥ + 0-9 / A-F</code></td>
+                        <td>Select slot 1-16 (HEX) in the current bank</td>
                     </tr>
                     <tr>
                         <td><code>Alt/ ⌥ + ←</code> / <code>Alt/⌥ + →</code></td>
-                        <td>Cycle between banks</td>
+                        <td>Cycle between banks (when no MIDI device is connected)</td>
                     </tr>
                     <tr>
                         <td><code>Alt/⌥ + X</code></td>
@@ -496,6 +523,14 @@
                     <h3>Web MIDI API</h3>
                     <p>MIDI integration is implemented using the Web MIDI API, allowing connectivity with hardware
                         controllers for tactile control during performances.</p>
+                </div>
+
+                <div class="credit-item">
+                    <h3>Plugin System</h3>
+                    <p>Features like URL sharing and the audio watchdog are plugins on a small, error-isolated core.
+                        Build your own with the <a
+                            href="https://github.com/dxviie/HYDRACTRL/blob/main/docs/PLUGINS.md">plugin
+                            documentation</a>.</p>
                 </div>
             </div>
         </div>
