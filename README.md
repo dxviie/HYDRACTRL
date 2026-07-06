@@ -88,8 +88,10 @@ saved banks — nothing is persisted unless they explicitly save it.
 
 New features are built as plugins on a small plugin system with an event bus,
 quota-safe storage and error isolation — a broken plugin can't take down a live
-set. The built-in URL sketch sharing and audio watchdog are the first two
-plugins (see `src/client/plugins/`).
+set. Much of the app itself runs as built-in plugins (see
+`src/client/plugins/`): URL sketch sharing, the audio watchdog, the info
+panel, auto-run, slot advance on save, the breakout view, the MIDI device UI
+and the mobile UI.
 
 Want to implement your own? **[Read the plugin documentation](./docs/PLUGINS.md)** —
 it covers the plugin shape, the context object you get, and the events you can
