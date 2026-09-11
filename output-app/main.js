@@ -1,11 +1,11 @@
 /**
  * HYDRACTRL output spike (phase 0).
  *
- * Renders a HYDRACTRL page offscreen using Electron's GPU shared-texture mode and
- * publishes every frame as a Syphon server (macOS) or Spout sender (Windows) via
- * @napolab/texture-bridge. No HYDRACTRL changes are needed: the page is loaded
- * from the running Bun server and the sketch travels in the URL fragment, the
- * same way Alt/Opt+U share links work.
+ * Renders HYDRACTRL's chrome-less /output page offscreen using Electron's GPU
+ * shared-texture mode and publishes every frame as a Syphon server (macOS) or
+ * Spout sender (Windows) via @napolab/texture-bridge. The page follows the
+ * HYDRACTRL UI live over the server's output socket; a sketch file can be
+ * passed in the URL fragment instead, the same way Alt/Opt+U share links work.
  *
  * Configuration is read from environment variables, see README.md.
  */
@@ -18,8 +18,12 @@ import { app } from "electron";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
+// Let the page's AudioContext start without a user gesture, so hydra's
+// microphone analysis (a.fft) works in the offscreen window.
+app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
+
 const config = {
-  baseUrl: process.env.HYDRACTRL_URL || "http://localhost:3000/",
+  baseUrl: process.env.HYDRACTRL_URL || "http://localhost:3000/output",
   sketchFile: process.env.SKETCH_FILE || "",
   name: process.env.OUTPUT_NAME || "HYDRACTRL",
   width: Number.parseInt(process.env.OUTPUT_WIDTH || "1920", 10),

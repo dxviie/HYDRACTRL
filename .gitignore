@@ -23,6 +23,7 @@ build/
 .cache/
 public/assets/index.css
 public/assets/index.js
+public/assets/output.js
 
 # IDEs and editors
 .vscode/
