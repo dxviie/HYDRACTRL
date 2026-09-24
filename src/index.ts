@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Elysia } from "elysia";
+import { createOutputHub } from "./server/outputHub";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -15,10 +16,37 @@ const publicDir = isExecutable
 
 // Load HTML and serve static assets
 const indexHtml = readFileSync(join(publicDir, "index.html"), "utf-8");
+const outputHtml = readFileSync(join(publicDir, "output.html"), "utf-8");
+
+// Fan-out between the UI and external render heads (see src/server/outputHub.ts)
+const outputHub = createOutputHub({ log: (message) => console.log(message) });
+
+// Port and bind address are overridable for hosts such as the desktop app:
+// PORT picks the port (default 3000), HOST the interface (default: all).
+const port = Number.parseInt(process.env.PORT || "", 10) || 3000;
+const hostname = process.env.HOST?.trim() || undefined;
+const listenOptions = hostname ? { port, hostname } : port;
 
 // Create Elysia server
 const app = new Elysia()
   .get("/", () => new Response(indexHtml, { headers: { "Content-Type": "text/html" } }))
+  // Chrome-less render head that mirrors the UI over the output socket
+  .get("/output", () => new Response(outputHtml, { headers: { "Content-Type": "text/html" } }))
+  // Lets the client tell this server apart from a static host
+  .get("/api/capabilities", () => ({ name: "hydractrl", outputSync: true }))
+  .ws("/ws/output", {
+    open(ws) {
+      outputHub.connect(ws.id, (text) => {
+        ws.raw.send(text);
+      });
+    },
+    message(ws, message) {
+      outputHub.message(ws.id, message);
+    },
+    close(ws) {
+      outputHub.disconnect(ws.id);
+    },
+  })
   .get("/assets/*", ({ path }) => {
     try {
       // Extract the part of the path after "/assets/"
@@ -56,7 +84,13 @@ const app = new Elysia()
   })
   .get("/*", ({ path }) => {
     // Skip if it's already handled by other routes
-    if (path === "/" || path.startsWith("/assets/") || path === "/styles.css") {
+    if (
+      path === "/" ||
+      path === "/output" ||
+      path.startsWith("/api/") ||
+      path.startsWith("/assets/") ||
+      path === "/styles.css"
+    ) {
       return;
     }
 
@@ -86,7 +120,7 @@ const app = new Elysia()
       return new Response("Not found", { status: 404 });
     }
   })
-  .listen(3000);
+  .listen(listenOptions);
 
 console.log(`
 ╔═══════════════════════════════════════════════════════════════╗
@@ -94,6 +128,7 @@ console.log(`
 ║                                                               ║
 ║  🎛️  Live visual performance tool powered by hydra-synth      ║
 ║  🌐  Server running at http://localhost:${app.server?.port}                  ║
+║  🎥  Output page at http://localhost:${app.server?.port}/output              ║
 ║  💫  Ready for visual synthesis                               ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝

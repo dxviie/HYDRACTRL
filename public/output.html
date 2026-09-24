@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HYDRACTRL Output</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/x-icon" href="/assets/favicon/favicon.ico">
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #hydra-canvas {
+      position: fixed;
+      inset: 0;
+      background: #000;
+    }
+
+    #hydra-canvas canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Only visible on the black screen before the first sketch arrives */
+    #output-status {
+      position: fixed;
+      left: 14px;
+      bottom: 12px;
+      z-index: 2;
+      font: 12px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      letter-spacing: 0.04em;
+      color: rgba(255, 255, 255, 0.45);
+      pointer-events: none;
+      user-select: none;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js" defer></script>
+</head>
+
+<body>
+  <div id="hydra-canvas"></div>
+  <div id="output-status">HYDRACTRL output · starting</div>
+  <script src="/assets/output.js" type="module"></script>
+</body>
+
+</html>

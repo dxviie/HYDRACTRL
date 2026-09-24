@@ -1,0 +1,77 @@
+# Packaging for the HYDRACTRL desktop app.
+#
+# The HYDRACTRL server is compiled into a single Bun binary for the target
+# platform by scripts/before-pack.cjs and shipped under resources/server next
+# to the web assets. Native texture-sharing modules stay outside the asar.
+appId: dev.d17e.hydractrl
+productName: HYDRACTRL
+copyright: Copyright © 2026 D17E · Built on hydra by Olivia Jack · AGPL-3.0
+artifactName: ${productName}-${version}-${os}-${arch}.${ext}
+
+directories:
+  output: dist
+  buildResources: resources
+
+files:
+  - package.json
+  - resources/icon.png
+  - src/**/*
+  - "!src/**/*.test.js"
+  - "!**/.DS_Store"
+
+asarUnpack:
+  - node_modules/@napolab/**
+
+extraResources:
+  - from: .server-staging/current
+    to: server
+
+beforePack: scripts/before-pack.cjs
+
+npmRebuild: false
+nodeGypRebuild: false
+buildDependenciesFromSource: false
+publish: null
+
+mac:
+  category: public.app-category.video
+  target:
+    - dmg
+    - zip
+  icon: resources/icon.png
+  darkModeSupport: true
+  minimumSystemVersion: "11.0"
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: resources/entitlements.mac.plist
+  entitlementsInherit: resources/entitlements.mac.inherit.plist
+  # Notarization is opt-in: pass -c.mac.notarize=true with Apple credentials
+  # in the environment (see README).
+  notarize: false
+  extendInfo:
+    NSMicrophoneUsageDescription: HYDRACTRL listens to the microphone for audio-reactive sketches (a.fft).
+    NSCameraUsageDescription: HYDRACTRL uses the camera when a sketch calls s0.initCam().
+    NSRequiresAquaSystemAppearance: false
+
+dmg:
+  sign: false
+
+win:
+  target:
+    - nsis
+  icon: resources/icon.png
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  shortcutName: HYDRACTRL
+  deleteAppDataOnUninstall: false
+
+# Linux is not a supported output platform (no Syphon/Spout); this target only
+# exists so the packaging pipeline can be exercised on Linux CI runners.
+linux:
+  target:
+    - dir
+  category: AudioVideo
+  icon: resources/icon.png

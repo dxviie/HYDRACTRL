@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+  <title>Output Settings</title>
+  <link rel="stylesheet" href="shared.css">
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <header class="titlebar">
+    <img class="logo" src="assets/logo.png" alt="">
+    <div class="titles">
+      <h1>HYDRACTRL</h1>
+      <p class="subtitle">Output settings</p>
+    </div>
+    <span class="saved" id="saved">Saved</span>
+    <span class="version" id="version"></span>
+  </header>
+
+  <main>
+    <section class="card status-card">
+      <div class="status-row">
+        <span class="dot" id="status-dot"></span>
+        <div class="status-text">
+          <div class="status-title" id="status-title">Output</div>
+          <div class="status-detail" id="status-detail"></div>
+        </div>
+      </div>
+      <div class="error-box" id="status-error" hidden></div>
+      <div class="actions">
+        <button class="primary" id="toggle">Start Output</button>
+        <button id="restart">Restart</button>
+      </div>
+    </section>
+
+    <section class="card" id="section-output">
+      <h2>Output</h2>
+      <div class="field">
+        <label for="name">Sender name</label>
+        <input id="name" type="text" maxlength="64" spellcheck="false" autocomplete="off">
+        <p class="hint">The name shown in Resolume, MadMapper, OBS and friends. Changing it restarts the output.</p>
+      </div>
+      <div class="field" id="section-resolution">
+        <label for="preset">Resolution</label>
+        <div class="row">
+          <select id="preset"></select>
+          <input id="width" type="number" min="16" max="8192" step="1" aria-label="Width">
+          <span class="times">×</span>
+          <input id="height" type="number" min="16" max="8192" step="1" aria-label="Height">
+        </div>
+        <p class="hint">Applied live, without interrupting the output.</p>
+      </div>
+      <div class="field" id="section-frameRate">
+        <label for="frameRate">Frame rate</label>
+        <select id="frameRate"></select>
+        <p class="hint">Changing it restarts the output.</p>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="preview">
+        <span class="track"></span>
+        <span class="label">Show preview window<small>A window with the exact frames being shared.</small></span>
+      </label>
+      <label class="switch">
+        <input type="checkbox" id="includeAlpha">
+        <span class="track"></span>
+        <span class="label">Include alpha channel<small>For overlay compositing. Sketches render on black, so leave this off unless you know you need it.</small></span>
+      </label>
+      <label class="switch">
+        <input type="checkbox" id="autoStart">
+        <span class="track"></span>
+        <span class="label">Start output when HYDRACTRL launches</span>
+      </label>
+    </section>
+
+    <section class="card" id="section-server">
+      <h2>Server</h2>
+      <div class="kv">
+        <span class="key">Address</span>
+        <code id="server-url">–</code>
+        <button class="small" id="copy-url">Copy</button>
+      </div>
+      <div class="kv">
+        <span class="key">Output page</span>
+        <code id="output-url">–</code>
+        <button class="small" id="open-output">Open in browser</button>
+      </div>
+      <p class="hint">Point an OBS browser source or a TouchDesigner Web Render TOP at the output page to mirror your set there too.</p>
+      <label class="switch">
+        <input type="checkbox" id="allowNetwork">
+        <span class="track"></span>
+        <span class="label">Allow other devices on this network to connect<small>For OBS or TouchDesigner on another computer. Takes effect the next time HYDRACTRL starts.</small></span>
+      </label>
+    </section>
+
+    <section class="card" id="section-diagnostics">
+      <h2>Diagnostics</h2>
+      <div class="kv">
+        <span class="key">Dropped frames</span>
+        <span id="dropped">0</span>
+      </div>
+      <div class="kv">
+        <span class="key">Server</span>
+        <span id="server-mode">–</span>
+      </div>
+      <div class="kv">
+        <span class="key">Log file</span>
+        <code id="log-path" class="path">–</code>
+        <button class="small" id="open-logs">Show</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="settings.js"></script>
+</body>
+</html>

@@ -11,12 +11,15 @@ import { createEventBus } from "./core/EventBus.js";
 import { createPluginHost } from "./core/PluginHost.js";
 import { createSafeStorage } from "./core/Storage.js";
 import { notify, notifyError } from "./core/notify.js";
+import { executeSketch } from "./core/sketchRunner.js";
 import { createAudioWatchdogPlugin } from "./plugins/AudioWatchdogPlugin.js";
 import { createAutoRunPlugin } from "./plugins/AutoRunPlugin.js";
 import { createBreakoutPlugin } from "./plugins/BreakoutPlugin.js";
+import { createDesktopOutputPlugin } from "./plugins/DesktopOutputPlugin.js";
 import { createInfoPanelPlugin } from "./plugins/InfoPanelPlugin.js";
 import { createMidiUiPlugin } from "./plugins/MidiUiPlugin.js";
 import { createMobileUiPlugin } from "./plugins/MobileUiPlugin.js";
+import { createOutputSyncPlugin } from "./plugins/OutputSyncPlugin.js";
 import { createSlotAdvancePlugin } from "./plugins/SlotAdvancePlugin.js";
 import { createUrlSharePlugin, readSketchFromHash } from "./plugins/UrlSharePlugin.js";
 
@@ -310,53 +313,22 @@ async function runCode(editor, hydra) {
     const existingErrors = document.querySelectorAll(".error-notification");
     existingErrors.forEach((el) => el.remove());
 
-    // Clear canvas by resetting default outputs
-    hydra.hush();
-
-    // Create an async function to execute the code with hydra in scope
-    // This allows top-level await support
-    const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
-
-    // Combine setup and main code
-    const codeToExecute = setupCode ? `${setupCode}\n\n${mainCode}` : mainCode;
-
-    const fn = new AsyncFunction(
-      "hydra",
-      `
-      // Set global h variable to hydra for convenience
-      window.h = hydra;
-      // Make hydra functions available in global scope
-      Object.keys(hydra).forEach(key => {
-        if (typeof hydra[key] === 'function' && key !== 'eval') {
-          window[key] = hydra[key].bind(hydra);
-        }
-      });
-      
-      // Execute the user's code
-      try {
-        ${codeToExecute}
-        return { success: true };
-      } catch(e) {
-        console.error('Error in Hydra code:', e);
-        return { 
-          success: false, 
-          error: e,
-          message: e.message || 'Unknown error'
-        };
-      }
-    `,
-    );
-
-    // Execute the function with hydra as parameter
-    const result = await fn(hydra);
+    // Shared with the output page so every render head runs sketches identically
+    const result = await executeSketch(hydra, { setup: setupCode, main: mainCode });
 
     // Check if there was an error
-    if (result && !result.success) {
+    if (!result.success) {
       showErrorNotification(result.message);
       return false;
     }
 
     console.log("Hydra code executed successfully");
+
+    // Let plugins react to a successful run on the main instance
+    // (the output-sync plugin mirrors it to external render heads)
+    if (hydra === window.mainHydra) {
+      events.emit("sketch:run", { setup: setupCode, main: mainCode });
+    }
     return true;
   } catch (error) {
     console.error("Error running Hydra code:", error);
@@ -825,6 +797,8 @@ async function init() {
     pluginHost.register(createAutoRunPlugin());
     pluginHost.register(createSlotAdvancePlugin());
     pluginHost.register(createBreakoutPlugin());
+    pluginHost.register(createOutputSyncPlugin());
+    pluginHost.register(createDesktopOutputPlugin());
     pluginHost.register(createMidiUiPlugin());
     pluginHost.register(createMobileUiPlugin());
     pluginHost.init();

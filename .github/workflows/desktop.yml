@@ -1,0 +1,90 @@
+name: Desktop app
+
+# Builds the packaged desktop app for macOS (Apple Silicon and Intel) and
+# Windows. Runs on demand and for desktop release tags. Artifacts are unsigned
+# unless signing credentials are configured as repository secrets.
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "desktop-v*"
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS (Apple Silicon)
+            os: macos-15
+            args: --mac --arm64
+          - name: macOS (Intel)
+            os: macos-15-intel
+            args: --mac --x64
+          - name: Windows (x64)
+            os: windows-latest
+            args: --win --x64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install repository dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install desktop dependencies
+        run: bun install --frozen-lockfile
+        working-directory: desktop
+
+      - name: Run desktop tests
+        run: bun test src scripts
+        working-directory: desktop
+
+      - name: Package
+        run: bunx electron-builder ${{ matrix.args }}
+        working-directory: desktop
+        env:
+          # Unsigned builds by default; set CSC_LINK / CSC_KEY_PASSWORD (and
+          # APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID with
+          # -c.mac.notarize=true) to sign and notarize.
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hydractrl-desktop-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            desktop/dist/*.dmg
+            desktop/dist/*.zip
+            desktop/dist/*.exe
+          if-no-files-found: error
+
+  smoke:
+    name: Linux smoke test (packaged app)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install repository dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install desktop dependencies
+        run: bun install --frozen-lockfile
+        working-directory: desktop
+
+      - name: Package a directory build
+        run: bunx electron-builder --linux --dir
+        working-directory: desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: Smoke test under Xvfb
+        run: xvfb-run -a --server-args="-screen 0 1600x1000x24" node scripts/smoke.mjs --software-gl
+        working-directory: desktop

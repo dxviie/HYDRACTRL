@@ -15,6 +15,7 @@ A performance wrapper around [hydra](https://hydra.ojack.xyz/) designed for live
 - **Audio reactivity** — Hydra's `a.fft` data out of the box, guarded by an audio watchdog that logs dropouts and auto-resumes suspended audio
 - **Built-in Hydra documentation** — always at hand while coding
 - **Breakout view** — send visuals to a second window at a precise size for projections or recordings ([OBS](https://obsproject.com/) and [NDI](https://ndi.video/) work great)
+- **Desktop app with Syphon/Spout output** — a standalone app that shares your visuals with Resolume, MadMapper, VDMX, TouchDesigner or OBS as a GPU texture, plus a chrome-less `/output` page for OBS and TouchDesigner browser sources (see below)
 - **Import/export banks** — save and share entire scene banks as JSON
 - **Share sketches as URLs** — `Alt/⌥ + U` copies a link with your sketch encoded in it
 - **Plugin system** — new features are isolated plugins; write your own (see below)
@@ -84,14 +85,44 @@ Press `Alt/⌥ + U` to copy a link with your current sketch encoded in the URL.
 Opening such a link loads and runs the sketch without touching the recipient's
 saved banks — nothing is persisted unless they explicitly save it.
 
+## External Outputs (Syphon, Spout, OBS, TouchDesigner)
+
+The quickest route to a Syphon or Spout source is the desktop app in
+`desktop/`: one app that runs the interface and shares the output. The pieces
+it builds on are available to any setup:
+
+The server exposes a chrome-less render head at
+[http://localhost:3000/output](http://localhost:3000/output): one full-window
+hydra instance, no panels. It follows the main UI live over a WebSocket: every
+successful run and the XY-pad values (`nanoX`/`nanoY`) are mirrored to every
+connected output, and an output that connects later gets the current sketch
+straight away. Audio reactivity (`a.fft`) comes from the output's own
+microphone input.
+
+Anything that can render a web page can be an output:
+
+- **HYDRACTRL Desktop** (`desktop/`) — the standalone app: the full interface
+  plus a **Syphon** (macOS) or **Spout** (Windows) output of your visuals with
+  zero GPU copies, controlled from the Output menu. See
+  [desktop/README.md](./desktop/README.md).
+- **OBS** — a Browser Source pointing at `/output`, then NDI, Spout or Syphon
+  output plugins. Launch OBS with `--enable-media-stream` for microphone access.
+- **TouchDesigner** — a Web Render TOP loading `/output`, then the NDI Out or
+  Syphon Spout Out TOP.
+- **A second browser window** on a projector, when a breakout window doesn't fit.
+
+The page also runs a `#sketch=` share link on load, so it works on its own or
+on a static host. The socket is open to anyone who can reach the server, like
+the rest of the app, so keep it on a trusted network during shows.
+
 ## Plugins
 
 New features are built as plugins on a small plugin system with an event bus,
 quota-safe storage and error isolation — a broken plugin can't take down a live
 set. Much of the app itself runs as built-in plugins (see
 `src/client/plugins/`): URL sketch sharing, the audio watchdog, the info
-panel, auto-run, slot advance on save, the breakout view, the MIDI device UI
-and the mobile UI.
+panel, auto-run, slot advance on save, the breakout view, output sync, the
+MIDI device UI and the mobile UI.
 
 Want to implement your own? **[Read the plugin documentation](./docs/PLUGINS.md)** —
 it covers the plugin shape, the context object you get, and the events you can

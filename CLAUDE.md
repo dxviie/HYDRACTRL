@@ -5,6 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 HYDRACTRL is a tool built around hydra-synth/hydra designed for live performances. It uses Bun for optimal performance and distribution, CodeMirror for code editing, and Elysia for serving the web application.
 
+The server also serves a chrome-less render head at `/output` that mirrors the UI over a WebSocket (`/ws/output`, hub in `src/server/outputHub.ts`, client entry `src/client/output.js`). The server honours `PORT` and `HOST` environment variables.
+
+`desktop/` is the standalone Electron app (own `package.json` and lockfile): it spawns the bundled server binary (or attaches to a running `bun dev`), shows the interface, and renders `/output` offscreen as a Syphon/Spout source via `@napolab/texture-bridge`. Main-process modules live in `desktop/src/main` with injected dependencies so `bun test` at the root covers them; `bun run lint` includes `desktop/src` and `desktop/scripts`. Packaging is `electron-builder` with a `beforePack` hook that compiles the server with `bun build --compile` (see `desktop/README.md`).
+
 ## Build Commands
 - Setup: `bun install`
 - Start dev: `bun dev` (watches for changes)
