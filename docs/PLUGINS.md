@@ -14,6 +14,7 @@ implementations:
 | `SlotAdvancePlugin` | `slot-advance` | "Move to next slot on save" behavior, wrapping across banks. |
 | `BreakoutPlugin` | `breakout-view` | Opens the visualization in a separate window at a chosen resolution. |
 | `OutputSyncPlugin` | `output-sync` | Mirrors every run and the XY-pad values to external outputs (`/output` pages) over the server's WebSocket. |
+| `DesktopOutputPlugin` | `desktop-output` | Inside the desktop app: Syphon/Spout output status, Start/Stop and a settings shortcut in the stats panel. No-op in a browser. |
 | `MidiUiPlugin` | `midi-ui` | MIDI device list, status and mapping controls in the stats panel. |
 | `MobileUiPlugin` | `mobile-ui` | Touch-device UI: read-only code overlay, dice button, hides the editor. |
 

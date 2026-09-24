@@ -15,7 +15,7 @@ A performance wrapper around [hydra](https://hydra.ojack.xyz/) designed for live
 - **Audio reactivity** — Hydra's `a.fft` data out of the box, guarded by an audio watchdog that logs dropouts and auto-resumes suspended audio
 - **Built-in Hydra documentation** — always at hand while coding
 - **Breakout view** — send visuals to a second window at a precise size for projections or recordings ([OBS](https://obsproject.com/) and [NDI](https://ndi.video/) work great)
-- **External outputs** — a chrome-less `/output` page mirrors your set live to OBS, TouchDesigner or the companion app that publishes it as a Syphon/Spout source (see below)
+- **Desktop app with Syphon/Spout output** — a standalone app that shares your visuals with Resolume, MadMapper, VDMX, TouchDesigner or OBS as a GPU texture, plus a chrome-less `/output` page for OBS and TouchDesigner browser sources (see below)
 - **Import/export banks** — save and share entire scene banks as JSON
 - **Share sketches as URLs** — `Alt/⌥ + U` copies a link with your sketch encoded in it
 - **Plugin system** — new features are isolated plugins; write your own (see below)
@@ -87,6 +87,10 @@ saved banks — nothing is persisted unless they explicitly save it.
 
 ## External Outputs (Syphon, Spout, OBS, TouchDesigner)
 
+The quickest route to a Syphon or Spout source is the desktop app in
+`desktop/`: one app that runs the interface and shares the output. The pieces
+it builds on are available to any setup:
+
 The server exposes a chrome-less render head at
 [http://localhost:3000/output](http://localhost:3000/output): one full-window
 hydra instance, no panels. It follows the main UI live over a WebSocket: every
@@ -97,9 +101,10 @@ microphone input.
 
 Anything that can render a web page can be an output:
 
-- **Companion output app** (`output-app/`) — an Electron app that renders
-  `/output` offscreen and publishes it as a **Syphon** (macOS) or **Spout**
-  (Windows) source with zero GPU copies. See [output-app/README.md](./output-app/README.md).
+- **HYDRACTRL Desktop** (`desktop/`) — the standalone app: the full interface
+  plus a **Syphon** (macOS) or **Spout** (Windows) output of your visuals with
+  zero GPU copies, controlled from the Output menu. See
+  [desktop/README.md](./desktop/README.md).
 - **OBS** — a Browser Source pointing at `/output`, then NDI, Spout or Syphon
   output plugins. Launch OBS with `--enable-media-stream` for microphone access.
 - **TouchDesigner** — a Web Render TOP loading `/output`, then the NDI Out or

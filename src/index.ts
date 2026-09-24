@@ -21,6 +21,12 @@ const outputHtml = readFileSync(join(publicDir, "output.html"), "utf-8");
 // Fan-out between the UI and external render heads (see src/server/outputHub.ts)
 const outputHub = createOutputHub({ log: (message) => console.log(message) });
 
+// Port and bind address are overridable for hosts such as the desktop app:
+// PORT picks the port (default 3000), HOST the interface (default: all).
+const port = Number.parseInt(process.env.PORT || "", 10) || 3000;
+const hostname = process.env.HOST?.trim() || undefined;
+const listenOptions = hostname ? { port, hostname } : port;
+
 // Create Elysia server
 const app = new Elysia()
   .get("/", () => new Response(indexHtml, { headers: { "Content-Type": "text/html" } }))
@@ -114,7 +120,7 @@ const app = new Elysia()
       return new Response("Not found", { status: 404 });
     }
   })
-  .listen(3000);
+  .listen(listenOptions);
 
 console.log(`
 ╔═══════════════════════════════════════════════════════════════╗

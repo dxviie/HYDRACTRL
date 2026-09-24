@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+  <title>HYDRACTRL</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .logo {
+      width: 96px;
+      height: 96px;
+      border-radius: 22px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-dim);
+      font-size: 14px;
+      min-height: 26px;
+    }
+
+    .error-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 520px;
+      width: 100%;
+      text-align: left;
+    }
+
+    .error-title {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    footer {
+      padding: 12px 16px;
+      color: var(--text-faint);
+      font-size: 11px;
+      text-align: center;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <img class="logo" src="assets/logo.png" alt="">
+    <h1>HYDRACTRL</h1>
+    <div class="status" id="status">
+      <div class="spinner" id="spinner"></div>
+      <span id="status-text">Starting…</span>
+    </div>
+    <div class="error-panel" id="error" hidden>
+      <div class="error-title" id="error-title">Something went wrong</div>
+      <div class="error-box" id="error-message"></div>
+      <p class="hint" id="error-hint"></p>
+      <div class="actions">
+        <button class="primary" id="retry">Retry</button>
+        <button id="logs">Show Logs</button>
+      </div>
+    </div>
+  </main>
+  <footer id="footer"></footer>
+  <script src="loading.js"></script>
+</body>
+</html>

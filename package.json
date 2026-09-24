@@ -13,7 +13,7 @@
     "copy:local": "node -e \"require('fs').cpSync('local-assets', 'hydractrl-public', {recursive: true})\"",
     "inject:analytics": "bun run scripts/inject-analytics.js",
     "preview": "bun run build && bun src/index.ts",
-    "lint": "biome check src/",
+    "lint": "biome check src/ desktop/src/ desktop/scripts/",
     "format": "biome format --write src/",
     "test": "bun test"
   },

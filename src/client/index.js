@@ -15,6 +15,7 @@ import { executeSketch } from "./core/sketchRunner.js";
 import { createAudioWatchdogPlugin } from "./plugins/AudioWatchdogPlugin.js";
 import { createAutoRunPlugin } from "./plugins/AutoRunPlugin.js";
 import { createBreakoutPlugin } from "./plugins/BreakoutPlugin.js";
+import { createDesktopOutputPlugin } from "./plugins/DesktopOutputPlugin.js";
 import { createInfoPanelPlugin } from "./plugins/InfoPanelPlugin.js";
 import { createMidiUiPlugin } from "./plugins/MidiUiPlugin.js";
 import { createMobileUiPlugin } from "./plugins/MobileUiPlugin.js";
@@ -797,6 +798,7 @@ async function init() {
     pluginHost.register(createSlotAdvancePlugin());
     pluginHost.register(createBreakoutPlugin());
     pluginHost.register(createOutputSyncPlugin());
+    pluginHost.register(createDesktopOutputPlugin());
     pluginHost.register(createMidiUiPlugin());
     pluginHost.register(createMobileUiPlugin());
     pluginHost.init();

@@ -1,0 +1,35 @@
+{
+  "name": "hydractrl-desktop",
+  "productName": "HYDRACTRL",
+  "version": "0.1.0",
+  "description": "HYDRACTRL desktop: the hydra live-coding performance tool with Syphon and Spout output",
+  "private": true,
+  "type": "module",
+  "main": "src/main/index.js",
+  "author": {
+    "name": "D17E",
+    "url": "https://www.d17e.dev"
+  },
+  "homepage": "https://dxviie.github.io/HYDRACTRL/",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "start": "electron .",
+    "test": "bun test src",
+    "build:server": "bun scripts/build-server.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win"
+  },
+  "dependencies": {
+    "@napolab/texture-bridge-renderer": "0.15.0"
+  },
+  "devDependencies": {
+    "electron": "44.3.0",
+    "electron-builder": "26.15.3"
+  },
+  "trustedDependencies": [
+    "electron"
+  ]
+}
