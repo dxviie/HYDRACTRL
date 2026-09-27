@@ -3,6 +3,7 @@ import { createMidiManager } from "../MidiManager.js";
 import { createSlotsPanel } from "../SlotsPanel.js";
 // Import utilities
 import { createStatsPanel } from "../StatsPanel.js";
+import { SKETCHES, sketchSource } from "../sketches.js";
 import { createCodeMirrorEditor } from "../utils/CodeMirrorEditor.js";
 import { isMobileOrTablet } from "../utils/DeviceDetection.js";
 import { makeDraggable } from "../utils/Draggable.js";
@@ -45,15 +46,13 @@ function debounce(func, wait) {
   };
 }
 
-// Default starter code for Hydra
-const DEFAULT_CODE = `// HYDRACTRL Sample
+// The editor's code until a scene loads: the first starter scene
+const DEFAULT_CODE = sketchSource(SKETCHES[0]);
 
-osc(10, 0.1, 1.2)
-  .color(0.5, 0.1, 0.9)
-  .rotate(0, 0.1)
-  .modulateScale(osc(3, 0.2))
-  .out()
-`;
+// The XY pad's values, for sketches that use them. The pad and MIDI take
+// over on desktop; elsewhere they stay centred instead of undefined.
+window.nanoX ??= 0.5;
+window.nanoY ??= 0.5;
 
 // Initialize a CodeMirror editor for Hydra
 function initEditor() {

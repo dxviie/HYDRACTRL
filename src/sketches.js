@@ -1,9 +1,11 @@
 /**
- * The hydra sketches behind the landing page. Each `code` is a hydra chain
- * without the final `.out()`: the background decides which output it renders
- * to, and shareCode() turns it into a complete sketch for the "open in
- * HYDRACTRL" link. `setup` runs once before the first frame; sketches that use
- * s0 all load the same image, so running every setup up front is safe.
+ * The starter scenes: the hydra sketches a fresh HYDRACTRL starts with (bank 1
+ * of public/assets/banks/hydractrl-init-basic.json) and that play behind the
+ * landing page. Each `code` is a hydra chain without the final `.out()`, so
+ * the landing backdrop can pick the output it renders to; sketchSource()
+ * turns a sketch into the complete program the editor shows. `setup` runs
+ * once before the first frame; the sketches that use s0 all load the same
+ * image, so the backdrop can run every setup up front.
  */
 
 const LOGO = "/assets/img/hydractrl-logo-bw.png";
@@ -36,9 +38,13 @@ export const SKETCHES = [
   },
   {
     name: "Pulse",
-    code: `osc(30, 0.004, 0)
-  .rotate(0.3, 0.004)
-  .mult(osc(30, 0.004, 0).rotate(-0.3, -0.004))
+    hint: "nanoX and nanoY follow the XY pad: drag it to reshape the pattern",
+    code: `osc(() => 18 + nanoX * 24, 0.004, 0)
+  .rotate(() => 0.1 + nanoY * 0.4, 0.004)
+  .mult(
+    osc(() => 18 + nanoX * 24, 0.004, 0)
+      .rotate(() => -0.1 - nanoY * 0.4, -0.004)
+  )
   .color(0.5, 0.25, 1)
   .mult(noise(1, 0.03).add(solid(0.4, 0.4, 0.4)))`,
   },
@@ -57,11 +63,10 @@ export const SKETCHES = [
 ];
 
 /** The sketch as a complete program, ready for the HYDRACTRL editor. */
-export function shareCode(sketch) {
-  const header = [
-    `// ${sketch.name}: one of the sketches behind hydractrl.d17e.dev`,
-    "// Change anything and press Ctrl/⌘ + Enter to run it",
-  ];
+export function sketchSource(sketch) {
+  const header = [`// ${sketch.name} · a HYDRACTRL starter scene`];
+  if (sketch.hint) header.push(`// ${sketch.hint}`);
+  header.push("// Change anything, then press Ctrl/⌘ + Enter to run it");
   const setup = sketch.setup ? [`${sketch.setup};`, ""] : [];
   return [...header, "", ...setup, sketch.code, "  .out()", ""].join("\n");
 }

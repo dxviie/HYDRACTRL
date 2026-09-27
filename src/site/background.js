@@ -24,6 +24,14 @@ export function backdropResolution(width, height, maxSize = DEFAULTS.maxSize) {
   return [Math.max(1, Math.round(w * scale)), Math.max(1, Math.round(h * scale))];
 }
 
+/**
+ * Where the backdrop's imaginary XY pad is at hydra time `time`: a slow drift
+ * around the centre, for sketches that read nanoX and nanoY.
+ */
+export function padPosition(time) {
+  return [0.5 + 0.28 * Math.sin(time * 0.17), 0.5 + 0.28 * Math.sin(time * 0.13 + 1.7)];
+}
+
 /** Smooth start and end for crossfades (0..1 in, 0..1 out). */
 export function easeInOut(t) {
   const x = Math.min(1, Math.max(0, t));
@@ -106,6 +114,12 @@ export function createBackground({
     hydra.eval(code);
   }
 
+  function movePad() {
+    const [x, y] = padPosition(hydra.synth.time);
+    win.nanoX = x;
+    win.nanoY = y;
+  }
+
   /** Render a sketch straight to the screen; `announce` tells the page it changed. */
   function show(index, announce = true) {
     run(`${usable[index].code}\n.out(o0)`);
@@ -160,6 +174,7 @@ export function createBackground({
     const dt = pending;
     pending = 0;
     apply(rotation.advance(dt));
+    movePad();
     try {
       hydra.tick(dt);
     } catch (error) {
@@ -171,6 +186,7 @@ export function createBackground({
   /** Render a single frame, for a paused or reduced-motion backdrop. */
   function still() {
     if (!hydra || dead) return;
+    movePad();
     try {
       hydra.tick(1);
     } catch (error) {
@@ -241,6 +257,7 @@ export function createBackground({
       win.speed = settings.speed;
       // Start somewhere into the sketches, so a still frame is not frame zero
       hydra.synth.time = settings.startTime ?? 6 + Math.random() * 30;
+      movePad();
       for (const sketch of sketches) {
         if (!sketch.setup) continue;
         try {

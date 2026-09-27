@@ -46,6 +46,14 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
   browser version, so anyone can open them.
 - The GitHub Page (dxviie.github.io/HYDRACTRL) redirects to
   hydractrl.d17e.dev.
+- New starter scenes: Tide, Chained, Pulse and Mint, the sketches behind the
+  landing page, replace the two old ones when you start with no saved scenes.
+  Pulse follows the XY pad. Scenes you already have are left alone.
+
+### Fixed
+
+- Sketches that use `nanoX` and `nanoY` also render on phones and tablets,
+  where there is no XY pad: both start at the centre (0.5).
 
 ## [1.1.0] - 2026-07-06
 

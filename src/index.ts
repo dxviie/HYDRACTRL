@@ -40,6 +40,8 @@ const CONTENT_TYPES: Record<string, string> = {
   ".ogg": "video/ogg",
   ".avi": "video/x-msvideo",
   ".mov": "video/quicktime",
+  ".woff2": "font/woff2",
+  ".woff": "font/woff",
 };
 
 function contentTypeFor(path: string) {

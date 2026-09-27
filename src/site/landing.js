@@ -6,6 +6,7 @@
  */
 import { encodeSketch } from "../client/plugins/UrlSharePlugin.js";
 import { RELEASES_URL } from "../project.js";
+import { SKETCHES, sketchSource } from "../sketches.js";
 import { createBackground } from "./background.js";
 import {
   DOWNLOADS,
@@ -16,7 +17,6 @@ import {
   summarizeRelease,
 } from "./downloads.js";
 import { detectArchitecture, detectPlatform } from "./platform.js";
-import { SKETCHES, shareCode } from "./sketches.js";
 
 const BACKDROP_KEY = "hydractrl-site-backdrop";
 const RELEASE_CACHE_KEY = "hydractrl-site-release";
@@ -136,7 +136,7 @@ function initBackdrop() {
     loadHydra: () => import("hydra-synth").then((module) => module.default || module),
     onSketch(sketch) {
       name.textContent = sketch.name;
-      open.href = `/app#sketch=${encodeSketch(shareCode(sketch))}`;
+      open.href = `/app#sketch=${encodeSketch(sketchSource(sketch))}`;
     },
     onReady() {
       canvas.classList.add("is-ready");

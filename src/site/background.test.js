@@ -5,6 +5,7 @@ import {
   createBackground,
   createRotation,
   easeInOut,
+  padPosition,
 } from "./background.js";
 
 describe("backdropResolution", () => {
@@ -25,6 +26,20 @@ describe("easeInOut", () => {
     expect(easeInOut(1)).toBe(1);
     expect(easeInOut(2)).toBe(1);
     expect(easeInOut(0.25)).toBeLessThan(0.25);
+  });
+});
+
+describe("padPosition", () => {
+  test("drifts around the centre of the pad, within its range", () => {
+    const positions = Array.from({ length: 400 }, (_value, i) => padPosition(i * 0.5));
+    for (const [x, y] of positions) {
+      expect(x).toBeGreaterThanOrEqual(0.2);
+      expect(x).toBeLessThanOrEqual(0.8);
+      expect(y).toBeGreaterThanOrEqual(0.2);
+      expect(y).toBeLessThanOrEqual(0.8);
+    }
+    expect(padPosition(0)[0]).toBe(0.5);
+    expect(padPosition(10)).not.toEqual(padPosition(20));
   });
 });
 
@@ -176,6 +191,8 @@ describe("createBackground", () => {
     expect(options.autoLoop).toBe(false);
     expect(options.detectAudio).toBe(false);
     expect(env.FakeHydra.instance.synth.time).toBe(5);
+    // The imaginary XY pad is in place before the first frame
+    expect([env.win.nanoX, env.win.nanoY]).toEqual(padPosition(5));
     expect(env.evaluated[0]).toBe('s0.initImage("/logo.png")');
     expect(env.evaluated).toContain("osc(1)\n.out(o0)");
     expect(shown).toEqual([["One", 0]]);
