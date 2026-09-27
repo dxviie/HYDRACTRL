@@ -5,6 +5,9 @@
 import { trackPointerDrag } from "./utils/Draggable.js";
 import { loadPanelPosition, savePanelPosition } from "./utils/PanelStorage.js";
 
+// White at some opacity, or the theme's contrast color on light themes (styles.css)
+const contrast = (alpha) => `rgba(var(--color-contrast-rgb, 255, 255, 255), ${alpha})`;
+
 export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false, options = {}) {
   // Load saved position or use defaults
   const savedPosition = loadPanelPosition("slots-panel");
@@ -30,13 +33,13 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   }
 
   panel.style.backgroundColor = "var(--color-bg-secondary)";
-  panel.style.borderRadius = "8px";
+  panel.style.borderRadius = "var(--panel-radius)";
   panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
   panel.style.backdropFilter = "blur(var(--color-panel-blur))";
   panel.style.zIndex = "100";
   panel.style.overflow = "hidden";
   panel.style.width = "auto";
-  panel.style.padding = "8px";
+  panel.style.padding = "4px";
 
   // Create the handle
   const handle = document.createElement("div");
@@ -46,11 +49,11 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   handle.style.display = "flex";
   handle.style.justifyContent = "space-between";
   handle.style.alignItems = "center";
-  handle.style.padding = "0 8px";
+  handle.style.padding = "0 4px 0 6px";
   handle.style.cursor = "move";
   handle.style.userSelect = "none";
-  handle.style.marginBottom = "8px";
-  handle.style.borderRadius = "4px";
+  handle.style.marginBottom = "4px";
+  handle.style.borderRadius = "3px";
 
   // Create the title container
   const titleContainer = document.createElement("div");
@@ -62,8 +65,9 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   // Create the title
   const title = document.createElement("div");
   title.className = "slots-title";
-  title.style.fontSize = "12px";
-  title.style.fontWeight = "bold";
+  title.style.fontSize = "11px";
+  title.style.fontWeight = "600";
+  title.style.letterSpacing = "0.08em";
   title.style.textTransform = "uppercase";
   title.style.color = "var(--color-text-secondary)";
   title.textContent = "SCENE ";
@@ -72,7 +76,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   const dotsContainer = document.createElement("div");
   dotsContainer.className = "bank-selector";
   dotsContainer.style.display = "flex";
-  dotsContainer.style.gap = "5px";
+  dotsContainer.style.gap = "4px";
   dotsContainer.style.alignItems = "center";
 
   // Bank dot elements array
@@ -86,7 +90,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     dot.style.width = "8px";
     dot.style.height = "8px";
     dot.style.borderRadius = "50%";
-    dot.style.backgroundColor = i === 0 ? "rgba(255, 255, 255, 0.8)" : "rgba(255, 255, 255, 0.3)";
+    dot.style.backgroundColor = i === 0 ? contrast(0.8) : contrast(0.3);
     dot.style.cursor = "pointer";
     dot.style.transition = "all 0.2s ease";
 
@@ -98,7 +102,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
         if (bankHasContent(bank)) {
           dot.style.backgroundColor = "rgba(255, 0, 234, 0.8)";
         } else {
-          dot.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
+          dot.style.backgroundColor = contrast(0.5);
         }
         dot.style.transform = "scale(1.1)";
       }
@@ -139,15 +143,15 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   diceBtn.style.alignItems = "center";
   diceBtn.style.justifyContent = "center";
   diceBtn.style.cursor = "pointer";
-  diceBtn.style.color = "white";
-  diceBtn.style.marginLeft = "8px";
+  diceBtn.style.color = contrast(1);
+  diceBtn.style.marginLeft = "4px";
   diceBtn.style.borderRadius = "3px";
   diceBtn.style.transition = "all 0.2s ease";
   diceBtn.innerHTML = "🎲";
 
   // Add hover effect
   diceBtn.addEventListener("mouseover", () => {
-    diceBtn.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
+    diceBtn.style.backgroundColor = contrast(0.2);
     diceBtn.style.transform = "scale(1.2)";
   });
 
@@ -171,8 +175,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   iconsContainer.className = "slots-icons";
   iconsContainer.style.display = "flex";
   iconsContainer.style.alignItems = "center";
-  iconsContainer.style.marginLeft = "1rem";
-  iconsContainer.style.gap = "3px";
+  iconsContainer.style.marginLeft = "12px";
+  iconsContainer.style.gap = "4px";
 
   // Create export button
   const exportBtn = document.createElement("div");
@@ -185,7 +189,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   exportBtn.style.alignItems = "center";
   exportBtn.style.justifyContent = "center";
   exportBtn.style.cursor = "pointer";
-  exportBtn.style.color = "white";
+  exportBtn.style.color = contrast(1);
   exportBtn.style.fontWeight = "bold";
   exportBtn.innerHTML =
     "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M12 16.5v-9M8.5 11L12 7.5l3.5 3.5'/><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/></g></svg>";
@@ -200,7 +204,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   importBtn.style.alignItems = "center";
   importBtn.style.justifyContent = "center";
   importBtn.style.cursor = "pointer";
-  importBtn.style.color = "white";
+  importBtn.style.color = contrast(1);
   importBtn.style.fontWeight = "bold";
   importBtn.innerHTML =
     "<svg xmlns='http://www.w3.org/2000/svg' style='transform: rotate(180deg);' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M12 16.5v-9M8.5 11L12 7.5l3.5 3.5'/><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/></g></svg>";
@@ -251,7 +255,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   slotsGrid.style.display = "grid";
   slotsGrid.style.gridTemplateColumns = "repeat(8, 1fr)";
   slotsGrid.style.gridTemplateRows = "repeat(2, 1fr)";
-  slotsGrid.style.gap = "4px";
+  slotsGrid.style.gap = "3px";
   slotsGrid.style.width = "100%";
 
   // Local storage key prefix
@@ -294,7 +298,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     index.style.bottom = "2px";
     index.style.right = "4px";
     index.style.fontSize = "12px";
-    index.style.fontWeight = "bold";
+    index.style.fontWeight = "600";
     index.innerHTML =
       "<span style='font-size: 8px; margin-right: 2px;'>Alt/⌥ +</span>" +
       i.toString(16).toUpperCase();
@@ -342,8 +346,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   function updateBankDots() {
     for (let i = 0; i < 4; i++) {
       if (i === currentBank) {
-        // Active bank is white
-        bankDots[i].style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+        // Active bank is white (or the theme's contrast color)
+        bankDots[i].style.backgroundColor = contrast(0.8);
         bankDots[i].style.transform = "scale(1.1)";
       } else if (bankHasContent(i)) {
         // Bank with content is colored fuchsia
@@ -351,7 +355,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
         bankDots[i].style.transform = "scale(1)";
       } else {
         // Empty bank is dim
-        bankDots[i].style.backgroundColor = "rgba(255, 255, 255, 0.3)";
+        bankDots[i].style.backgroundColor = contrast(0.3);
         bankDots[i].style.transform = "scale(1)";
       }
     }
@@ -914,9 +918,9 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     const originalTransform = bankDots[bankIndex].style.transform;
 
     // Flash effect
-    bankDots[bankIndex].style.backgroundColor = "rgba(255, 255, 255, 0.9)"; // Bright white
+    bankDots[bankIndex].style.backgroundColor = contrast(0.9); // Bright white
     bankDots[bankIndex].style.transform = "scale(1.3)"; // Bigger
-    bankDots[bankIndex].style.boxShadow = "0 0 10px rgba(255, 255, 255, 0.7)"; // Glow
+    bankDots[bankIndex].style.boxShadow = `0 0 10px ${contrast(0.7)}`; // Glow
 
     // Reset after animation
     setTimeout(() => {
@@ -1295,22 +1299,22 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   // Add hover effects for export/import buttons
   exportBtn.addEventListener("mouseover", () => {
     exportBtn.style.transform = "scale(1.2)";
-    exportBtn.style.color = "rgba(255, 255, 255, 1)";
+    exportBtn.style.color = contrast(1);
   });
 
   exportBtn.addEventListener("mouseout", () => {
     exportBtn.style.transform = "scale(1)";
-    exportBtn.style.color = "white";
+    exportBtn.style.color = contrast(1);
   });
 
   importBtn.addEventListener("mouseover", () => {
     importBtn.style.transform = "scale(1.2)";
-    importBtn.style.color = "rgba(255, 255, 255, 1)";
+    importBtn.style.color = contrast(1);
   });
 
   importBtn.addEventListener("mouseout", () => {
     importBtn.style.transform = "scale(1)";
-    importBtn.style.color = "white";
+    importBtn.style.color = contrast(1);
   });
 
   // Return API

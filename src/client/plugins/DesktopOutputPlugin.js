@@ -73,12 +73,13 @@ export function createDesktopOutputPlugin(options = {}) {
 
       const block = document.createElement("div");
       block.className = "desktop-output";
-      block.style.marginBottom = "8px";
+      block.style.marginBottom = "6px";
 
       const title = document.createElement("div");
-      title.style.fontSize = "12px";
+      title.style.fontSize = "11px";
       title.style.color = "var(--color-text-secondary)";
-      title.style.fontWeight = "bold";
+      title.style.fontWeight = "600";
+      title.style.letterSpacing = "0.08em";
       title.textContent = "OUTPUT";
 
       const row = document.createElement("div");
@@ -99,13 +100,13 @@ export function createDesktopOutputPlugin(options = {}) {
       text.style.whiteSpace = "nowrap";
 
       const actionButton = document.createElement("button");
-      actionButton.style.fontSize = "10px";
-      actionButton.style.padding = "2px 6px";
+      actionButton.style.fontSize = "11px";
+      actionButton.style.padding = "2px 8px";
 
       const settingsButton = document.createElement("button");
       settingsButton.textContent = "⚙";
       settingsButton.title = "Output settings";
-      settingsButton.style.fontSize = "10px";
+      settingsButton.style.fontSize = "11px";
       settingsButton.style.padding = "2px 6px";
 
       row.append(dot, text, actionButton, settingsButton);

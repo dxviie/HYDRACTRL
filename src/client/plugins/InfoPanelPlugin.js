@@ -50,7 +50,7 @@ export function createInfoPanelPlugin() {
         panel.style.position = "fixed";
         panel.style.backgroundColor =
           "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important";
-        panel.style.borderRadius = "8px";
+        panel.style.borderRadius = "var(--panel-radius)";
         panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
         panel.style.backdropFilter = "blur(var(--color-panel-blur))";
         panel.style.zIndex = "1000";
@@ -80,7 +80,7 @@ export function createInfoPanelPlugin() {
         const header = document.createElement("div");
         header.className = "info-panel-header";
         header.style.backgroundColor = "rgba(var(--color-bg-tertiary-rgb), var(--panel-opacity))";
-        header.style.padding = "12px 16px";
+        header.style.padding = "4px 3px 4px 10px";
         header.style.display = "flex";
         header.style.justifyContent = "space-between";
         header.style.alignItems = "center";
@@ -90,15 +90,18 @@ export function createInfoPanelPlugin() {
         const title = document.createElement("h2");
         title.textContent = "About";
         title.style.margin = "0";
-        title.style.fontSize = "16px";
-        title.style.fontWeight = "bold";
-        title.style.color = "var(--color-text-primary)";
+        title.style.fontSize = "11px";
+        title.style.fontWeight = "600";
+        title.style.letterSpacing = "0.08em";
+        title.style.textTransform = "uppercase";
+        title.style.color = "var(--color-text-secondary)";
 
         const closeButton = document.createElement("button");
         closeButton.textContent = "×";
         closeButton.style.background = "none";
         closeButton.style.border = "none";
-        closeButton.style.fontSize = "20px";
+        closeButton.style.fontSize = "16px";
+        closeButton.style.lineHeight = "1";
         closeButton.style.color = "var(--color-text-primary)";
         closeButton.style.cursor = "pointer";
         closeButton.style.padding = "0 5px";
@@ -110,7 +113,7 @@ export function createInfoPanelPlugin() {
         // Create the content container
         const content = document.createElement("div");
         content.className = "info-panel-content";
-        content.style.padding = "20px";
+        content.style.padding = "10px 12px";
         content.style.overflowY = "auto";
 
         // Create sections
@@ -130,8 +133,8 @@ export function createInfoPanelPlugin() {
             : "for a feature overview and the desktop app with Syphon and Spout output";
           aboutText.innerHTML = `HYDRACTRL is a tool built around <a href="https://hydra.ojack.xyz" target="_blank" rel="noopener" style="${linkStyle}">hydra</a> designed for live performances. Visit ${websiteLink} ${moreInfo}.`;
         }
-        aboutText.style.margin = "0 0 15px 0";
-        aboutText.style.fontSize = "13px";
+        aboutText.style.margin = "0 0 8px 0";
+        aboutText.style.fontSize = "12px";
         aboutText.style.lineHeight = "1.4";
         aboutText.style.color = "var(--color-text-secondary)";
 
@@ -140,8 +143,8 @@ export function createInfoPanelPlugin() {
         const versionText = document.createElement("p");
         versionText.className = "info-version";
         versionText.innerHTML = `Version ${VERSION} · <a href="${CHANGELOG_URL}" target="_blank" rel="noopener" style="${linkStyle}">What's new</a>`;
-        versionText.style.margin = "0 0 15px 0";
-        versionText.style.fontSize = "12px";
+        versionText.style.margin = "0";
+        versionText.style.fontSize = "11px";
         versionText.style.color = "var(--color-text-secondary)";
         aboutSection.appendChild(versionText);
 
@@ -175,20 +178,23 @@ export function createInfoPanelPlugin() {
         // Keyboard shortcuts section
         const shortcutsSection = document.createElement("div");
         shortcutsSection.className = "info-section";
-        shortcutsSection.style.marginTop = "20px";
+        shortcutsSection.style.marginTop = "12px";
 
         const shortcutsTitle = document.createElement("h3");
         shortcutsTitle.textContent = "Keyboard Shortcuts";
-        shortcutsTitle.style.fontSize = "14px";
+        shortcutsTitle.style.fontSize = "11px";
+        shortcutsTitle.style.fontWeight = "600";
+        shortcutsTitle.style.letterSpacing = "0.08em";
+        shortcutsTitle.style.textTransform = "uppercase";
         shortcutsTitle.style.marginTop = "0";
-        shortcutsTitle.style.marginBottom = "10px";
-        shortcutsTitle.style.color = "var(--color-text-primary)";
+        shortcutsTitle.style.marginBottom = "4px";
+        shortcutsTitle.style.color = "var(--color-text-secondary)";
 
         // Create table for shortcuts
         const shortcutsTable = document.createElement("table");
         shortcutsTable.style.width = "100%";
         shortcutsTable.style.borderCollapse = "collapse";
-        shortcutsTable.style.fontSize = "13px";
+        shortcutsTable.style.fontSize = "12px";
 
         // Add shortcuts to table
         KEYBOARD_SHORTCUTS.forEach((shortcut) => {
@@ -197,14 +203,13 @@ export function createInfoPanelPlugin() {
 
           const keysCell = document.createElement("td");
           keysCell.textContent = shortcut.keys;
-          keysCell.style.padding = "8px 16px 8px 0";
-          keysCell.style.fontFamily = "monospace";
+          keysCell.style.padding = "4px 12px 4px 0";
           keysCell.style.whiteSpace = "nowrap";
           keysCell.style.color = "var(--color-text-primary)";
 
           const actionCell = document.createElement("td");
           actionCell.textContent = shortcut.action;
-          actionCell.style.padding = "8px 0";
+          actionCell.style.padding = "4px 0";
           actionCell.style.color = "var(--color-text-secondary)";
 
           row.appendChild(keysCell);
@@ -218,7 +223,7 @@ export function createInfoPanelPlugin() {
         // Show on startup option
         const startupSection = document.createElement("div");
         startupSection.className = "startup-section";
-        startupSection.style.marginTop = "20px";
+        startupSection.style.marginTop = "10px";
         startupSection.style.display = "flex";
         startupSection.style.alignItems = "center";
 
@@ -230,8 +235,8 @@ export function createInfoPanelPlugin() {
         const showOnStartupLabel = document.createElement("label");
         showOnStartupLabel.htmlFor = "show-on-startup";
         showOnStartupLabel.textContent = "Show on startup";
-        showOnStartupLabel.style.marginLeft = "8px";
-        showOnStartupLabel.style.fontSize = "13px";
+        showOnStartupLabel.style.marginLeft = "6px";
+        showOnStartupLabel.style.fontSize = "12px";
         showOnStartupLabel.style.color = "var(--color-text-secondary)";
 
         showOnStartupCheckbox.addEventListener("change", (e) => {

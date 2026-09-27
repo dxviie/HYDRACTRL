@@ -54,22 +54,21 @@ export function createMidiUiPlugin() {
             (activeDevice.name.toLowerCase().includes("nanopad") ||
               activeDevice.name.toLowerCase().includes("korg"))
           ) {
-            stats.midi.statusText.style.color = "#50fa7b"; // Green
+            stats.midi.statusText.style.color = "var(--color-midi-active, #50fa7b)"; // Green
           } else {
-            stats.midi.statusText.style.color = "#aaa";
+            stats.midi.statusText.style.color = "var(--color-midi-idle, #aaa)";
           }
         } else {
           stats.midi.statusText.textContent = "MIDI: No active device";
-          stats.midi.statusText.style.color = "#aaa";
+          stats.midi.statusText.style.color = "var(--color-midi-idle, #aaa)";
         }
 
         // Add device buttons
         devices.forEach((device, index) => {
           const deviceButton = document.createElement("button");
           deviceButton.textContent = device.name || `Device ${index + 1}`;
-          deviceButton.style.fontSize = "10px";
-          deviceButton.style.padding = "2px 4px";
-          deviceButton.style.margin = "2px 0";
+          deviceButton.style.fontSize = "11px";
+          deviceButton.style.padding = "2px 8px";
 
           if (device.isActive) {
             deviceButton.style.backgroundColor = "rgba(80, 250, 123, 0.3)";
@@ -90,9 +89,8 @@ export function createMidiUiPlugin() {
       // Add refresh button
       const refreshButton = document.createElement("button");
       refreshButton.textContent = "Refresh MIDI";
-      refreshButton.style.fontSize = "10px";
-      refreshButton.style.padding = "2px 4px";
-      refreshButton.style.margin = "4px 0";
+      refreshButton.style.fontSize = "11px";
+      refreshButton.style.padding = "2px 8px";
       refreshButton.style.width = "fit-content";
 
       refreshButton.addEventListener("click", () => {
@@ -102,9 +100,8 @@ export function createMidiUiPlugin() {
       // Add sync nanoPAD scenes button
       const syncButton = document.createElement("button");
       syncButton.textContent = "Sync Scene ⟷ Bank";
-      syncButton.style.fontSize = "10px";
-      syncButton.style.padding = "2px 4px";
-      syncButton.style.margin = "2px 0px";
+      syncButton.style.fontSize = "11px";
+      syncButton.style.padding = "2px 8px";
       syncButton.style.backgroundColor = "rgba(80, 250, 123, 0.2)";
       syncButton.title = "Synchronize nanoPAD scene with current bank";
 
@@ -125,9 +122,8 @@ export function createMidiUiPlugin() {
       // Add reset mapping button
       const resetButton = document.createElement("button");
       resetButton.textContent = "Reset MIDI Mapping";
-      resetButton.style.fontSize = "10px";
-      resetButton.style.padding = "2px 4px";
-      resetButton.style.margin = "4px 0";
+      resetButton.style.fontSize = "11px";
+      resetButton.style.padding = "2px 8px";
       resetButton.style.backgroundColor = "rgba(255, 120, 120, 0.2)";
       resetButton.title = "Reset to default nanoPAD mapping";
 
@@ -141,9 +137,8 @@ export function createMidiUiPlugin() {
       // Add info button that shows current mapping
       const infoButton = document.createElement("button");
       infoButton.textContent = "Show Mapping";
-      infoButton.style.fontSize = "10px";
-      infoButton.style.padding = "2px 4px";
-      infoButton.style.margin = "4px 0 4px 8px";
+      infoButton.style.fontSize = "11px";
+      infoButton.style.padding = "2px 8px";
       infoButton.title = "Show current MIDI mapping";
 
       infoButton.addEventListener("click", () => {

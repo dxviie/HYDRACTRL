@@ -42,7 +42,7 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
 
   panel.style.backgroundColor =
     "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important";
-  panel.style.borderRadius = "8px";
+  panel.style.borderRadius = "var(--panel-radius)";
   panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
   panel.style.backdropFilter = "blur(var(--color-panel-blur))";
   panel.style.zIndex = "100";
@@ -58,15 +58,16 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   handle.style.display = "flex";
   handle.style.justifyContent = "space-between";
   handle.style.alignItems = "center";
-  handle.style.padding = "0 8px";
+  handle.style.padding = "0 6px 0 8px";
   handle.style.cursor = "move";
   handle.style.userSelect = "none";
 
   // Create the title
   const title = document.createElement("div");
   title.className = "stats-title";
-  title.style.fontSize = "12px";
-  title.style.fontWeight = "bold";
+  title.style.fontSize = "11px";
+  title.style.fontWeight = "600";
+  title.style.letterSpacing = "0.08em";
   title.style.textTransform = "uppercase";
   title.style.color = "var(--color-text-secondary)";
   title.textContent = "SYSTEM";
@@ -76,7 +77,7 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   buttonsContainer.className = "stats-buttons";
   buttonsContainer.style.display = "flex";
   buttonsContainer.style.alignItems = "center";
-  buttonsContainer.style.gap = "8px";
+  buttonsContainer.style.gap = "6px";
 
   // Create the docs button
   const docsButton = document.createElement("div");
@@ -118,7 +119,7 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   // Create the content container
   const content = document.createElement("div");
   content.className = "stats-content";
-  content.style.padding = "8px";
+  content.style.padding = "6px 8px";
 
   // Create the metrics container
   const metrics = document.createElement("div");
@@ -129,32 +130,32 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   // MIDI section for expanded view
   const midiSection = document.createElement("div");
   midiSection.className = "stats-midi";
-  midiSection.style.marginTop = "8px";
-  midiSection.style.paddingTop = "8px";
+  midiSection.style.marginTop = "6px";
+  midiSection.style.paddingTop = "6px";
   midiSection.style.borderTop = "1px solid var(--color-bg-tertiary)";
   midiSection.style.display = "none"; // Initially hidden
   midiSection.style.flexDirection = "column";
-  midiSection.style.gap = "6px";
+  midiSection.style.gap = "4px";
 
   // MIDI status text
   const midiStatusText = document.createElement("div");
   midiStatusText.className = "midi-status-text";
-  midiStatusText.style.fontSize = "12px";
+  midiStatusText.style.fontSize = "11px";
   midiStatusText.style.color = "var(--color-text-secondary)";
-  midiStatusText.style.fontWeight = "bold";
+  midiStatusText.style.fontWeight = "600";
   midiStatusText.textContent = "MIDI: Not initialized";
 
   // MIDI device selection
   const midiDeviceContainer = document.createElement("div");
   midiDeviceContainer.style.display = "flex";
   midiDeviceContainer.style.flexDirection = "column";
-  midiDeviceContainer.style.gap = "4px";
+  midiDeviceContainer.style.gap = "2px";
 
   // Create buttons container
   const midiButtonsContainer = document.createElement("div");
   midiButtonsContainer.style.display = "flex";
-  midiButtonsContainer.style.gap = "8px";
-  midiButtonsContainer.style.marginTop = "8px";
+  midiButtonsContainer.style.gap = "4px";
+  midiButtonsContainer.style.marginTop = "2px";
 
   // Create MIDI learn button
   const midiLearnButton = document.createElement("button");
@@ -162,10 +163,10 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   midiLearnButton.style.backgroundColor = "var(--color-bg-tertiary)";
   midiLearnButton.style.border = "none";
   midiLearnButton.style.borderRadius = "4px";
-  midiLearnButton.style.padding = "4px 8px";
+  midiLearnButton.style.padding = "2px 8px";
   midiLearnButton.style.color = "var(--color-text-primary)";
   midiLearnButton.style.cursor = "pointer";
-  midiLearnButton.style.fontSize = "12px";
+  midiLearnButton.style.fontSize = "11px";
   midiLearnButton.textContent = "MIDI Learn";
 
   // Create XY pad toggle button
@@ -174,10 +175,10 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   xyPadButton.style.backgroundColor = "var(--color-bg-tertiary)";
   xyPadButton.style.border = "none";
   xyPadButton.style.borderRadius = "4px";
-  xyPadButton.style.padding = "4px 8px";
+  xyPadButton.style.padding = "2px 8px";
   xyPadButton.style.color = "var(--color-text-primary)";
   xyPadButton.style.cursor = "pointer";
-  xyPadButton.style.fontSize = "12px";
+  xyPadButton.style.fontSize = "11px";
   xyPadButton.textContent = "Show XY Pad";
 
   // Set initial button text based on localStorage
@@ -200,7 +201,7 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   // Create MIDI mapping display
   const midiMappingDisplay = document.createElement("div");
   midiMappingDisplay.className = "midi-mapping-display";
-  midiMappingDisplay.style.fontSize = "12px";
+  midiMappingDisplay.style.fontSize = "11px";
   midiMappingDisplay.style.color = "var(--color-text-secondary)";
   midiMappingDisplay.style.marginTop = "4px";
   midiMappingDisplay.style.display = "none";
@@ -248,27 +249,27 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   // Create a theme settings section
   const themeSection = document.createElement("div");
   themeSection.className = "stats-theme";
-  themeSection.style.marginTop = "8px";
-  themeSection.style.paddingTop = "8px";
+  themeSection.style.marginTop = "6px";
+  themeSection.style.paddingTop = "6px";
   themeSection.style.borderTop = "1px solid var(--color-bg-tertiary)";
   themeSection.style.display = "none"; // Initially hidden
   themeSection.style.flexDirection = "column";
-  themeSection.style.gap = "6px";
+  themeSection.style.gap = "4px";
 
   // Theme section title
   const themeTitle = document.createElement("div");
   themeTitle.className = "theme-title";
-  themeTitle.style.fontSize = "12px";
+  themeTitle.style.fontSize = "11px";
   themeTitle.style.color = "var(--color-text-secondary)";
-  themeTitle.style.fontWeight = "bold";
+  themeTitle.style.fontWeight = "600";
+  themeTitle.style.letterSpacing = "0.08em";
   themeTitle.textContent = "THEME";
 
   // Theme selector container - compact row of swatches
   const themeSelector = document.createElement("div");
   themeSelector.style.display = "flex";
-  themeSelector.style.gap = "10px";
-  themeSelector.style.marginTop = "6px";
-  themeSelector.style.justifyContent = "center";
+  themeSelector.style.gap = "6px";
+  themeSelector.style.padding = "2px";
 
   // Define themes with primary, secondary, tertiary background colors and text colors
   const themes = [
@@ -285,11 +286,12 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
     {
       name: "light",
       label: "Light",
-      bgPrimary: "#f5f5f5",
-      bgSecondary: "rgba(220, 220, 220, 0.8)",
-      bgTertiary: "rgba(200, 200, 200, 0.8)",
-      textPrimary: "#333333",
-      textSecondary: "#666666",
+      bgPrimary: "#f3f2f7",
+      bgSecondary: "rgba(250, 249, 252, 0.94)",
+      bgTertiary: "rgba(236, 234, 242, 0.96)",
+      textPrimary: "#1c1a24",
+      textSecondary: "#6a6679",
+      swatch: ["#faf9fc", "#faf9fc", "#dcd8e7", "#1c1a24", "#6d28d9"],
       className: "theme-light",
     },
     {
@@ -315,24 +317,32 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
     {
       name: "nineties-pop",
       label: "Pop 90s",
-      bgPrimary: "#ffc0cb",
-      bgSecondary: "rgba(162, 130, 255, 0.9)",
-      bgTertiary: "rgba(255, 215, 0, 0.7)",
-      textPrimary: "#333333",
-      textSecondary: "#222222",
+      bgPrimary: "#fff3d6",
+      bgSecondary: "rgba(255, 248, 231, 0.95)",
+      bgTertiary: "rgba(255, 214, 10, 0.96)",
+      textPrimary: "#1a1423",
+      textSecondary: "#5a3d70",
+      swatch: ["#fff8e7", "#ffd60a", "#ff3d9a", "#00c2b8", "#1a1423"],
       className: "theme-nineties-pop",
     },
   ];
 
-  // Create theme swatches showing all theme colors
+  // Create theme swatches showing all theme colors (or the ones a theme picks)
   themes.forEach((theme) => {
+    const [first, second, third, fourth, fifth] = theme.swatch || [
+      theme.bgPrimary,
+      theme.bgSecondary,
+      theme.bgTertiary,
+      theme.textPrimary,
+      theme.textSecondary,
+    ];
     const swatch = document.createElement("div");
     swatch.className = "theme-swatch";
     swatch.title = theme.label;
     swatch.dataset.theme = theme.name;
     swatch.dataset.className = theme.className;
-    swatch.style.width = "25px";
-    swatch.style.height = "25px";
+    swatch.style.width = "20px";
+    swatch.style.height = "20px";
     swatch.style.borderRadius = "4px";
     swatch.style.cursor = "pointer";
     swatch.style.transition = "all 0.2s";
@@ -343,16 +353,16 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
     // Create a more complex pattern showing all theme colors
     swatch.style.background = `
       linear-gradient(135deg, 
-        ${theme.bgPrimary} 0%, 
-        ${theme.bgPrimary} 30%, 
-        ${theme.bgSecondary} 30%, 
-        ${theme.bgSecondary} 50%, 
-        ${theme.bgTertiary} 50%, 
-        ${theme.bgTertiary} 70%, 
-        ${theme.textPrimary} 70%, 
-        ${theme.textPrimary} 85%,
-        ${theme.textSecondary} 85%,
-        ${theme.textSecondary} 100%)
+        ${first} 0%, 
+        ${first} 30%, 
+        ${second} 30%, 
+        ${second} 50%, 
+        ${third} 50%, 
+        ${third} 70%, 
+        ${fourth} 70%, 
+        ${fourth} 85%,
+        ${fifth} 85%,
+        ${fifth} 100%)
     `;
 
     // Add directly to theme selector
@@ -398,23 +408,24 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
 
   // Create opacity slider section
   const opacitySection = document.createElement("div");
-  opacitySection.style.marginTop = "15px";
+  opacitySection.style.marginTop = "4px";
   opacitySection.style.display = "flex";
   opacitySection.style.flexDirection = "column";
-  opacitySection.style.gap = "8px";
+  opacitySection.style.gap = "2px";
 
   // Opacity section title
   const opacityTitle = document.createElement("div");
-  opacityTitle.style.fontSize = "12px";
+  opacityTitle.style.fontSize = "11px";
   opacityTitle.style.color = "var(--color-text-secondary)";
-  opacityTitle.style.fontWeight = "bold";
+  opacityTitle.style.fontWeight = "600";
+  opacityTitle.style.letterSpacing = "0.08em";
   opacityTitle.textContent = "PANEL OPACITY";
 
   // Slider container with value display
   const sliderContainer = document.createElement("div");
   sliderContainer.style.display = "flex";
   sliderContainer.style.alignItems = "center";
-  sliderContainer.style.gap = "10px";
+  sliderContainer.style.gap = "8px";
   sliderContainer.style.width = "100%";
 
   // Opacity slider
@@ -432,11 +443,10 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
 
   // Opacity value display
   const opacityValue = document.createElement("span");
-  opacityValue.style.fontSize = "12px";
-  opacityValue.style.fontFamily = "monospace";
+  opacityValue.style.fontSize = "11px";
   opacityValue.style.color = "var(--color-text-primary)";
-  opacityValue.style.minWidth = "30px";
-  opacityValue.style.textAlign = "center";
+  opacityValue.style.minWidth = "32px";
+  opacityValue.style.textAlign = "right";
   opacityValue.textContent = savedOpacity + "%";
 
   // Function to apply opacity to all panels
@@ -515,37 +525,37 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   // Create a section for display settings
   const displaySection = document.createElement("div");
   displaySection.className = "stats-display";
-  displaySection.style.marginTop = "8px";
-  displaySection.style.paddingTop = "8px";
+  displaySection.style.marginTop = "6px";
+  displaySection.style.paddingTop = "6px";
   displaySection.style.borderTop = "1px solid var(--color-bg-tertiary)";
   displaySection.style.display = "none"; // Initially hidden
   displaySection.style.flexDirection = "column";
-  displaySection.style.gap = "6px";
+  displaySection.style.gap = "4px";
 
   // Create slots settings section
   const slotsSection = document.createElement("div");
   slotsSection.className = "stats-slots";
-  slotsSection.style.marginTop = "8px";
-  slotsSection.style.paddingTop = "8px";
+  slotsSection.style.marginTop = "6px";
+  slotsSection.style.paddingTop = "6px";
   slotsSection.style.borderTop = "1px solid var(--color-bg-tertiary)";
   slotsSection.style.display = "none"; // Initially hidden
   slotsSection.style.flexDirection = "column";
-  slotsSection.style.gap = "6px";
+  slotsSection.style.gap = "4px";
 
   // Slots section title
   const slotsTitle = document.createElement("div");
   slotsTitle.className = "slots-settings-title";
-  slotsTitle.style.fontSize = "12px";
+  slotsTitle.style.fontSize = "11px";
   slotsTitle.style.color = "var(--color-text-secondary)";
-  slotsTitle.style.fontWeight = "bold";
+  slotsTitle.style.fontWeight = "600";
+  slotsTitle.style.letterSpacing = "0.08em";
   slotsTitle.textContent = "SLOTS";
 
   // Create slot size slider section
   const slotSizeSection = document.createElement("div");
-  slotSizeSection.style.marginTop = "8px";
   slotSizeSection.style.display = "flex";
   slotSizeSection.style.flexDirection = "column";
-  slotSizeSection.style.gap = "6px";
+  slotSizeSection.style.gap = "2px";
 
   // Slot size label
   const slotSizeLabel = document.createElement("div");
@@ -576,10 +586,9 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   // Slot size value display
   const slotSizeValue = document.createElement("span");
   slotSizeValue.style.fontSize = "11px";
-  slotSizeValue.style.fontFamily = "monospace";
   slotSizeValue.style.color = "var(--color-text-primary)";
-  slotSizeValue.style.minWidth = "24px";
-  slotSizeValue.style.textAlign = "center";
+  slotSizeValue.style.minWidth = "32px";
+  slotSizeValue.style.textAlign = "right";
   slotSizeValue.textContent = savedSlotSize + "px";
 
   // Function to update slot sizes in SlotsPanel
@@ -621,7 +630,7 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   moveToNextSlotOption.style.display = "flex";
   moveToNextSlotOption.style.alignItems = "center";
   moveToNextSlotOption.style.gap = "8px";
-  moveToNextSlotOption.style.marginTop = "4px";
+  moveToNextSlotOption.style.marginTop = "2px";
 
   // Checkbox for move to next slot
   const moveToNextSlotCheckbox = document.createElement("input");
@@ -650,41 +659,24 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   // Display section title
   const displayTitle = document.createElement("div");
   displayTitle.className = "display-title";
-  displayTitle.style.fontSize = "12px";
+  displayTitle.style.fontSize = "11px";
   displayTitle.style.color = "var(--color-text-secondary)";
-  displayTitle.style.fontWeight = "bold";
-  displayTitle.textContent = "DISPLAY";
+  displayTitle.style.fontWeight = "600";
+  displayTitle.style.letterSpacing = "0.08em";
+  displayTitle.textContent = "BREAKOUT WINDOW";
 
-  // Breakout button
-  const breakoutButton = document.createElement("button");
-  breakoutButton.textContent = "Open Breakout View";
-  breakoutButton.style.fontSize = "10px";
-  breakoutButton.style.padding = "2px 4px";
-  breakoutButton.style.margin = "4px 0";
-  breakoutButton.style.width = "100%";
-  breakoutButton.title = "Open visualization in a new window";
+  // Window size dropdown and the open/close button, on one row
+  const breakoutRow = document.createElement("div");
+  breakoutRow.style.display = "flex";
+  breakoutRow.style.gap = "4px";
 
-  // Size selection container
-  const sizeSelectionContainer = document.createElement("div");
-  sizeSelectionContainer.style.marginTop = "4px";
-  sizeSelectionContainer.style.display = "flex";
-  sizeSelectionContainer.style.flexDirection = "column";
-  sizeSelectionContainer.style.gap = "4px";
+  const sizeSelect = document.createElement("select");
+  sizeSelect.className = "breakout-size";
+  sizeSelect.title = "Breakout window size";
+  sizeSelect.style.flex = "1";
+  sizeSelect.style.minWidth = "0";
 
-  // Size options
-  const sizeLabel = document.createElement("div");
-  sizeLabel.style.fontSize = "10px";
-  sizeLabel.style.color = "var(--color-text-secondary)";
-  sizeLabel.textContent = "Select Size:";
-
-  // Size buttons container
-  const sizeButtonsContainer = document.createElement("div");
-  sizeButtonsContainer.style.display = "flex";
-  sizeButtonsContainer.style.flexDirection = "column";
-  sizeButtonsContainer.style.flexWrap = "wrap";
-  sizeButtonsContainer.style.gap = "4px";
-
-  // Common sizes
+  // Common sizes, as "WIDTHxHEIGHT" values (the BreakoutPlugin reads them)
   const sizes = [
     { label: "nHD (640×360)", width: 640, height: 360 },
     { label: "qHD (960×540)", width: 960, height: 540 },
@@ -694,44 +686,27 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
     { label: "Square (1080×1080)", width: 1080, height: 1080 },
   ];
 
-  // Selected size indicator and variable to track selection
-  const selectedSizeIndicator = document.createElement("div");
-  selectedSizeIndicator.style.fontSize = "10px";
-  selectedSizeIndicator.style.color = "var(--color-perf-good)";
-  selectedSizeIndicator.style.marginTop = "2px";
-  selectedSizeIndicator.style.fontWeight = "bold";
-  selectedSizeIndicator.textContent = "No size selected";
-
-  // Create a variable to track the selected size
-  const selectedSize = null;
-
   sizes.forEach((size) => {
-    const sizeButton = document.createElement("button");
-    sizeButton.textContent = size.label;
-    sizeButton.style.fontSize = "10px";
-    sizeButton.style.padding = "1px 3px";
-    sizeButton.style.margin = "2px";
-    sizeButton.dataset.width = size.width;
-    sizeButton.dataset.height = size.height;
-    sizeButton.dataset.label = size.label;
-
-    sizeButtonsContainer.appendChild(sizeButton);
+    const option = document.createElement("option");
+    option.value = `${size.width}x${size.height}`;
+    option.textContent = size.label;
+    sizeSelect.appendChild(option);
   });
+  sizeSelect.value = "1280x720";
 
-  // Initially disable breakout button until size is selected
-  breakoutButton.disabled = true;
-  breakoutButton.style.opacity = "0.5";
-  breakoutButton.title = "Select a size first";
+  // Breakout button
+  const breakoutButton = document.createElement("button");
+  breakoutButton.textContent = "Open";
+  breakoutButton.style.fontSize = "11px";
+  breakoutButton.style.padding = "2px 10px";
+  breakoutButton.title = "Open the visuals in a new window at this size";
 
-  // Add elements to size selection container
-  sizeSelectionContainer.appendChild(sizeLabel);
-  sizeSelectionContainer.appendChild(sizeButtonsContainer);
-  sizeSelectionContainer.appendChild(selectedSizeIndicator);
+  breakoutRow.appendChild(sizeSelect);
+  breakoutRow.appendChild(breakoutButton);
 
   // Add elements to display section
   displaySection.appendChild(displayTitle);
-  displaySection.appendChild(sizeSelectionContainer);
-  displaySection.appendChild(breakoutButton);
+  displaySection.appendChild(breakoutRow);
 
   // Create the FPS metric
   const fpsMetric = document.createElement("div");
@@ -744,8 +719,8 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   // FPS Label
   const fpsLabel = document.createElement("span");
   fpsLabel.className = "stats-label";
-  fpsLabel.style.fontSize = "12px";
-  fpsLabel.style.fontWeight = "bold";
+  fpsLabel.style.fontSize = "11px";
+  fpsLabel.style.fontWeight = "600";
   fpsLabel.style.color = "var(--color-text-secondary)";
   fpsLabel.style.whiteSpace = "nowrap";
   fpsLabel.textContent = "FPS:";
@@ -753,21 +728,20 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   // FPS Value
   const fpsValue = document.createElement("span");
   fpsValue.className = "stats-value";
-  fpsValue.style.fontFamily = "monospace";
   fpsValue.style.fontSize = "12px";
-  fpsValue.style.fontWeight = "bold";
-  fpsValue.style.color = "white";
+  fpsValue.style.fontWeight = "600";
+  fpsValue.style.color = "var(--color-stat-value, white)";
   fpsValue.textContent = "0";
 
   // Detailed metrics
   const details = document.createElement("div");
   details.className = "stats-details";
-  details.style.marginTop = "8px";
-  details.style.paddingTop = "8px";
+  details.style.marginTop = "6px";
+  details.style.paddingTop = "6px";
   details.style.borderTop = "1px solid var(--color-bg-tertiary)";
   details.style.display = "none";
   details.style.flexDirection = "column";
-  details.style.gap = "6px";
+  details.style.gap = "2px";
 
   // Add metrics for avg FPS
   const avgFpsMetric = document.createElement("div");
@@ -779,17 +753,16 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
 
   const avgFpsLabel = document.createElement("span");
   avgFpsLabel.className = "stats-label";
-  avgFpsLabel.style.fontSize = "12px";
-  avgFpsLabel.style.fontWeight = "bold";
+  avgFpsLabel.style.fontSize = "11px";
+  avgFpsLabel.style.fontWeight = "600";
   avgFpsLabel.style.color = "var(--color-text-secondary)";
   avgFpsLabel.textContent = "AVG FPS:";
 
   const avgFpsValue = document.createElement("span");
   avgFpsValue.className = "stats-value";
-  avgFpsValue.style.fontFamily = "monospace";
   avgFpsValue.style.fontSize = "12px";
-  avgFpsValue.style.fontWeight = "bold";
-  avgFpsValue.style.color = "white";
+  avgFpsValue.style.fontWeight = "600";
+  avgFpsValue.style.color = "var(--color-stat-value, white)";
   avgFpsValue.textContent = "0";
 
   // Add metrics for frame count
@@ -802,17 +775,16 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
 
   const frameCountLabel = document.createElement("span");
   frameCountLabel.className = "stats-label";
-  frameCountLabel.style.fontSize = "12px";
-  frameCountLabel.style.fontWeight = "bold";
+  frameCountLabel.style.fontSize = "11px";
+  frameCountLabel.style.fontWeight = "600";
   frameCountLabel.style.color = "var(--color-text-secondary)";
   frameCountLabel.textContent = "FRAMES:";
 
   const frameCountValue = document.createElement("span");
   frameCountValue.className = "stats-value";
-  frameCountValue.style.fontFamily = "monospace";
   frameCountValue.style.fontSize = "12px";
-  frameCountValue.style.fontWeight = "bold";
-  frameCountValue.style.color = "white";
+  frameCountValue.style.fontWeight = "600";
+  frameCountValue.style.color = "var(--color-stat-value, white)";
   frameCountValue.textContent = "0";
 
   // Assemble the panel
@@ -833,8 +805,8 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   // Create footer section with attribution
   const footerSection = document.createElement("div");
   footerSection.className = "stats-footer";
-  footerSection.style.marginTop = "8px";
-  footerSection.style.paddingTop = "8px";
+  footerSection.style.marginTop = "6px";
+  footerSection.style.paddingTop = "6px";
   footerSection.style.borderTop = "1px solid var(--color-bg-tertiary)";
   footerSection.style.display = "flex";
   footerSection.style.justifyContent = "space-between";
@@ -851,14 +823,14 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   // Info icon button
   const infoButton = document.createElement("button");
   infoButton.innerHTML =
-    "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/><path d='M12 16v-5h-.5m0 5h1M12 8.5V8'/></g></svg>";
+    "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/><path d='M12 16v-5h-.5m0 5h1M12 8.5V8'/></g></svg>";
   infoButton.style.background = "none";
-  infoButton.style.width = "32px";
-  infoButton.style.height = "32px";
+  infoButton.style.width = "22px";
+  infoButton.style.height = "22px";
   infoButton.style.border = "none";
   infoButton.style.cursor = "pointer";
   infoButton.style.fontSize = "12px";
-  infoButton.style.padding = "2px 8px";
+  infoButton.style.padding = "0";
   infoButton.style.display = "flex";
   infoButton.style.alignItems = "center";
   infoButton.style.justifyContent = "center";
@@ -1058,10 +1030,7 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
       ? {
           section: displaySection,
           breakoutButton: breakoutButton,
-          sizeSelectionContainer: sizeSelectionContainer,
-          sizeButtons: Array.from(sizeButtonsContainer.querySelectorAll("button")),
-          selectedSizeIndicator: selectedSizeIndicator,
-          selectedSize: selectedSize,
+          sizeSelect: sizeSelect,
         }
       : undefined,
     slots: {

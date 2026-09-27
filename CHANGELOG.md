@@ -55,6 +55,17 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
   landing page, replace the two old ones when you start with no saved scenes.
   Pulse follows the XY pad. Scenes you already have are left alone.
 - A new favicon: a purple hydra on black.
+- The code editor uses [Fira Code](https://github.com/tonsky/FiraCode), with
+  its ligatures, and the rest of the interface IBM Plex Mono. Both are
+  bundled, so they work offline and in the desktop app.
+- Tighter panels: the editor's Sketch and Setup tabs sit in its title bar,
+  and every panel has less padding around its contents.
+- The Light and Pop 90s themes are redesigned, each with its own editor
+  colors: Light is ink on white with a violet accent, Pop 90s has cream
+  panels with black outlines, sunny title bars, hot pink and teal.
+- The breakout window's size is a dropdown next to its Open button. It
+  remembers the size you picked, and picking another resizes an open
+  breakout window.
 
 ### Fixed
 

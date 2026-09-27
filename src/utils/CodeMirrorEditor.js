@@ -9,11 +9,10 @@ import { javascript } from "@codemirror/lang-javascript";
 import { Compartment, EditorState } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { EditorView, highlightActiveLineGutter, keymap, lineNumbers } from "@codemirror/view";
-import { dracula } from "@uiw/codemirror-theme-dracula";
-import { eclipse } from "@uiw/codemirror-theme-eclipse";
 import { monokai } from "@uiw/codemirror-theme-monokai";
 import { solarizedDark } from "@uiw/codemirror-theme-solarized";
 import hydraData from "../data/hydra-functions.json" assert { type: "json" };
+import { lightEditorTheme, popEditorTheme } from "./editorThemes.js";
 
 // Language compartment for JavaScript with Hydra extensions
 const languageCompartment = new Compartment();
@@ -27,7 +26,7 @@ const themeMapping = {
   default: oneDark,
 
   // Light theme
-  "theme-light": eclipse,
+  "theme-light": lightEditorTheme,
 
   // Dark theme (high contrast)
   "theme-dark": solarizedDark,
@@ -36,22 +35,36 @@ const themeMapping = {
   "theme-neon-eighties": monokai,
 
   // Nineties Pop theme
-  "theme-nineties-pop": dracula,
+  "theme-nineties-pop": popEditorTheme,
 };
 
-// Create a minimal base theme for the editor
+// Create a minimal base theme for the editor. Code is set in Fira Code
+// (styles.css loads it), ligatures included.
 const hydraTheme = EditorView.theme({
   "&": {
     height: "100%",
     fontSize: "14px",
   },
   ".cm-scroller": {
-    fontFamily: "monospace",
+    fontFamily: "var(--font-code)",
     lineHeight: "1.5",
+  },
+  ".cm-content": {
+    padding: "2px 0",
   },
   ".cm-gutters": {
     backgroundColor: "var(--color-bg-editor)",
     border: "none",
+  },
+  ".cm-lineNumbers .cm-gutterElement": {
+    padding: "0 2px 0 6px",
+  },
+  ".cm-tooltip.cm-tooltip-autocomplete > ul": {
+    fontFamily: "var(--font-code)",
+  },
+  ".cm-tooltip": {
+    fontFamily: "var(--font-ui)",
+    fontSize: "12px",
   },
 });
 

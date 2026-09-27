@@ -27,6 +27,8 @@
   <meta name="author" content="David Vandenbogaerde">
   <link rel="canonical" href="https://hydractrl.d17e.dev/app">
 
+  <link rel="preload" href="/assets/fonts/fira-code-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js" defer></script>
 </head>
@@ -40,28 +42,28 @@
     <div class="editor-container" id="editor-container">
       <div class="editor-handle" id="editor-handle">
         <div class="editor-handle-title">HYDRACTRL</div>
+        <div class="editor-tabs" id="editor-tabs">
+          <button class="editor-tab active" data-tab="main">Sketch</button>
+          <button class="editor-tab" data-tab="setup">Setup</button>
+        </div>
         <div class="editor-handle-controls">
           <button id="toggle-editor-btn" title="Toggle UI Visibility (Ctrl/⌘+`)">
             <span class="shortcut">Ctrl/⌘+`</span>
           </button>
         </div>
       </div>
-      <div class="editor-tabs" id="editor-tabs">
-        <button class="editor-tab active" data-tab="main">Sketch</button>
-        <button class="editor-tab" data-tab="setup">Setup</button>
-      </div>
       <div class="editor-content" id="editor-content"></div>
       <div class="editor-footer">
         <div class="editor-footer-left">
           <label class="checkbox-container">
             <input type="checkbox" id="auto-run-checkbox" title="Auto Run after typing stops (Ctrl+Y or Cmd+Y)">
-            <span>Auto Run <span class="shortcut">(Ctrl/⌘+Y)</span></span>
+            <span>Auto Run <span class="shortcut">Ctrl/⌘+Y</span></span>
           </label>
         </div>
         <div class="editor-footer-right">
           <button id="run-btn" title="Run (Ctrl+Enter or Cmd+Enter)">Run <span
-              class="shortcut">(Ctrl/⌘+Enter)</span></button>
-          <button id="save-btn" title="Save (Ctrl+S or Cmd+S)">Save <span class="shortcut">(Ctrl/⌘+S)</span></button>
+              class="shortcut">Ctrl/⌘+Enter</span></button>
+          <button id="save-btn" title="Save (Ctrl+S or Cmd+S)">Save <span class="shortcut">Ctrl/⌘+S</span></button>
         </div>
       </div>
     </div>

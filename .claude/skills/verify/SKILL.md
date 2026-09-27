@@ -59,8 +59,10 @@ const browser = await chromium.launch({
   `hydractrl-auto-run`; typing in `.cm-content` triggers a run ~250ms later.
 - URL share: `Alt+U` puts a `#sketch=` URL on the clipboard (grant
   `clipboard-read`/`clipboard-write` on the context).
-- Breakout: pick a size via `window.statsPanel.display.sizeButtons`, click
-  `breakoutButton`, expect a popup + `window.breakoutHydra`.
+- Breakout: pick a size in `window.statsPanel.display.sizeSelect` (a
+  `<select>`, HD 1280×720 unless `hydractrl-breakout-size` says otherwise),
+  click `breakoutButton` (Open/Close), expect a popup +
+  `window.breakoutHydra`. Changing the size while it's open resizes it.
 - Slot advance: enable `moveToNextSlotCheckbox`, call
   `slotsPanel.saveToActiveSlot()` + `window.moveToNextSlot(info)`, active
   slot moves after ~500ms.

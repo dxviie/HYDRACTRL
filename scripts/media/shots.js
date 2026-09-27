@@ -243,8 +243,8 @@ async function multipleThemes({ base, out }) {
       }),
     );
     const slider = await box(page, ".stats-panel input[type=range]");
-    // The opacity slider runs from 30 to 100 percent
-    const at = (percent) => slider.x + 8 + ((slider.width - 16) * (percent - 30)) / 70;
+    // The opacity slider runs from 30 to 100 percent (its thumb is 14px wide)
+    const at = (percent) => slider.x + 7 + ((slider.width - 14) * (percent - 30)) / 70;
     const clip = { x: 280, y: 150, width: 720, height: 405 };
     const rest = { x: clip.x + clip.width - 30, y: clip.y + clip.height - 30 };
     const file = join(out, "multiple-themes.mp4");
@@ -283,9 +283,9 @@ async function breakoutView({ base, out }) {
     await place(page, "#editor-container", { left: 24, top: 24, width: 600, height: 420 });
     await place(page, ".slots-panel", { left: 24, top: 560 });
     await place(page, ".stats-panel", { left: 644, top: 24 });
-    await page.getByText("HD (1280×720)", { exact: true }).click();
+    await page.selectOption(".breakout-size", "1280x720");
     const opened = context.waitForEvent("page");
-    await page.getByText("Open Breakout View").click();
+    await page.click(".breakout-size + button");
     const breakout = await opened;
     await breakout.setViewportSize({ width: 1280, height: 720 });
     await sleep(3000);
