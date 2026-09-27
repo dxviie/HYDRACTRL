@@ -85,8 +85,8 @@ describe("sketchSource", () => {
 });
 
 describe("the starter bank", () => {
-  // Update it by saving each sketch to its slot in a fresh HYDRACTRL (which
-  // captures the thumbnail) and exporting the bank with Alt/⌥ + X
+  // Rebuild it with `bun run media starter-bank` (scripts/media), which saves
+  // each sketch in the interface to capture its thumbnail
   test("holds the sketches, in order, with thumbnails", () => {
     const bank = JSON.parse(readFileSync(STARTER_BANK, "utf8"));
     expect(bank.version).toBe(1);

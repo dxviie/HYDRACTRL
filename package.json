@@ -13,6 +13,7 @@
     "build:exe:full": "bun run build:exe && bun run copy:public",
     "copy:public": "bun scripts/copy-public.js",
     "inject:analytics": "bun run scripts/inject-analytics.js",
+    "media": "bun run build && bun scripts/media/capture.js",
     "preview": "bun run build && bun src/index.ts",
     "lint": "biome check src/ scripts/ desktop/src/ desktop/scripts/",
     "format": "biome format --write src/ scripts/",
@@ -43,6 +44,7 @@
     "@types/p5": "^1.7.6",
     "@types/web": "^0.0.137",
     "bun-types": "latest",
-    "p5": "^1.9.0"
+    "p5": "^1.9.0",
+    "playwright-core": "^1.56.1"
   }
 }
