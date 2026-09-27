@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { BUN_TARGETS, REPO_ROOT, buildServer, bunTargetFor, parseArgs } from "./build-server.mjs";
 
 describe("parseArgs", () => {
@@ -16,7 +16,12 @@ describe("parseArgs", () => {
       "/tmp/x",
       "--skip-client",
     ]);
-    expect(parsed).toEqual({ platform: "win32", arch: "x64", out: "/tmp/x", skipClient: true });
+    expect(parsed).toEqual({
+      platform: "win32",
+      arch: "x64",
+      out: resolve("/tmp/x"),
+      skipClient: true,
+    });
     expect(() => parseArgs(["--bogus"])).toThrow("unknown argument");
   });
 });
@@ -52,15 +57,19 @@ describe("buildServer", () => {
       fs,
       log: () => {},
     });
-    expect(result.binaryPath).toBe("/stage/hydractrl.exe");
+    // Paths go through path.join, so expect native separators (Windows CI too)
+    expect(result.binaryPath).toBe(join("/stage", "hydractrl.exe"));
     expect(calls[0]).toEqual(["exec", "bun", "run", "build:client"]);
     expect(calls).toContainEqual(["rm", "/stage"]);
     const compile = calls.find((c) => c[0] === "exec" && c[2] === "build");
     expect(compile).toContain("--target=bun-windows-x64");
-    expect(compile).toContain("/stage/hydractrl.exe");
+    expect(compile).toContain(join("/stage", "hydractrl.exe"));
     const copies = calls.filter((c) => c[0] === "cp");
     expect(copies).toHaveLength(2);
-    expect(copies[0].slice(1, 3)).toEqual([join(REPO_ROOT, "public"), "/stage/hydractrl-public"]);
+    expect(copies[0].slice(1, 3)).toEqual([
+      join(REPO_ROOT, "public"),
+      join("/stage", "hydractrl-public"),
+    ]);
     expect(copies[1][1]).toBe(join(REPO_ROOT, "local-assets"));
     const manifest = JSON.parse(Object.values(written)[0]);
     expect(manifest.version).toBe("9.9.9");

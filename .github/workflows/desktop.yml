@@ -89,6 +89,10 @@ jobs:
           WIN_CSC_LINK: ${{ inputs.sign && matrix.platform == 'win' && secrets.WINDOWS_CERTIFICATE_P12_BASE64 || '' }}
           WIN_CSC_KEY_PASSWORD: ${{ inputs.sign && matrix.platform == 'win' && secrets.WINDOWS_CERTIFICATE_PASSWORD || '' }}
         run: |
+          # electron-builder treats a variable that is set but empty as a
+          # certificate path, so drop the ones without a secret behind them
+          if [ -z "$CSC_LINK" ]; then unset CSC_LINK CSC_KEY_PASSWORD; fi
+          if [ -z "$WIN_CSC_LINK" ]; then unset WIN_CSC_LINK WIN_CSC_KEY_PASSWORD; fi
           args="${{ matrix.args }} --publish never"
           if [ "${{ matrix.platform }}" = "mac" ] && [ -z "$CSC_LINK" ]; then
             # Without a certificate, sign ad hoc (Apple Silicon Macs refuse to
