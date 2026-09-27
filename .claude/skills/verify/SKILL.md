@@ -63,11 +63,19 @@ const browser = await chromium.launch({
   `<select>`, HD 1280×720 unless `hydractrl-breakout-size` says otherwise),
   click `breakoutButton` (Open/Close), expect a popup +
   `window.breakoutHydra`. Changing the size while it's open resizes it.
+- Slots panel: dragging `.slots-resize-grip` sets the panel's width; the
+  slots stay square, 40 to 100px (349 to 829px wide), and the width persists.
+- Feedback: the About panel's `.info-feedback-button` (or
+  `window.showFeedbackPanel()`) opens `#feedback-panel` with a sandboxed
+  tally.so frame. The sandbox can't reach tally.so, so route
+  `https://tally.so/**` to a stand-in page that posts
+  `parent.postMessage(JSON.stringify({ event: "Tally.FormLoaded" }), "*")`
+  (and `Tally.FormSubmitted` to test the thank-you toast and auto-close).
 - Slot advance: enable `moveToNextSlotCheckbox`, call
   `slotsPanel.saveToActiveSlot()` + `window.moveToNextSlot(info)`, active
   slot moves after ~500ms.
-- Touch: panels drag by their title bars, the editor and doc panel resize by
-  the grip in their corner, and with the UI hidden (`body.ui-hidden`) a tap
+- Touch: panels drag by their title bars, the editor, doc and slots panels
+  resize by the grip in their corner, and with the UI hidden (`body.ui-hidden`) a tap
   anywhere brings it back without clicking what reappears under the finger.
 
 ## Gotchas

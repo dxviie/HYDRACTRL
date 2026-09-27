@@ -12,3 +12,5 @@ export const HOSTED_APP_URL = "https://hydractrl.d17e.dev/app";
 export const REPOSITORY_URL = "https://github.com/dxviie/HYDRACTRL";
 export const RELEASES_URL = `${REPOSITORY_URL}/releases`;
 export const CHANGELOG_URL = `${REPOSITORY_URL}/blob/main/CHANGELOG.md`;
+/** The Tally form behind the landing page's contact form and the app's feedback panel. */
+export const FEEDBACK_FORM_ID = "3Erq04";

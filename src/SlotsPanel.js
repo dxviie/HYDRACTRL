@@ -8,9 +8,32 @@ import { loadPanelPosition, savePanelPosition } from "./utils/PanelStorage.js";
 // White at some opacity, or the theme's contrast color on light themes (styles.css)
 const contrast = (alpha) => `rgba(var(--color-contrast-rgb, 255, 255, 255), ${alpha})`;
 
+// The slots are square and the grid is 8 wide, so the panel's width sets
+// their size: 40 to 100px, resized by the grip in the panel's corner
+const SLOT_MIN = 40;
+const SLOT_MAX = 100;
+const SLOT_GAP = 3;
+const PANEL_PADDING = 4;
+
+/** The panel width at which the slots are `slotSize` pixels. */
+export function slotsPanelWidth(slotSize) {
+  return slotSize * 8 + SLOT_GAP * 7 + PANEL_PADDING * 2;
+}
+
+/** A panel width within the slot size limits. */
+export function clampSlotsPanelWidth(width) {
+  return Math.min(slotsPanelWidth(SLOT_MAX), Math.max(slotsPanelWidth(SLOT_MIN), width));
+}
+
 export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false, options = {}) {
   // Load saved position or use defaults
   const savedPosition = loadPanelPosition("slots-panel");
+
+  // The saved width, or the one for the slot size the system panel used to set
+  const legacySlotSize = Number(localStorage.getItem("hydractrl-slot-size")) || SLOT_MIN;
+  const initialWidth = clampSlotsPanelWidth(
+    savedPosition?.width || slotsPanelWidth(legacySlotSize),
+  );
 
   // Create the panel container
   const panel = document.createElement("div");
@@ -23,10 +46,11 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     panel.style.left = "50%";
     panel.style.transform = "translateX(-50%)";
     panel.style.zIndex = "1000";
+    // The smallest slots, narrower still on the smallest phones
+    panel.style.width = `min(${slotsPanelWidth(SLOT_MIN)}px, calc(100vw - 16px))`;
   } else if (savedPosition) {
     panel.style.left = savedPosition.left + "px";
     panel.style.top = savedPosition.top + "px";
-    // Don't apply width as slots panel has fixed width slots
   } else {
     panel.style.right = "20px";
     panel.style.top = "20px";
@@ -38,8 +62,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   panel.style.backdropFilter = "blur(var(--color-panel-blur))";
   panel.style.zIndex = "100";
   panel.style.overflow = "hidden";
-  panel.style.width = "auto";
-  panel.style.padding = "4px";
+  if (!mobilePosition) panel.style.width = `${initialWidth}px`;
+  panel.style.padding = `${PANEL_PADDING}px`;
 
   // Create the handle
   const handle = document.createElement("div");
@@ -253,9 +277,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   const slotsGrid = document.createElement("div");
   slotsGrid.className = "slots-grid";
   slotsGrid.style.display = "grid";
-  slotsGrid.style.gridTemplateColumns = "repeat(8, 1fr)";
-  slotsGrid.style.gridTemplateRows = "repeat(2, 1fr)";
-  slotsGrid.style.gap = "3px";
+  slotsGrid.style.gridTemplateColumns = "repeat(8, minmax(0, 1fr))";
+  slotsGrid.style.gap = `${SLOT_GAP}px`;
   slotsGrid.style.width = "100%";
 
   // Local storage key prefix
@@ -271,9 +294,6 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   // Store slot elements for easy access
   const slotElements = [];
 
-  // Load saved slot size or use default
-  const savedSlotSize = localStorage.getItem("hydractrl-slot-size") || "40";
-
   // Create 16 slots
   for (let i = 0; i < 16; i++) {
     const slot = document.createElement("div");
@@ -282,8 +302,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     slot.style.backgroundColor = "var(--color-bg-editor)";
     slot.style.borderRadius = "4px";
     slot.style.cursor = "pointer";
-    slot.style.height = savedSlotSize + "px";
-    slot.style.width = savedSlotSize + "px";
+    slot.style.aspectRatio = "1";
+    slot.style.minWidth = "0";
     slot.style.display = "flex";
     slot.style.justifyContent = "center";
     slot.style.alignItems = "center";
@@ -869,6 +889,48 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
 
   panel.appendChild(handle);
   panel.appendChild(content);
+
+  // Resize grip in the corner: the slots follow the panel's width
+  if (!mobilePosition) {
+    const grip = document.createElement("div");
+    grip.className = "resize-grip slots-resize-grip";
+    grip.title = "Drag to resize the slots";
+    panel.appendChild(grip);
+
+    let resizeFrom = null;
+    trackPointerDrag(grip, {
+      start: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const rect = panel.getBoundingClientRect();
+        resizeFrom = {
+          x: e.clientX,
+          y: e.clientY,
+          width: rect.width,
+          aspect: rect.width / rect.height,
+          left: rect.left,
+        };
+      },
+      move: (e) => {
+        const { x, y, width, aspect, left } = resizeFrom;
+        // Follow the pointer along whichever axis it moved further (the panel
+        // keeps its proportions), and keep the grip on screen
+        const dx = e.clientX - x;
+        const dy = (e.clientY - y) * aspect;
+        const delta = Math.abs(dx) >= Math.abs(dy) ? dx : dy;
+        const onScreen = Math.max(slotsPanelWidth(SLOT_MIN), window.innerWidth - left);
+        panel.style.width = `${Math.min(clampSlotsPanelWidth(width + delta), onScreen)}px`;
+      },
+      end: () => {
+        savePanelPosition("slots-panel", {
+          left: Number.parseInt(panel.style.left || "0"),
+          top: Number.parseInt(panel.style.top || "0"),
+          width: panel.offsetWidth,
+          height: panel.offsetHeight,
+        });
+      },
+    });
+  }
 
   // Add to document
   document.body.appendChild(panel);

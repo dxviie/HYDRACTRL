@@ -10,6 +10,7 @@ implementations:
 | `UrlSharePlugin` | `url-share` | Copy the sketch as a shareable URL (Alt/⌥+U), load sketches from `#sketch=` links. |
 | `AudioWatchdogPlugin` | `audio-watchdog` | Detects `a.fft` dropouts, logs diagnostics, auto-resumes the AudioContext. |
 | `InfoPanelPlugin` | `info-panel` | The About panel with keyboard shortcuts and the "show on startup" preference. |
+| `FeedbackPlugin` | `feedback` | The feedback panel: the site's contact form (Tally) in a sandboxed frame, with the version, app, OS and browser as hidden fields. |
 | `AutoRunPlugin` | `auto-run` | Re-runs the sketch after typing pauses; Ctrl/⌘+Y toggle and toolbar checkbox. |
 | `SlotAdvancePlugin` | `slot-advance` | "Move to next slot on save" behavior, wrapping across banks. |
 | `BreakoutPlugin` | `breakout-view` | Opens the visualization in a separate window at a chosen resolution. |
@@ -80,6 +81,7 @@ export function createMyPlugin() {
 | `autorun:changed` | `{ enabled }` | Auto-run was toggled (checkbox or Ctrl/⌘+Y). |
 | `slots:advanced` | `{ bank, slot }` | The active slot moved after a save (slot advance plugin). |
 | `breakout:opened` / `breakout:closed` | `{ width, height }` / `{}` | Breakout window lifecycle. |
+| `feedback:open` | — | Emit it to open the feedback panel (the About panel's "Send feedback" does). |
 | `sketch:run` | `{ setup, main }` | A sketch ran successfully on the main hydra instance (any trigger: run button, shortcut, auto-run, slot load). |
 | `output:count` | `{ count }` | The number of connected external outputs changed (output sync plugin). |
 

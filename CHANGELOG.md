@@ -39,8 +39,13 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
 - The browser version works on iPads and other tablets. They get the full
   interface instead of the phone view, without MIDI and the breakout window,
   which don't work there, and it all works by touch: drag panels by their
-  title bars, resize the editor and the docs by the grip in their corner,
-  fling the XY pad, and tap anywhere to bring back a hidden interface.
+  title bars, resize the editor, the docs and the slots by the grip in their
+  corner, fling the XY pad, and tap anywhere to bring back a hidden
+  interface.
+- Send feedback from inside the interface: the About panel's Send feedback
+  button, or the speech bubble in the system panel, opens the contact form in
+  a panel. Your HYDRACTRL version, browser or desktop app, OS and browser go
+  along with the message.
 
 ### Changed
 
@@ -66,6 +71,10 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
 - The breakout window's size is a dropdown next to its Open button. It
   remembers the size you picked, and picking another resizes an open
   breakout window.
+- The slots panel resizes by the grip in its corner, like the editor: the
+  slots stay square and grow with the panel, from 40 to 100 pixels. This
+  replaces the Slot Size slider in the system panel; the size you set there
+  carries over.
 
 ### Fixed
 

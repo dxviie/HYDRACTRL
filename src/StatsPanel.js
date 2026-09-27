@@ -2,6 +2,7 @@
  * Simple Stats Panel
  * A minimal, draggable FPS counter that doesn't rely on complex component architecture
  */
+import { FEEDBACK_FORM_ID } from "./project.js";
 import { trackPointerDrag } from "./utils/Draggable.js";
 import { loadPanelPosition, savePanelPosition } from "./utils/PanelStorage.js";
 
@@ -551,80 +552,6 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   slotsTitle.style.letterSpacing = "0.08em";
   slotsTitle.textContent = "SLOTS";
 
-  // Create slot size slider section
-  const slotSizeSection = document.createElement("div");
-  slotSizeSection.style.display = "flex";
-  slotSizeSection.style.flexDirection = "column";
-  slotSizeSection.style.gap = "2px";
-
-  // Slot size label
-  const slotSizeLabel = document.createElement("div");
-  slotSizeLabel.style.fontSize = "11px";
-  slotSizeLabel.style.color = "var(--color-text-primary)";
-  slotSizeLabel.textContent = "Slot Size";
-
-  // Slider container with value display
-  const slotSizeSliderContainer = document.createElement("div");
-  slotSizeSliderContainer.style.display = "flex";
-  slotSizeSliderContainer.style.alignItems = "center";
-  slotSizeSliderContainer.style.gap = "8px";
-  slotSizeSliderContainer.style.width = "100%";
-
-  // Slot size slider
-  const slotSizeSlider = document.createElement("input");
-  slotSizeSlider.type = "range";
-  slotSizeSlider.min = "40";
-  slotSizeSlider.max = "100";
-  slotSizeSlider.step = "5";
-
-  // Load saved slot size or use default (smallest size)
-  const savedSlotSize = localStorage.getItem("hydractrl-slot-size") || "40";
-  slotSizeSlider.value = savedSlotSize;
-  slotSizeSlider.style.flex = "1";
-  slotSizeSlider.style.margin = "0";
-
-  // Slot size value display
-  const slotSizeValue = document.createElement("span");
-  slotSizeValue.style.fontSize = "11px";
-  slotSizeValue.style.color = "var(--color-text-primary)";
-  slotSizeValue.style.minWidth = "32px";
-  slotSizeValue.style.textAlign = "right";
-  slotSizeValue.textContent = savedSlotSize + "px";
-
-  // Function to update slot sizes in SlotsPanel
-  function updateSlotSizes(size) {
-    // Update CSS custom property for slot size
-    document.documentElement.style.setProperty("--slot-size", size + "px");
-
-    // Apply to all slot elements directly
-    const slotElements = document.querySelectorAll(".slot");
-    slotElements.forEach((slot) => {
-      slot.style.height = size + "px";
-      slot.style.width = size + "px";
-    });
-
-    // Save to localStorage
-    localStorage.setItem("hydractrl-slot-size", size);
-  }
-
-  // Update slot sizes when slider changes
-  slotSizeSlider.addEventListener("input", () => {
-    const size = slotSizeSlider.value;
-    slotSizeValue.textContent = size + "px";
-    updateSlotSizes(Number.parseInt(size));
-  });
-
-  // Apply initial slot size
-  updateSlotSizes(Number.parseInt(savedSlotSize));
-
-  // Add elements to slider container
-  slotSizeSliderContainer.appendChild(slotSizeSlider);
-  slotSizeSliderContainer.appendChild(slotSizeValue);
-
-  // Add elements to slot size section
-  slotSizeSection.appendChild(slotSizeLabel);
-  slotSizeSection.appendChild(slotSizeSliderContainer);
-
   // Create move to next slot option
   const moveToNextSlotOption = document.createElement("div");
   moveToNextSlotOption.style.display = "flex";
@@ -653,7 +580,6 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
 
   // Add elements to slots section
   slotsSection.appendChild(slotsTitle);
-  slotsSection.appendChild(slotSizeSection);
   slotsSection.appendChild(moveToNextSlotOption);
 
   // Display section title
@@ -858,9 +784,35 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
     e.stopPropagation();
   });
 
+  // Feedback button: opens the feedback panel (FeedbackPlugin), or the form
+  // itself if that plugin isn't running
+  const feedbackButton = document.createElement("button");
+  feedbackButton.className = "feedback-button";
+  feedbackButton.innerHTML =
+    "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24'><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H12l-4 4v-4H6.5A2.5 2.5 0 0 1 4 13.5v-7A2.5 2.5 0 0 1 6.5 4z'/><path d='M8 8.5h8M8 11.5h5'/></g></svg>";
+  feedbackButton.style.background = "none";
+  feedbackButton.style.width = "22px";
+  feedbackButton.style.height = "22px";
+  feedbackButton.style.border = "none";
+  feedbackButton.style.padding = "0";
+  feedbackButton.style.display = "flex";
+  feedbackButton.style.alignItems = "center";
+  feedbackButton.style.justifyContent = "center";
+  feedbackButton.title = "Send feedback";
+  feedbackButton.addEventListener("click", () => {
+    if (window.showFeedbackPanel) window.showFeedbackPanel();
+    else window.open(`https://tally.so/r/${FEEDBACK_FORM_ID}?source=app`, "_blank", "noopener");
+  });
+
+  const footerButtons = document.createElement("div");
+  footerButtons.style.display = "flex";
+  footerButtons.style.gap = "2px";
+  footerButtons.appendChild(feedbackButton);
+  footerButtons.appendChild(infoButton);
+
   // Add elements to footer
   footerSection.appendChild(attributionText);
-  footerSection.appendChild(infoButton);
+  footerSection.appendChild(footerButtons);
 
   content.appendChild(metrics);
   content.appendChild(details);

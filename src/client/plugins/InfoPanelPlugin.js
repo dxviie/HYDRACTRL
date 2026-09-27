@@ -148,6 +148,28 @@ export function createInfoPanelPlugin() {
         versionText.style.color = "var(--color-text-secondary)";
         aboutSection.appendChild(versionText);
 
+        // Opens the feedback panel (FeedbackPlugin)
+        const feedbackRow = document.createElement("p");
+        feedbackRow.style.display = "flex";
+        feedbackRow.style.alignItems = "center";
+        feedbackRow.style.flexWrap = "wrap";
+        feedbackRow.style.gap = "4px 8px";
+        feedbackRow.style.margin = "8px 0 0";
+        feedbackRow.style.fontSize = "12px";
+        feedbackRow.style.color = "var(--color-text-secondary)";
+        feedbackRow.append("Found a bug or have an idea?");
+        const feedbackButton = document.createElement("button");
+        feedbackButton.className = "info-feedback-button";
+        feedbackButton.textContent = "Send feedback";
+        feedbackButton.style.fontSize = "11px";
+        feedbackButton.style.padding = "2px 8px";
+        feedbackButton.addEventListener("click", () => {
+          hide();
+          ctx.events.emit("feedback:open");
+        });
+        feedbackRow.append(feedbackButton);
+        aboutSection.appendChild(feedbackRow);
+
         // Add big dice button for mobile
         if (isMobile) {
           const mobileDiceButton = document.createElement("button");

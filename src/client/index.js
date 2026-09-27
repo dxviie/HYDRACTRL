@@ -17,6 +17,7 @@ import { createAudioWatchdogPlugin } from "./plugins/AudioWatchdogPlugin.js";
 import { createAutoRunPlugin } from "./plugins/AutoRunPlugin.js";
 import { createBreakoutPlugin } from "./plugins/BreakoutPlugin.js";
 import { createDesktopOutputPlugin } from "./plugins/DesktopOutputPlugin.js";
+import { createFeedbackPlugin } from "./plugins/FeedbackPlugin.js";
 import { createInfoPanelPlugin } from "./plugins/InfoPanelPlugin.js";
 import { createMidiUiPlugin } from "./plugins/MidiUiPlugin.js";
 import { createMobileUiPlugin } from "./plugins/MobileUiPlugin.js";
@@ -846,6 +847,7 @@ async function init() {
     pluginHost.register(createUrlSharePlugin());
     pluginHost.register(createAudioWatchdogPlugin());
     pluginHost.register(createInfoPanelPlugin());
+    pluginHost.register(createFeedbackPlugin());
     pluginHost.register(createAutoRunPlugin());
     pluginHost.register(createSlotAdvancePlugin());
     pluginHost.register(createBreakoutPlugin());

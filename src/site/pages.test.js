@@ -7,6 +7,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { PAGES, withAnalytics } from "../../scripts/inject-analytics.js";
+import { FEEDBACK_FORM_ID } from "../project.js";
 
 const PUBLIC = join(import.meta.dir, "..", "..", "public");
 const read = (file) => readFileSync(join(PUBLIC, file), "utf8");
@@ -19,6 +20,10 @@ describe("site layout", () => {
     expect(read("index.html")).toContain('src="/site/landing.js"');
     expect(read("app.html")).toContain('src="/assets/index.js"');
     expect(read("output.html")).toContain('src="/assets/output.js"');
+  });
+
+  test("the contact form is the app's feedback form", () => {
+    expect(read("index.html")).toContain(`https://tally.so/embed/${FEEDBACK_FORM_ID}?`);
   });
 
   test("_redirects never rewrites to an .html file", () => {
