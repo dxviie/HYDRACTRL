@@ -69,6 +69,25 @@ describe("buildShareUrl", () => {
     expect(readSketchFromHash(hash)).toBe("osc().out()");
   });
 
+  test("keeps the page path, so links from /app open /app", () => {
+    const location = { origin: "https://hydractrl.d17e.dev", pathname: "/app", hostname: "x" };
+    expect(buildShareUrl("osc().out()", location)).toStartWith(
+      "https://hydractrl.d17e.dev/app#sketch=",
+    );
+  });
+
+  test("links from this computer point at the hosted version", () => {
+    for (const hostname of ["localhost", "127.0.0.1", "[::1]"]) {
+      const location = { origin: `http://${hostname}:3000`, pathname: "/", hostname };
+      const url = buildShareUrl("osc().out()", location);
+      expect(url).toStartWith("https://hydractrl.d17e.dev/app#sketch=");
+      expect(readSketchFromHash(url.slice(url.indexOf("#")))).toBe("osc().out()");
+    }
+    // Another machine on the network can still open a LAN address
+    const lan = { origin: "http://192.168.1.20:3000", pathname: "/", hostname: "192.168.1.20" };
+    expect(buildShareUrl("osc().out()", lan)).toStartWith("http://192.168.1.20:3000/#sketch=");
+  });
+
   test("returns null for an empty sketch", () => {
     const location = { origin: "https://hydractrl.example", pathname: "/" };
     expect(buildShareUrl("", location)).toBe(null);

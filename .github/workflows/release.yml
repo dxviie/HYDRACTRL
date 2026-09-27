@@ -1,0 +1,107 @@
+name: Release
+
+# Publishes a GitHub release when a version tag (v1.2.3) is pushed. It checks
+# the tag against package.json, desktop/package.json and CHANGELOG.md, builds
+# the desktop app for every platform, and attaches the installers, their
+# checksums and the changelog notes. The landing page's download buttons
+# point at releases/latest/download/<file>, so they pick the new release up
+# the moment it is published. See RELEASING.md.
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check version and notes
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check the tag against both package.json files and CHANGELOG.md
+        id: version
+        run: echo "version=$(bun scripts/release.js check "$GITHUB_REF_NAME")" >> "$GITHUB_OUTPUT"
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Test
+        run: bun test
+
+  desktop:
+    name: Desktop app
+    needs: check
+    uses: ./.github/workflows/desktop.yml
+    with:
+      sign: true
+    secrets: inherit
+
+  publish:
+    name: Publish the release
+    needs: [check, desktop]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: hydractrl-desktop-*
+          path: dist
+          merge-multiple: true
+
+      - name: Check that every landing page download was built
+        run: bun scripts/release.js assets dist
+
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      - name: Release notes
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
+          MAC_SIGNED: ${{ secrets.MAC_CERTIFICATE_P12_BASE64 != '' && secrets.APPLE_ID != '' }}
+          WINDOWS_SIGNED: ${{ secrets.WINDOWS_CERTIFICATE_P12_BASE64 != '' }}
+        run: |
+          flags=""
+          if [ "$MAC_SIGNED" = "true" ]; then flags="$flags --mac-signed"; fi
+          if [ "$WINDOWS_SIGNED" = "true" ]; then flags="$flags --windows-signed"; fi
+          bun scripts/release.js notes "$VERSION" $flags > notes.md
+          cat notes.md
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.check.outputs.version }}
+        run: |
+          prerelease=""
+          case "$VERSION" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --verify-tag \
+            --title "HYDRACTRL $VERSION" \
+            --notes-file notes.md \
+            $prerelease

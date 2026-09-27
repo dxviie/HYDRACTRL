@@ -1,21 +1,25 @@
 {
   "name": "hydractrl",
-  "version": "0.0.1",
+  "version": "1.2.0",
   "type": "module",
   "scripts": {
     "dev": "bun run build:client && bun --watch src/index.ts",
     "build": "bun run build:client",
     "build:production": "bun run build:client && bun run inject:analytics",
-    "build:client": "bun build src/client/index.js src/client/output.js --outdir ./public/assets --minify --target browser --jsx-runtime automatic",
+    "build:client": "bun run build:app && bun run build:site",
+    "build:app": "bun build src/client/index.js src/client/output.js --outdir ./public/assets --minify --target browser --jsx-runtime automatic",
+    "build:site": "bun build src/site/landing.js --outdir ./public/site --splitting --minify --target browser",
     "build:exe": "bun run build:client && bun build src/index.ts --compile --outfile hydractrl --target bun",
-    "build:exe:full": "bun run build:exe && bun run copy:public && bun run copy:local",
-    "copy:public": "node -e \"require('fs').cpSync('public', 'hydractrl-public', {recursive: true})\"",
-    "copy:local": "node -e \"require('fs').cpSync('local-assets', 'hydractrl-public', {recursive: true})\"",
+    "build:exe:full": "bun run build:exe && bun run copy:public",
+    "copy:public": "bun scripts/copy-public.js",
     "inject:analytics": "bun run scripts/inject-analytics.js",
     "preview": "bun run build && bun src/index.ts",
-    "lint": "biome check src/ desktop/src/ desktop/scripts/",
-    "format": "biome format --write src/",
-    "test": "bun test"
+    "lint": "biome check src/ scripts/ desktop/src/ desktop/scripts/",
+    "format": "biome format --write src/ scripts/",
+    "test": "bun test",
+    "release:prepare": "bun scripts/release.js prepare",
+    "release:check": "bun scripts/release.js check",
+    "release:notes": "bun scripts/release.js notes"
   },
   "dependencies": {
     "@babel/runtime": "^7.24.1",

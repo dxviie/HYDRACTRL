@@ -27,10 +27,30 @@ Everything the web version does still works: MIDI, the breakout window,
 
 ## Install and run
 
-Download the build for your machine from the project's releases, or build it
-yourself (below). Unsigned builds show a security prompt the first time: on
-macOS right-click the app and choose Open, on Windows choose "More info" and
-"Run anyway".
+Download the build for your machine from
+[hydractrl.d17e.dev](https://hydractrl.d17e.dev/#download) or the
+[releases page](https://github.com/dxviie/HYDRACTRL/releases/latest), or build
+it yourself (below):
+
+| Computer | File |
+| --- | --- |
+| Mac with Apple Silicon (M1 and later) | `HYDRACTRL-mac-arm64.dmg` |
+| Mac with an Intel processor | `HYDRACTRL-mac-x64.dmg` |
+| Windows 10 or 11, 64-bit | `HYDRACTRL-win-x64-setup.exe` |
+
+The builds aren't signed with an Apple or Windows certificate yet, so the
+first launch needs one confirmation:
+
+- **macOS**: drag HYDRACTRL into Applications and open it. When macOS says it
+  can't verify the app, open System Settings → Privacy & Security, scroll down
+  and click *Open Anyway*.
+- **Windows**: when SmartScreen warns about an unrecognized app, click
+  *More info*, then *Run anyway*.
+
+To update, install the new version over the old one; settings and scenes
+stay. The app's version is in its About box and in the interface's About
+panel, and it matches the browser version's: see the
+[changelog](../CHANGELOG.md).
 
 On first launch macOS asks for microphone access. Allow it, or audio-reactive
 sketches stay silent. The output starts automatically and a source called
@@ -132,15 +152,25 @@ assets under `resources/server` inside the app, and keeps the native
 texture-sharing module outside the asar. Intel and Apple Silicon are separate
 builds (`--x64` / `--arm64`); universal binaries are not supported.
 
-Builds are unsigned by default. To sign and notarize on macOS, provide a
-Developer ID certificate through `CSC_LINK` / `CSC_KEY_PASSWORD` and Apple
-credentials (`APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`), then
-run `bunx electron-builder --mac -c.mac.notarize=true`. The entitlements in
-`resources/` already allow JIT for Electron and the Bun server, and
-microphone and camera access.
+The output files carry no version (`HYDRACTRL-mac-arm64.dmg`,
+`HYDRACTRL-win-x64-setup.exe`, ...) so the website can link to
+`releases/latest/download/<file>`; keep `src/site/downloads.js` in step if you
+change `artifactName` (a test checks it).
 
-The `Desktop app` GitHub Actions workflow builds all three targets on demand
-and for `desktop-v*` tags, and uploads the DMG, ZIP and installer as artifacts.
+Builds are unsigned by default. To sign on macOS, provide a Developer ID
+certificate through `CSC_LINK` / `CSC_KEY_PASSWORD`; the build is notarized
+when Apple credentials (`APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`,
+`APPLE_TEAM_ID`) are in the environment too. Without a certificate, sign ad
+hoc with `bunx electron-builder --mac -c.mac.identity=-`: a build with no
+signature at all won't open on Apple Silicon once it has been downloaded. The
+entitlements in `resources/` already allow JIT for Electron and the Bun
+server, library validation for the ad-hoc case, and microphone and camera
+access.
+
+The `Desktop app` GitHub Actions workflow builds all three targets for pull
+requests that touch the app and on demand, and uploads the DMG, ZIP and
+installer as artifacts. The `Release` workflow runs it for version tags and
+publishes the result as a GitHub release; see [RELEASING.md](../RELEASING.md).
 
 ## Roadmap
 

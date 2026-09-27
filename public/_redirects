@@ -1,2 +1,15 @@
-/output /output.html 200
-/* /index.html 200
+# Cloudflare Pages redirects for hydractrl.d17e.dev.
+#
+# Routing needs no rules: Pages serves index.html (the landing page) at /,
+# app.html (the interface) at /app and output.html at /output, and falls back
+# to index.html for unknown paths because there is no 404.html.
+#
+# Never add a 200 rule that points at one of those .html files (for example
+# "/output /output.html 200"): Pages answers /output.html with a redirect to
+# /output, so the rule loops forever.
+#
+# Share links from before the landing page used the site root
+# (/#sketch=...). Fragments never reach the server, so the landing page
+# forwards those to /app itself.
+
+/download /#download 302

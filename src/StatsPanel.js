@@ -866,7 +866,7 @@ export function createStatsPanel() {
     if (window.showInfoPanel) {
       window.showInfoPanel();
     } else {
-      window.open("https://dxviie.github.io/HYDRACTRL/", "_blank");
+      window.open("https://hydractrl.d17e.dev/", "_blank");
     }
   });
 

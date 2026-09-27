@@ -1,13 +1,38 @@
 name: Desktop app
 
 # Builds the packaged desktop app for macOS (Apple Silicon and Intel) and
-# Windows. Runs on demand and for desktop release tags. Artifacts are unsigned
-# unless signing credentials are configured as repository secrets.
+# Windows, and smoke-tests a Linux directory build. Runs for pull requests
+# that touch the app, on demand, and from the Release workflow, which asks for
+# signed builds. Builds are unsigned (ad-hoc signed on macOS) unless signing
+# credentials are configured as repository secrets; see RELEASING.md.
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - "desktop-v*"
+    inputs:
+      sign:
+        description: Sign (and notarize) with the credentials in the repository secrets
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      sign:
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - "desktop/**"
+      - "src/**"
+      - "public/**"
+      - "scripts/**"
+      - "package.json"
+      - "bun.lock"
+      - ".github/workflows/desktop.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-build-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -19,12 +44,15 @@ jobs:
         include:
           - name: macOS (Apple Silicon)
             os: macos-15
+            platform: mac
             args: --mac --arm64
           - name: macOS (Intel)
             os: macos-15-intel
+            platform: mac
             args: --mac --x64
           - name: Windows (x64)
             os: windows-latest
+            platform: win
             args: --win --x64
     steps:
       - uses: actions/checkout@v4
@@ -45,17 +73,37 @@ jobs:
         working-directory: desktop
 
       - name: Package
-        run: bunx electron-builder ${{ matrix.args }}
+        shell: bash
         working-directory: desktop
         env:
-          # Unsigned builds by default; set CSC_LINK / CSC_KEY_PASSWORD (and
-          # APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID with
-          # -c.mac.notarize=true) to sign and notarize.
+          # Never pick up a random identity from the runner's keychain
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          # macOS: a Developer ID Application certificate (.p12, base64) and
+          # Apple credentials for notarization
+          CSC_LINK: ${{ inputs.sign && matrix.platform == 'mac' && secrets.MAC_CERTIFICATE_P12_BASE64 || '' }}
+          CSC_KEY_PASSWORD: ${{ inputs.sign && matrix.platform == 'mac' && secrets.MAC_CERTIFICATE_PASSWORD || '' }}
+          APPLE_ID: ${{ inputs.sign && matrix.platform == 'mac' && secrets.APPLE_ID || '' }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ inputs.sign && matrix.platform == 'mac' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
+          APPLE_TEAM_ID: ${{ inputs.sign && matrix.platform == 'mac' && secrets.APPLE_TEAM_ID || '' }}
+          # Windows: a code-signing certificate (.p12/.pfx, base64)
+          WIN_CSC_LINK: ${{ inputs.sign && matrix.platform == 'win' && secrets.WINDOWS_CERTIFICATE_P12_BASE64 || '' }}
+          WIN_CSC_KEY_PASSWORD: ${{ inputs.sign && matrix.platform == 'win' && secrets.WINDOWS_CERTIFICATE_PASSWORD || '' }}
+        run: |
+          args="${{ matrix.args }} --publish never"
+          if [ "${{ matrix.platform }}" = "mac" ] && [ -z "$CSC_LINK" ]; then
+            # Without a certificate, sign ad hoc (Apple Silicon Macs refuse to
+            # open a downloaded app with no signature at all) and don't try
+            # to notarize. With one, electron-builder signs, and notarizes
+            # when the Apple credentials are set.
+            args="$args -c.mac.identity=-"
+            unset APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
+          fi
+          echo "electron-builder $args"
+          bunx electron-builder $args
 
       - uses: actions/upload-artifact@v4
         with:
-          name: hydractrl-desktop-${{ runner.os }}-${{ runner.arch }}
+          name: hydractrl-desktop-${{ matrix.platform }}-${{ runner.arch }}
           path: |
             desktop/dist/*.dmg
             desktop/dist/*.zip

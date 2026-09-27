@@ -6,20 +6,20 @@
  * Usage: node scripts/process-sketches.js
  */
 
-import { readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
-const INPUT_FILE = 'public/assets/banks/saved_sketches_glitch_editor_30_2021.json';
-const OUTPUT_DIR = 'public/assets/banks/random';
+const INPUT_FILE = "public/assets/banks/saved_sketches_glitch_editor_30_2021.json";
+const OUTPUT_DIR = "public/assets/banks/random";
 const SKETCHES_PER_FILE = 16;
 const MAX_FILES = 30;
 
 function hasAttribution(decodedCode) {
-  console.log('ATTTTR in ?', decodedCode);
+  console.log("ATTTTR in ?", decodedCode);
   // Check for common attribution patterns in comments
   const attributionPatterns = [
     /\/\/.*by\s+[a-zA-Z]/i,
-      /\/\/.*CC.*/i,
+    /\/\/.*CC.*/i,
     /\/\/.*@[a-zA-Z]/i,
     /\/\/.*author/i,
     /\/\/.*created?\s+by/i,
@@ -28,10 +28,10 @@ function hasAttribution(decodedCode) {
     /\/\*.*@[a-zA-Z]/i,
     /\/\*.*author/i,
     /\/\*.*created?\s+by/i,
-    /\/\*.*made?\s+by/i
+    /\/\*.*made?\s+by/i,
   ];
-  
-  return attributionPatterns.some(pattern => pattern.test(decodedCode));
+
+  return attributionPatterns.some((pattern) => pattern.test(decodedCode));
 }
 
 function shuffleArray(array) {
@@ -45,93 +45,94 @@ function shuffleArray(array) {
 
 function main() {
   try {
-    console.log('Reading saved sketches file...');
-    
+    console.log("Reading saved sketches file...");
+
     // Read the input JSON file
-    const rawData = readFileSync(INPUT_FILE, 'utf8');
+    const rawData = readFileSync(INPUT_FILE, "utf8");
     const sketches = JSON.parse(rawData);
-    
+
     console.log(`Found ${sketches.length} sketches in the file`);
-    
+
     // Filter sketches with attribution
     const sketchesWithAttribution = [];
-    
+
     for (const sketch of sketches) {
       // Decode the Base64-encoded code, then URL-decode it
-      let decodedCode = '';
+      let decodedCode = "";
       try {
-        const base64Decoded = Buffer.from(sketch.code, 'base64').toString('utf8');
+        const base64Decoded = Buffer.from(sketch.code, "base64").toString("utf8");
         decodedCode = decodeURIComponent(base64Decoded);
       } catch (error) {
         console.warn(`Warning: Could not decode code for sketch ${sketch._id}, skipping`);
         continue;
       }
-      
+
       // Check for attribution
       if (hasAttribution(decodedCode)) {
         sketchesWithAttribution.push({
           ...sketch,
-          decodedCode
+          decodedCode,
         });
       }
     }
-    
+
     console.log(`Found ${sketchesWithAttribution.length} sketches with attribution`);
-    
+
     if (sketchesWithAttribution.length < SKETCHES_PER_FILE) {
       console.error(`❌ Not enough sketches with attribution (need at least ${SKETCHES_PER_FILE})`);
       process.exit(1);
     }
-    
+
     // Shuffle sketches to randomize selection
     const shuffledSketches = shuffleArray(sketchesWithAttribution);
-    
+
     // Determine how many files to create
     const maxPossibleFiles = Math.floor(shuffledSketches.length / SKETCHES_PER_FILE);
     const filesToCreate = Math.min(maxPossibleFiles, MAX_FILES);
-    
+
     console.log(`Creating ${filesToCreate} bank files with ${SKETCHES_PER_FILE} sketches each...`);
-    
+
     // Process sketches in groups
     for (let fileIndex = 0; fileIndex < filesToCreate; fileIndex++) {
       const startIndex = fileIndex * SKETCHES_PER_FILE;
       const endIndex = startIndex + SKETCHES_PER_FILE;
       const fileSketchs = shuffledSketches.slice(startIndex, endIndex);
-      
+
       // Create slots array
       const slots = fileSketchs.map((sketch, slotIndex) => ({
         slotIndex,
         code: sketch.code, // Use original encoded code for output
-        thumbnail: "" // Empty thumbnail - would need to be generated separately
+        thumbnail: "", // Empty thumbnail - would need to be generated separately
       }));
-      
+
       // Create bank structure matching default-extension-pack.json format
       const bankData = {
         version: 1,
         banks: [
           {
             bankIndex: 0,
-            slots
-          }
-        ]
+            slots,
+          },
+        ],
       };
-      
+
       // Generate filename
-      const filename = `bank-${fileIndex.toString().padStart(2, '0')}.json`;
+      const filename = `bank-${fileIndex.toString().padStart(2, "0")}.json`;
       const filepath = join(OUTPUT_DIR, filename);
-      
+
       // Write the JSON file
-      writeFileSync(filepath, JSON.stringify(bankData, null, 2), 'utf8');
-      
+      writeFileSync(filepath, JSON.stringify(bankData, null, 2), "utf8");
+
       console.log(`Created ${filename} with ${slots.length} sketches`);
     }
-    
+
     console.log(`\n✅ Successfully created ${filesToCreate} bank files in ${OUTPUT_DIR}/`);
     console.log(`Each file contains ${SKETCHES_PER_FILE} random sketches with attribution`);
-    console.log(`Total sketches used: ${filesToCreate * SKETCHES_PER_FILE} out of ${sketchesWithAttribution.length} with attribution`);
-    
+    console.log(
+      `Total sketches used: ${filesToCreate * SKETCHES_PER_FILE} out of ${sketchesWithAttribution.length} with attribution`,
+    );
   } catch (error) {
-    console.error('❌ Error processing sketches:', error.message);
+    console.error("❌ Error processing sketches:", error.message);
     process.exit(1);
   }
 }

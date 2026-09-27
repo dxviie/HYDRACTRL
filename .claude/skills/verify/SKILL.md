@@ -13,9 +13,18 @@ the UI — not running `bun test`.
 
 ```bash
 bun install
-bun run build          # bundles src/client/index.js -> public/assets/
+bun run build          # bundles src/client -> public/assets/, src/site -> public/site/
 bun src/index.ts &     # serves on http://localhost:3000
 ```
+
+The interface is at `/` (and `/app`); the hosted site's landing page is at
+`/index.html` locally. On the landing page, `#backdrop` gets the class
+`is-ready` once the hydra background renders, and `#now-playing` shows the
+current background sketch with a link that opens it in the app. The GitHub
+API call for the latest release fails in the sandbox unless the browser
+context ignores HTTPS errors (the egress proxy re-signs TLS); the download
+links keep their static `releases/latest/download/...` targets either way.
+Headless Chromium here has no H.264, so the feature videos stay blank.
 
 ## Drive it (headless Chromium + playwright-core)
 

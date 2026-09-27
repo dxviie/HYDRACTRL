@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { BUN_TARGETS, buildServer, bunTargetFor, parseArgs } from "./build-server.mjs";
+import { join } from "node:path";
+import { BUN_TARGETS, REPO_ROOT, buildServer, bunTargetFor, parseArgs } from "./build-server.mjs";
 
 describe("parseArgs", () => {
   test("defaults to the host and accepts overrides", () => {
@@ -34,7 +35,7 @@ describe("buildServer", () => {
     const calls = [];
     const written = {};
     const fs = {
-      cpSync: (from, to) => calls.push(["cp", from, to]),
+      cpSync: (from, to, options) => calls.push(["cp", from, to, options]),
       existsSync: (path) => path.endsWith("local-assets"),
       mkdirSync: (path) => calls.push(["mkdir", path]),
       readFileSync: () => JSON.stringify({ version: "9.9.9" }),
@@ -57,10 +58,42 @@ describe("buildServer", () => {
     const compile = calls.find((c) => c[0] === "exec" && c[2] === "build");
     expect(compile).toContain("--target=bun-windows-x64");
     expect(compile).toContain("/stage/hydractrl.exe");
-    expect(calls.filter((c) => c[0] === "cp")).toHaveLength(2);
+    const copies = calls.filter((c) => c[0] === "cp");
+    expect(copies).toHaveLength(2);
+    expect(copies[0].slice(1, 3)).toEqual([join(REPO_ROOT, "public"), "/stage/hydractrl-public"]);
+    expect(copies[1][1]).toBe(join(REPO_ROOT, "local-assets"));
     const manifest = JSON.parse(Object.values(written)[0]);
     expect(manifest.version).toBe("9.9.9");
     expect(manifest.target).toBe("bun-windows-x64");
+  });
+
+  test("leaves the hosted website's own files out of the bundle", () => {
+    const copies = [];
+    buildServer({
+      platform: "linux",
+      arch: "x64",
+      out: "/stage",
+      skipClient: true,
+      exec: () => {},
+      fs: {
+        cpSync: (from, to, options) => copies.push({ from, options }),
+        existsSync: () => false,
+        mkdirSync() {},
+        readFileSync: () => "{}",
+        rmSync() {},
+        writeFileSync() {},
+      },
+      log: () => {},
+    });
+    const publicDir = join(REPO_ROOT, "public");
+    const { filter } = copies[0].options;
+    expect(filter(publicDir)).toBe(true);
+    expect(filter(join(publicDir, "app.html"))).toBe(true);
+    expect(filter(join(publicDir, "output.html"))).toBe(true);
+    expect(filter(join(publicDir, "assets", "index.js"))).toBe(true);
+    expect(filter(join(publicDir, "index.html"))).toBe(false);
+    expect(filter(join(publicDir, "site", "code-editor.mp4"))).toBe(false);
+    expect(filter(join(publicDir, "_redirects"))).toBe(false);
   });
 
   test("can skip the client build", () => {

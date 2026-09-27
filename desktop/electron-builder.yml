@@ -6,7 +6,10 @@
 appId: dev.d17e.hydractrl
 productName: HYDRACTRL
 copyright: Copyright © 2026 D17E · Built on hydra by Olivia Jack · AGPL-3.0
-artifactName: ${productName}-${version}-${os}-${arch}.${ext}
+# No version in the file names: the landing page links to
+# github.com/dxviie/HYDRACTRL/releases/latest/download/<name>, so these must
+# stay stable (src/site/downloads.js, checked by src/site/downloads.test.js).
+artifactName: ${productName}-${os}-${arch}.${ext}
 
 directories:
   output: dist
@@ -45,9 +48,10 @@ mac:
   gatekeeperAssess: false
   entitlements: resources/entitlements.mac.plist
   entitlementsInherit: resources/entitlements.mac.inherit.plist
-  # Notarization is opt-in: pass -c.mac.notarize=true with Apple credentials
-  # in the environment (see README).
-  notarize: false
+  # Signing needs a Developer ID certificate (CSC_LINK / CSC_KEY_PASSWORD);
+  # without one, pass -c.mac.identity=- for an ad-hoc signature. Notarization
+  # runs whenever Apple credentials are in the environment (APPLE_ID,
+  # APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID); see RELEASING.md.
   extendInfo:
     NSMicrophoneUsageDescription: HYDRACTRL listens to the microphone for audio-reactive sketches (a.fft).
     NSCameraUsageDescription: HYDRACTRL uses the camera when a sketch calls s0.initCam().
@@ -62,6 +66,7 @@ win:
   icon: resources/icon.png
 
 nsis:
+  artifactName: ${productName}-${os}-${arch}-setup.${ext}
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true

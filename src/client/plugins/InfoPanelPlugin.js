@@ -9,6 +9,7 @@
  * panel's info button (and legacy code) calls them.
  */
 
+import { CHANGELOG_URL, VERSION, WEBSITE_URL } from "../../project.js";
 import { makeDraggable } from "../../utils/Draggable.js";
 
 const STARTUP_KEY = "hydractrl-show-info-on-startup";
@@ -117,11 +118,17 @@ export function createInfoPanelPlugin() {
         const aboutSection = document.createElement("div");
         aboutSection.className = "info-section";
 
+        const linkStyle = "color:var(--color-text-secondary);text-decoration:underline";
+        const websiteLink = `<a href="${WEBSITE_URL}" target="_blank" rel="noopener" style="${linkStyle}">hydractrl.d17e.dev</a>`;
         const aboutText = document.createElement("p");
         if (isMobile) {
-          aboutText.innerHTML = `This app is designed for desktop, but you can play around here by loading random clips (by clicking on the dice 🎲). For the full experience, visit this site on a desktop computer. Check out the <a href="https://dxviie.github.io/HYDRACTRL/" style="color:var(--color-text-secondary);text-decoration:underline">GitHub Page</a> for more info.`;
+          aboutText.innerHTML = `This app is designed for desktop, but you can play around here by loading random clips (by clicking on the dice 🎲). For the full experience, visit this site on a desktop computer. See ${websiteLink} for more info.`;
         } else {
-          aboutText.innerHTML = `HYDRACTRL is a tool built around <a href="https://hydra.ojack.xyz" target="_blank" style="color:var(--color-text-secondary);text-decoration:underline">hydra</a> designed for live performances. Check out the <a href="https://dxviie.github.io/HYDRACTRL/" style="color:var(--color-text-secondary);text-decoration:underline">GitHub Page</a> for a feature overview.`;
+          // Inside the desktop app there's no need to advertise the desktop app
+          const moreInfo = window.hydractrlDesktop
+            ? "for a feature overview and the latest version"
+            : "for a feature overview and the desktop app with Syphon and Spout output";
+          aboutText.innerHTML = `HYDRACTRL is a tool built around <a href="https://hydra.ojack.xyz" target="_blank" rel="noopener" style="${linkStyle}">hydra</a> designed for live performances. Visit ${websiteLink} ${moreInfo}.`;
         }
         aboutText.style.margin = "0 0 15px 0";
         aboutText.style.fontSize = "13px";
@@ -129,6 +136,14 @@ export function createInfoPanelPlugin() {
         aboutText.style.color = "var(--color-text-secondary)";
 
         aboutSection.appendChild(aboutText);
+
+        const versionText = document.createElement("p");
+        versionText.className = "info-version";
+        versionText.innerHTML = `Version ${VERSION} · <a href="${CHANGELOG_URL}" target="_blank" rel="noopener" style="${linkStyle}">What's new</a>`;
+        versionText.style.margin = "0 0 15px 0";
+        versionText.style.fontSize = "12px";
+        versionText.style.color = "var(--color-text-secondary)";
+        aboutSection.appendChild(versionText);
 
         // Add big dice button for mobile
         if (isMobile) {

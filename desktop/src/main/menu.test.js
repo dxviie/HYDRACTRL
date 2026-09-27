@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { buildMenuTemplate, outputToggleLabel } from "./menu.js";
+import { LINKS, buildMenuTemplate, outputToggleLabel } from "./menu.js";
 import { validateSettings } from "./settings.js";
 
 function makeState(overrides = {}) {
@@ -134,6 +134,23 @@ describe("buildMenuTemplate", () => {
       actions: noopActions().actions,
     });
     expect(find(starting, "Output").submenu[0].enabled).toBe(false);
+  });
+
+  test("help menu opens the website and the release notes", () => {
+    const { actions, calls } = noopActions();
+    const template = buildMenuTemplate({
+      platform: "darwin",
+      appName: "HYDRACTRL",
+      state: makeState(),
+      actions,
+    });
+    const help = find(template, "Help").submenu;
+    find(help, "HYDRACTRL Website").click();
+    find(help, "Release Notes and Downloads").click();
+    expect(calls).toEqual([
+      ["openExternal", "https://hydractrl.d17e.dev/"],
+      ["openExternal", LINKS.releases],
+    ]);
   });
 
   test("server items are disabled until the server has an address", () => {

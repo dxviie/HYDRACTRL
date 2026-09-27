@@ -3,70 +3,1650 @@
 
 <head>
   <meta charset="UTF-8">
+  <script>
+    // Share links from before this landing page pointed at the site root
+    // (/#sketch=...). Fragments never reach the server, so forward them here.
+    if (/^#(?:.*&)?sketch=/.test(location.hash)) location.replace("/app" + location.hash);
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HYDRACTRL</title>
-
-  <!-- Favicon -->
+  <title>HYDRACTRL · live visuals with hydra, in your browser or on your desktop</title>
+  <meta name="description"
+    content="HYDRACTRL is a free, open source performance tool around hydra for live visuals: 64 scenes, MIDI, an XY pad with physics and a live-coding editor. Play in your browser, or get the desktop app with Syphon and Spout output.">
+  <meta name="keywords"
+    content="hydra, hydra-synth, live visuals, VJ, live coding, MIDI, Syphon, Spout, Resolume, creative coding">
+  <meta name="author" content="David Vandenbogaerde">
+  <meta name="theme-color" content="#08080b">
+  <link rel="canonical" href="https://hydractrl.d17e.dev/">
   <link rel="icon" type="image/x-icon" href="/assets/favicon/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/favicon/apple-touch-icon.png">
 
-  <!-- OpenGraph Tags -->
-  <meta property="og:title" content="HYDRACTRL">
+  <meta property="og:title" content="HYDRACTRL · live visuals with hydra">
   <meta property="og:description"
-    content="HYDRACTRL is a tool built around hydra designed for live performances, featuring CodeMirror for code editing and MIDI controller support.">
-  <meta property="og:image" content="https://dxviie.github.io/HYDRACTRL/assets/hydractrl-preview.jpg">
-  <meta property="og:url" content="https://dxviie.github.io/HYDRACTRL/">
+    content="A performance wrapper around hydra for live visuals. Play in your browser, or get the desktop app with Syphon and Spout output.">
+  <meta property="og:image" content="https://hydractrl.d17e.dev/site/hydractrl-preview.jpg">
+  <meta property="og:url" content="https://hydractrl.d17e.dev/">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
 
-  <link href="/assets/banks/hydractrl-init-basic.json" rel="hydra:extension-pack" type="application/json">
-  <!-- Other Meta -->
-  <meta name="description"
-    content="HYDRACTRL is a tool built around hydra designed for live performances, featuring CodeMirror for code editing and MIDI controller support.">
-  <meta name="keywords" content="hydra, hydra-synth, visual coding, live performance, MIDI, creative coding">
-  <meta name="author" content="David Vandenbogaerde">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "HYDRACTRL",
+      "url": "https://hydractrl.d17e.dev/",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Web browser, macOS 11+, Windows 10+",
+      "description": "A performance wrapper around hydra for live visuals, with MIDI control, scene banks and Syphon/Spout output in the desktop app.",
+      "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+      "author": { "@type": "Person", "name": "David Vandenbogaerde", "url": "https://www.d17e.dev" }
+    }
+  </script>
 
-  <link rel="stylesheet" href="/styles.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js" defer></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #08080b;
+      --surface: rgba(17, 16, 24, 0.8);
+      --surface-strong: rgba(19, 18, 27, 0.94);
+      --surface-soft: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.09);
+      --border-strong: rgba(255, 255, 255, 0.18);
+      --text: #f2f0f7;
+      --muted: #aca6bd;
+      --faint: #767089;
+      --purple: #9000ff;
+      --purple-soft: #c59bff;
+      --mint: #0cf590;
+      --mint-deep: #07c774;
+      --on-mint: #04150d;
+      --radius: 14px;
+      --radius-small: 9px;
+      --width: 1120px;
+      --gutter: 20px;
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 76px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 var(--font);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    img,
+    video {
+      max-width: 100%;
+    }
+
+    a {
+      color: var(--purple-soft);
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    a:hover {
+      color: var(--mint);
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--mint);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    code,
+    kbd {
+      font-family: var(--mono);
+      font-size: 0.88em;
+    }
+
+    kbd {
+      display: inline-block;
+      padding: 1px 7px;
+      border: 1px solid var(--border-strong);
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      background: var(--surface-soft);
+      white-space: nowrap;
+    }
+
+    .skip-link {
+      position: absolute;
+      left: 12px;
+      top: -60px;
+      z-index: 100;
+      padding: 8px 14px;
+      border-radius: var(--radius-small);
+      background: var(--mint);
+      color: var(--on-mint);
+      font-weight: 700;
+    }
+
+    .skip-link:focus {
+      top: 12px;
+    }
+
+    /* ── Backdrop ───────────────────────────────────────────── */
+
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .backdrop canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 2.4s ease;
+    }
+
+    .backdrop canvas.is-ready {
+      opacity: 0.62;
+    }
+
+    /* Darken the edges and the lower page so text always wins */
+    .backdrop::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 120% 90% at 50% 20%, transparent 30%, rgba(8, 8, 11, 0.7) 100%),
+        linear-gradient(to bottom, transparent 55%, rgba(8, 8, 11, 0.45));
+      pointer-events: none;
+    }
+
+    @media (forced-colors: active) {
+      .backdrop canvas {
+        display: none;
+      }
+    }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+
+    .container {
+      width: 100%;
+      max-width: calc(var(--width) + 2 * var(--gutter));
+      margin: 0 auto;
+      padding: 0 var(--gutter);
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(8, 8, 11, 0.72);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar .container {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      min-height: 60px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+    }
+
+    .brand img {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+    }
+
+    .topbar nav {
+      display: flex;
+      gap: 22px;
+      margin-left: auto;
+      font-size: 0.93rem;
+    }
+
+    .topbar nav a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .topbar nav a:hover {
+      color: var(--text);
+    }
+
+    main {
+      display: block;
+    }
+
+    .section {
+      padding: 88px 0;
+    }
+
+    .section-head {
+      max-width: 720px;
+      margin-bottom: 36px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--mint);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.15;
+      margin: 0;
+    }
+
+    h2 {
+      font-size: clamp(1.75rem, 3.6vw, 2.5rem);
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+    }
+
+    .lede {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .fine {
+      color: var(--faint);
+      font-size: 0.88rem;
+    }
+
+    /* ── Buttons ────────────────────────────────────────────── */
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 44px;
+      padding: 10px 20px;
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      font-weight: 650;
+      text-decoration: none;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .button:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .button svg {
+      width: 18px;
+      height: 18px;
+      flex: none;
+    }
+
+    .button-primary {
+      border-color: transparent;
+      background: var(--mint);
+      color: var(--on-mint);
+      box-shadow: 0 8px 30px rgba(12, 245, 144, 0.25);
+    }
+
+    .button-primary:hover {
+      background: #3dfaa9;
+      color: var(--on-mint);
+    }
+
+    .button-large {
+      min-height: 54px;
+      padding: 14px 28px;
+      font-size: 1.05rem;
+    }
+
+    .button-small {
+      min-height: 36px;
+      padding: 6px 16px;
+      font-size: 0.9rem;
+    }
+
+    /* ── Hero ───────────────────────────────────────────────── */
+
+    .hero {
+      padding: 96px 0 72px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(3.2rem, 11vw, 7.5rem);
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      background: linear-gradient(100deg, #f7f2ff 20%, var(--purple-soft) 55%, var(--mint) 90%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 60px rgba(144, 0, 255, 0.25);
+    }
+
+    .hero .lede {
+      max-width: 640px;
+      margin: 18px auto 0;
+      color: #d9d4e6;
+      font-size: clamp(1.1rem, 2.2vw, 1.3rem);
+      text-shadow: 0 1px 20px rgba(0, 0, 0, 0.8);
+    }
+
+    .cta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 36px;
+    }
+
+    .cta-note {
+      margin: 18px auto 0;
+      max-width: 560px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9);
+    }
+
+    .hero-shot {
+      margin: 64px auto 0;
+      max-width: 1000px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(144, 0, 255, 0.12);
+    }
+
+    .hero-shot img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* ── Two ways to play ───────────────────────────────────── */
+
+    .versions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      position: relative;
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .version {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .version h3 {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.45rem;
+    }
+
+    .version h3 svg {
+      width: 28px;
+      height: 28px;
+      color: var(--mint);
+      flex: none;
+    }
+
+    .version-desktop {
+      border-color: rgba(144, 0, 255, 0.45);
+      background:
+        linear-gradient(160deg, rgba(144, 0, 255, 0.16), transparent 55%),
+        var(--surface);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: var(--purple);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
+
+    .version p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .checks {
+      display: grid;
+      gap: 9px;
+      margin: 4px 0 8px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .checks li {
+      position: relative;
+      padding-left: 28px;
+    }
+
+    .checks li::before {
+      content: "";
+      position: absolute;
+      left: 2px;
+      top: 0.45em;
+      width: 13px;
+      height: 7px;
+      border-left: 2px solid var(--mint);
+      border-bottom: 2px solid var(--mint);
+      transform: rotate(-45deg);
+    }
+
+    .version .button {
+      align-self: flex-start;
+      margin-top: auto;
+    }
+
+    .compare-wrap {
+      margin-top: 28px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface-strong);
+    }
+
+    .compare {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+    .compare th,
+    .compare td {
+      padding: 13px 18px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .compare tbody tr:last-child th,
+    .compare tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .compare thead th {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .compare tbody th {
+      font-weight: 500;
+    }
+
+    .compare td {
+      width: 24%;
+      color: var(--muted);
+    }
+
+    .compare caption {
+      caption-side: bottom;
+      padding: 12px 18px;
+      color: var(--faint);
+      font-size: 0.88rem;
+      text-align: left;
+    }
+
+    .yes {
+      color: var(--mint);
+      font-weight: 700;
+    }
+
+    .no {
+      color: var(--faint);
+    }
+
+    /* ── Output ─────────────────────────────────────────────── */
+
+    .output-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .flow {
+      display: grid;
+      gap: 12px;
+      padding: 26px;
+    }
+
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .node {
+      padding: 10px 16px;
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      background: var(--surface-soft);
+      font-weight: 650;
+    }
+
+    .node-app {
+      border-color: rgba(12, 245, 144, 0.5);
+      color: var(--mint);
+    }
+
+    .node-bus {
+      border-color: rgba(144, 0, 255, 0.6);
+      color: var(--purple-soft);
+    }
+
+    .flow-arrow {
+      color: var(--faint);
+      font-size: 1.3rem;
+    }
+
+    .flow-note {
+      margin: 6px 0 0;
+    }
+
+    .targets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .targets li {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .spec-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .spec-list li {
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-small);
+      background: var(--surface);
+    }
+
+    .spec-list strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .spec-list span {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    /* ── Download ───────────────────────────────────────────── */
+
+    .download-panel {
+      padding: 32px;
+    }
+
+    .release-info {
+      margin: 0 0 22px;
+      color: var(--muted);
+    }
+
+    .downloads {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .download {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 2px 14px;
+      align-items: center;
+      padding: 18px 20px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      text-decoration: none;
+      transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+    }
+
+    .download:hover {
+      border-color: var(--mint);
+      background: rgba(12, 245, 144, 0.07);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .download svg {
+      grid-row: span 3;
+      width: 26px;
+      height: 26px;
+      color: var(--mint);
+    }
+
+    .download-os {
+      font-size: 1.15rem;
+      font-weight: 750;
+    }
+
+    .download-detail {
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .download-meta {
+      color: var(--faint);
+      font-size: 0.82rem;
+      font-family: var(--mono);
+    }
+
+    .download-badge {
+      position: absolute;
+      top: -11px;
+      right: 14px;
+      display: none;
+      padding: 2px 10px;
+      border-radius: 999px;
+      background: var(--mint);
+      color: var(--on-mint);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .download.is-recommended {
+      border-color: var(--mint);
+      background: rgba(12, 245, 144, 0.08);
+      box-shadow: 0 10px 40px rgba(12, 245, 144, 0.12);
+    }
+
+    .download.is-recommended .download-badge {
+      display: block;
+    }
+
+    .download.is-pending {
+      opacity: 0.55;
+    }
+
+    .download.is-pending .download-meta::after {
+      content: " · coming soon";
+    }
+
+    .download-notes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px 32px;
+      margin-top: 26px;
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .download-notes p {
+      margin: 0;
+    }
+
+    .mobile-note {
+      display: none;
+      margin: 0 0 18px;
+      padding: 12px 16px;
+      border: 1px solid rgba(144, 0, 255, 0.5);
+      border-radius: var(--radius-small);
+      background: rgba(144, 0, 255, 0.12);
+    }
+
+    [data-platform="mobile"] .mobile-note {
+      display: block;
+    }
+
+    details.first-launch {
+      margin-top: 24px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-small);
+      background: var(--surface-soft);
+    }
+
+    details.first-launch summary {
+      padding: 14px 18px;
+      cursor: pointer;
+      font-weight: 650;
+    }
+
+    .first-launch-body {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 32px;
+      padding: 0 18px 18px;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .first-launch-body h4 {
+      margin: 8px 0 4px;
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .first-launch-body ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .first-launch-body li+li {
+      margin-top: 4px;
+    }
+
+    /* ── Features ───────────────────────────────────────────── */
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .feature {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px 16px 22px;
+    }
+
+    .feature .media {
+      display: grid;
+      place-items: center;
+      aspect-ratio: 4 / 3;
+      margin-bottom: 6px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.45);
+    }
+
+    .feature .media img,
+    .feature .media video {
+      width: 100%;
+      height: 100%;
+      object-fit: scale-down;
+    }
+
+    .feature h3,
+    .feature p {
+      padding: 0 6px;
+    }
+
+    .feature p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.97rem;
+    }
+
+    .feature-text {
+      padding: 22px;
+      justify-content: flex-start;
+    }
+
+    .feature-text .icon {
+      width: 34px;
+      height: 34px;
+      margin: 2px 6px;
+      color: var(--mint);
+    }
+
+    /* ── Shortcuts, resources, contact ──────────────────────── */
+
+    .shortcuts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 32px;
+      margin: 0;
+      padding: 12px 24px;
+    }
+
+    .shortcuts div {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .shortcuts dt {
+      order: 2;
+      text-align: right;
+    }
+
+    .shortcuts dd {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .link-list {
+      display: grid;
+      gap: 14px;
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .link-list li {
+      color: var(--muted);
+    }
+
+    .link-list a {
+      font-weight: 650;
+    }
+
+    .contact-lede {
+      margin-bottom: 18px;
+    }
+
+    .contact iframe {
+      display: block;
+      width: 100%;
+      min-height: 324px;
+      border: 0;
+    }
+
+    /* ── Footer and backdrop controls ───────────────────────── */
+
+    footer {
+      padding: 40px 0 96px;
+      border-top: 1px solid var(--border);
+      background: rgba(8, 8, 11, 0.86);
+      color: var(--faint);
+      font-size: 0.92rem;
+    }
+
+    footer .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px 32px;
+    }
+
+    footer p {
+      margin: 0;
+    }
+
+    footer nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+
+    footer a {
+      color: var(--muted);
+    }
+
+    .now-playing {
+      position: fixed;
+      left: 16px;
+      bottom: 16px;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: calc(100vw - 32px);
+      padding: 6px 14px 6px 6px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(8, 8, 11, 0.78);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--muted);
+      font-size: 0.82rem;
+      opacity: 0.75;
+      transition: opacity 0.2s ease;
+    }
+
+    .now-playing[hidden] {
+      display: none;
+    }
+
+    .now-playing:hover,
+    .now-playing:focus-within {
+      opacity: 1;
+    }
+
+    .now-playing button {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      border: 1px solid var(--border-strong);
+      border-radius: 50%;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .now-playing button svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .now-playing [data-icon="play"],
+    .now-playing [data-state="playing"] [data-icon="play"],
+    .now-playing [data-state="paused"] [data-icon="pause"] {
+      display: none;
+    }
+
+    .now-playing [data-state="paused"] [data-icon="play"] {
+      display: block;
+    }
+
+    .now-playing strong {
+      color: var(--text);
+      font-weight: 650;
+    }
+
+    .now-playing a {
+      white-space: nowrap;
+    }
+
+    .np-open-icon {
+      display: none;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border: 1px solid var(--border-strong);
+      border-radius: 50%;
+      text-decoration: none;
+    }
+
+    /* ── Small screens ──────────────────────────────────────── */
+
+    @media (max-width: 960px) {
+
+      .features {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .downloads {
+        grid-template-columns: 1fr;
+      }
+
+      .output-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      :root {
+        --gutter: 16px;
+      }
+
+      .topbar nav {
+        display: none;
+      }
+
+      .topbar .button {
+        margin-left: auto;
+      }
+
+      .section {
+        padding: 64px 0;
+      }
+
+      .hero {
+        padding: 64px 0 48px;
+      }
+
+      .cta .button {
+        width: 100%;
+      }
+
+      .versions,
+      .features,
+      .columns,
+      .shortcuts,
+      .download-notes,
+      .first-launch-body {
+        grid-template-columns: 1fr;
+      }
+
+      .card,
+      .download-panel {
+        padding: 22px;
+      }
+
+      .shortcuts {
+        padding: 6px 18px;
+      }
+
+      .now-playing {
+        left: auto;
+        right: 12px;
+        bottom: 12px;
+        padding: 5px;
+        gap: 6px;
+      }
+
+      .now-playing .np-label,
+      .now-playing .np-open-text {
+        display: none;
+      }
+
+      .now-playing .np-open-icon {
+        display: grid;
+      }
+    }
+  </style>
+  <script type="module" src="/site/landing.js"></script>
 </head>
 
 <body>
-  <div class="app-container">
-    <!-- Fullscreen Hydra canvas -->
-    <div class="preview-container" id="hydra-canvas"></div>
+  <a class="skip-link" href="#main">Skip to content</a>
 
-    <!-- Draggable editor modal with integrated controls -->
-    <div class="editor-container" id="editor-container">
-      <div class="editor-handle" id="editor-handle">
-        <div class="editor-handle-title">HYDRACTRL</div>
-        <div class="editor-handle-controls">
-          <button id="toggle-editor-btn" title="Toggle UI Visibility (Ctrl/⌘+`)">
-            <span class="shortcut">Ctrl/⌘+`</span>
-          </button>
-        </div>
-      </div>
-      <div class="editor-tabs" id="editor-tabs">
-        <button class="editor-tab active" data-tab="main">Sketch</button>
-        <button class="editor-tab" data-tab="setup">Setup</button>
-      </div>
-      <div class="editor-content" id="editor-content"></div>
-      <div class="editor-footer">
-        <div class="editor-footer-left">
-          <label class="checkbox-container">
-            <input type="checkbox" id="auto-run-checkbox" title="Auto Run after typing stops (Ctrl+Y or Cmd+Y)">
-            <span>Auto Run <span class="shortcut">(Ctrl/⌘+Y)</span></span>
-          </label>
-        </div>
-        <div class="editor-footer-right">
-          <button id="run-btn" title="Run (Ctrl+Enter or Cmd+Enter)">Run <span
-              class="shortcut">(Ctrl/⌘+Enter)</span></button>
-          <button id="save-btn" title="Save (Ctrl+S or Cmd+S)">Save <span class="shortcut">(Ctrl/⌘+S)</span></button>
-        </div>
-      </div>
-    </div>
-    <!-- Stats panel is created directly in JavaScript -->
+  <div class="backdrop" aria-hidden="true">
+    <canvas id="backdrop"></canvas>
   </div>
-  <script src="/assets/index.js" type="module"></script>
+
+  <header class="topbar">
+    <div class="container">
+      <a class="brand" href="/" aria-label="HYDRACTRL home">
+        <img src="/assets/img/hydractrl-logo-colored.png" alt="" width="30" height="30">
+        HYDRACTRL
+      </a>
+      <nav aria-label="Sections">
+        <a href="#versions">Browser &amp; desktop</a>
+        <a href="#features">Features</a>
+        <a href="#download">Download</a>
+        <a href="https://github.com/dxviie/HYDRACTRL">GitHub</a>
+      </nav>
+      <a class="button button-primary button-small" href="/app" data-umami-event="open-app"
+        data-umami-event-location="topbar">Open in browser</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="container">
+        <p class="eyebrow">Free and open source · built on hydra</p>
+        <h1>HYDRACTRL</h1>
+        <p class="lede">A performance wrapper around <a href="https://hydra.ojack.xyz/">hydra</a> for live
+          visuals: scenes, MIDI and an XY pad for the moments you don't want to be coding, and a proper
+          editor for when you do.</p>
+        <div class="cta">
+          <a class="button button-primary button-large" href="/app" data-umami-event="open-app"
+            data-umami-event-location="hero">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" />
+            </svg>
+            Open HYDRACTRL in your browser
+          </a>
+          <a class="button button-large" href="#download" data-platform-cta data-umami-event="go-download"
+            data-umami-event-location="hero">Download the desktop app</a>
+        </div>
+        <p class="cta-note">Nothing to install: the browser version runs right here. The desktop app for macOS and
+          Windows adds a Syphon or Spout feed for your VJ software.</p>
+        <figure class="hero-shot">
+          <img src="/site/hydractrl-preview.jpg" width="1707" height="931"
+            alt="The HYDRACTRL interface: a code editor, scene slots, an XY pad and the system panel over a running hydra sketch">
+        </figure>
+      </div>
+    </section>
+
+    <section id="versions" class="section">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Two ways to play</p>
+          <h2>In your browser, or as a desktop app</h2>
+          <p class="lede">Same interface, same scenes, same shortcuts. Start in the browser; get the desktop app
+            when your visuals need to go into Resolume, MadMapper, VDMX, TouchDesigner or OBS.</p>
+        </div>
+
+        <div class="versions">
+          <article class="card version">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="16" rx="2.5" />
+                <path d="M3 9h18" />
+                <path d="M6.5 6.5h.01M9 6.5h.01" />
+              </svg>
+              In your browser
+            </h3>
+            <p>Open the page and start patching. Nothing to install and always the latest version.</p>
+            <ul class="checks">
+              <li>The whole interface: editor, 64 scenes, XY pad and the hydra docs</li>
+              <li>MIDI with the Korg nanoPAD2 (Chrome and Edge)</li>
+              <li>Breakout window for a projector or a window capture</li>
+              <li>Share a sketch as a link with <kbd>Alt/⌥</kbd> + <kbd>U</kbd></li>
+            </ul>
+            <a class="button button-primary" href="/app" data-umami-event="open-app"
+              data-umami-event-location="versions">Open in browser</a>
+            <p class="fine">Scenes are saved in your browser. Export them as JSON to move them around.</p>
+          </article>
+
+          <article class="card version version-desktop">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true">
+                <rect x="2.5" y="4" width="19" height="13" rx="2" />
+                <path d="M8 21h8M12 17v4" />
+              </svg>
+              Desktop app <span class="badge">New</span>
+            </h3>
+            <p>The same interface as a standalone app, plus a live feed of your visuals that other software can pick
+              up.</p>
+            <ul class="checks">
+              <li>Syphon output on macOS, Spout output on Windows</li>
+              <li>Output at 720p up to 4K, 24 to 120 fps, with optional alpha</li>
+              <li>The output keeps running when the window is minimized or covered</li>
+              <li>Audio reactivity starts straight away, no click needed</li>
+            </ul>
+            <a class="button" href="#download" data-platform-cta data-umami-event="go-download"
+              data-umami-event-location="versions">Download the desktop app</a>
+            <p class="fine">macOS 11 or later (Apple Silicon or Intel) · Windows 10 or 11 (64-bit)</p>
+          </article>
+        </div>
+
+        <div class="compare-wrap">
+          <table class="compare">
+            <caption>Both versions keep your scenes on your computer. Move them between the two with bank export and
+              import (<kbd>Alt/⌥</kbd> + <kbd>X</kbd> / <kbd>I</kbd>).</caption>
+            <thead>
+              <tr>
+                <th scope="col">What you get</th>
+                <th scope="col">Browser</th>
+                <th scope="col">Desktop</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Live-coding editor, 64 scenes, built-in docs</th>
+                <td class="yes">Yes</td>
+                <td class="yes">Yes</td>
+              </tr>
+              <tr>
+                <th scope="row">MIDI controllers (Korg nanoPAD2)</th>
+                <td>Chrome and Edge</td>
+                <td class="yes">Yes</td>
+              </tr>
+              <tr>
+                <th scope="row">Audio reactivity (<code>a.fft</code>)</th>
+                <td class="yes">Yes</td>
+                <td class="yes">Yes</td>
+              </tr>
+              <tr>
+                <th scope="row">Breakout window and sketch links</th>
+                <td class="yes">Yes</td>
+                <td class="yes">Yes</td>
+              </tr>
+              <tr>
+                <th scope="row">Syphon (macOS) or Spout (Windows) output</th>
+                <td class="no">No</td>
+                <td class="yes">Yes</td>
+              </tr>
+              <tr>
+                <th scope="row">Output settings, preview window, alpha</th>
+                <td class="no">No</td>
+                <td class="yes">Yes</td>
+              </tr>
+              <tr>
+                <th scope="row">Install</th>
+                <td>Nothing to install</td>
+                <td>macOS or Windows app</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="output" class="section">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Desktop</p>
+          <h2>Straight into your VJ software</h2>
+          <p class="lede">HYDRACTRL Desktop renders your set in a second, hidden window and shares every frame as a
+            GPU texture: a Syphon server on macOS, a Spout sender on Windows. No screen capture, no extra latency,
+            and it follows the interface live: every run, slot change and XY-pad move.</p>
+        </div>
+        <div class="output-grid">
+          <div class="card flow" role="img"
+            aria-label="HYDRACTRL Desktop sends its visuals over Syphon or Spout to Resolume, MadMapper, VDMX, TouchDesigner, OBS and more">
+            <div class="flow-row">
+              <span class="node node-app">HYDRACTRL Desktop</span>
+              <span class="flow-arrow" aria-hidden="true">→</span>
+              <span class="node node-bus">Syphon · Spout</span>
+              <span class="flow-arrow" aria-hidden="true">→</span>
+            </div>
+            <ul class="targets">
+              <li>Resolume</li>
+              <li>MadMapper</li>
+              <li>VDMX</li>
+              <li>TouchDesigner</li>
+              <li>OBS</li>
+              <li>Millumin</li>
+              <li>anything that speaks Syphon or Spout</li>
+            </ul>
+            <p class="fine flow-note">Tested at 1080p and 4K, a steady 60 fps into Resolume on an
+              Apple Silicon Mac. Spout on Windows is new: <a href="https://github.com/dxviie/HYDRACTRL/issues">tell
+                us how it runs</a>.</p>
+          </div>
+          <ul class="spec-list">
+            <li><strong>Resolution and frame rate</strong><span>720p, 1080p, 1440p, 4K or any custom size, at 24 to
+                120 fps. Changes apply live.</span></li>
+            <li><strong>Sender name, alpha and preview</strong><span>Pick the name other apps see, share per-pixel
+                alpha for overlays, and watch the exact frames in a preview window.</span></li>
+            <li><strong>Output menu and settings</strong><span>Start and stop with <kbd>Cmd/Ctrl</kbd> +
+                <kbd>Shift</kbd> + <kbd>O</kbd>. The output starts at launch and keeps the display awake while it
+                runs.</span></li>
+            <li><strong>OBS or TouchDesigner on another computer</strong><span>Allow network access and point a
+                browser source at the app's <code>/output</code> page.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="download" class="section">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Download</p>
+          <h2>HYDRACTRL Desktop</h2>
+          <p class="lede">Free, for macOS and Windows. Your settings and scenes carry over when you install a newer
+            version.</p>
+        </div>
+
+        <div class="card download-panel">
+          <p class="mobile-note">You're on a phone or tablet. Open this page on your Mac or PC to install the desktop
+            app, or <a href="/app">play in the browser</a> right here.</p>
+          <p class="release-info" id="release-info">Always the latest release from <a
+              href="https://github.com/dxviie/HYDRACTRL/releases">GitHub</a>.</p>
+
+          <div class="downloads">
+            <a class="download" data-download="mac-arm64"
+              href="https://github.com/dxviie/HYDRACTRL/releases/latest/download/HYDRACTRL-mac-arm64.dmg"
+              data-umami-event="download" data-umami-event-platform="mac-arm64">
+              <span class="download-badge">For this computer</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+              </svg>
+              <span class="download-os">macOS</span>
+              <span class="download-detail">Apple Silicon (M1 and later)</span>
+              <span class="download-meta" data-download-meta>DMG</span>
+            </a>
+            <a class="download" data-download="mac-x64"
+              href="https://github.com/dxviie/HYDRACTRL/releases/latest/download/HYDRACTRL-mac-x64.dmg"
+              data-umami-event="download" data-umami-event-platform="mac-x64">
+              <span class="download-badge">For this computer</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+              </svg>
+              <span class="download-os">macOS</span>
+              <span class="download-detail">Intel</span>
+              <span class="download-meta" data-download-meta>DMG</span>
+            </a>
+            <a class="download" data-download="win-x64"
+              href="https://github.com/dxviie/HYDRACTRL/releases/latest/download/HYDRACTRL-win-x64-setup.exe"
+              data-umami-event="download" data-umami-event-platform="win-x64">
+              <span class="download-badge">For this computer</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+              </svg>
+              <span class="download-os">Windows</span>
+              <span class="download-detail">64-bit installer</span>
+              <span class="download-meta" data-download-meta>EXE</span>
+            </a>
+          </div>
+
+          <div class="download-notes">
+            <p><strong>Which Mac do I have?</strong> Apple menu → About This Mac. "Chip: Apple M…" means Apple
+              Silicon, "Processor: Intel" means Intel.</p>
+            <p><strong>Linux?</strong> Syphon and Spout don't exist there, so use the <a href="/app">browser
+                version</a>, or <a href="https://github.com/dxviie/HYDRACTRL/blob/main/desktop/README.md#develop">run the
+                desktop app from source</a>.</p>
+          </div>
+
+          <details class="first-launch">
+            <summary>Opening the app for the first time</summary>
+            <div class="first-launch-body">
+              <div>
+                <h4>macOS</h4>
+                <ol>
+                  <li>Open the DMG and drag HYDRACTRL into Applications.</li>
+                  <li>Open it. The builds aren't notarized by Apple yet, so macOS blocks the first launch.</li>
+                  <li>Go to System Settings → Privacy &amp; Security, scroll down and click <em>Open Anyway</em>.</li>
+                  <li>Allow microphone access when asked, for audio-reactive sketches.</li>
+                </ol>
+              </div>
+              <div>
+                <h4>Windows</h4>
+                <ol>
+                  <li>Run the installer. The builds aren't code-signed yet, so SmartScreen may warn about an
+                    unrecognized app.</li>
+                  <li>Click <em>More info</em>, then <em>Run anyway</em>.</li>
+                  <li>HYDRACTRL shows up in the Start menu; the Spout sender is called <code>HYDRACTRL</code>.</li>
+                </ol>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <p class="fine">Release notes live in the <a
+            href="https://github.com/dxviie/HYDRACTRL/blob/main/CHANGELOG.md">changelog</a>; every version and its
+          checksums are on the <a href="https://github.com/dxviie/HYDRACTRL/releases">releases page</a>. Prefer to
+          build it yourself? See the <a href="https://github.com/dxviie/HYDRACTRL/blob/main/desktop/README.md">desktop
+            README</a>.</p>
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Features</p>
+          <h2>Built for the stage</h2>
+          <p class="lede">HYDRACTRL wraps <a href="https://hydra.ojack.xyz/">hydra</a>, Olivia Jack's live-codable
+            video synth, in a set of tools for performing: recall a scene instead of typing it, play it with a
+            controller, keep the code one keystroke away.</p>
+        </div>
+
+        <div class="features">
+          <article class="card feature">
+            <div class="media"><video src="/site/scene-management.mp4" width="400" height="400" muted loop playsinline
+                preload="none" data-autoplay aria-label="Saving and recalling scenes"></video></div>
+            <h3>Scene management</h3>
+            <p>Store and recall up to 64 scenes in 4 banks of 16 slots, with thumbnails so you can find them mid-set.
+            </p>
+          </article>
+          <article class="card feature">
+            <div class="media"><img src="/site/midi-integration.png" width="185" height="155" loading="lazy"
+                alt="The Korg nanoPAD2 MIDI controller"></div>
+            <h3>MIDI control</h3>
+            <p>Built around the Korg nanoPAD2: pads recall scenes and switch banks, the XY pad feeds
+              <code>nanoX</code> and <code>nanoY</code> into your sketches.</p>
+          </article>
+          <article class="card feature">
+            <div class="media"><video src="/site/xy-pad-physics.mp4" width="340" height="356" muted loop playsinline
+                preload="none" data-autoplay aria-label="The XY pad bouncing with physics"></video></div>
+            <h3>XY pad with physics</h3>
+            <p>Flick the XY pad and let a small physics engine keep it bouncing. Works with a mouse too.</p>
+          </article>
+          <article class="card feature">
+            <div class="media"><video src="/site/code-editor.mp4" width="594" height="596" muted loop playsinline
+                preload="none" data-autoplay aria-label="Typing in the code editor with completions"></video></div>
+            <h3>A real code editor</h3>
+            <p>CodeMirror 6 with hydra-aware highlighting, completions, error messages and auto-run.</p>
+          </article>
+          <article class="card feature">
+            <div class="media"><video src="/site/audio-reactivity.mp4" width="210" height="192" muted loop playsinline
+                preload="none" data-autoplay aria-label="Visuals reacting to music"></video></div>
+            <h3>Audio reactivity</h3>
+            <p>hydra's <code>a.fft</code> out of the box, watched over by a watchdog that revives audio when the
+              browser suspends it.</p>
+          </article>
+          <article class="card feature">
+            <div class="media"><video src="/site/breakout-view.mp4" width="920" height="692" muted loop playsinline
+                preload="none" data-autoplay aria-label="Opening the breakout window"></video></div>
+            <h3>Breakout view</h3>
+            <p>Send the visuals to a second window at an exact size, for a projector, a recording or an
+              <a href="https://obsproject.com/">OBS</a> window capture.</p>
+          </article>
+          <article class="card feature">
+            <div class="media"><video src="/site/multiple-themes.mp4" width="608" height="606" muted loop playsinline
+                preload="none" data-autoplay aria-label="Switching between interface themes"></video></div>
+            <h3>Themes</h3>
+            <p>Five interface themes with matching editor colors, and panel opacity you can dial down to see your
+              visuals.</p>
+          </article>
+          <article class="card feature">
+            <div class="media"><img src="/site/setup-code.png" width="727" height="571" loading="lazy"
+                alt="The setup tab of the code editor"></div>
+            <h3>Setup code</h3>
+            <p>A setup tab that runs before every sketch, for audio settings and globals you always want around.</p>
+          </article>
+          <article class="card feature">
+            <div class="media"><img src="/site/builtin-docs.png" width="770" height="673" loading="lazy"
+                alt="The built-in hydra documentation panel"></div>
+            <h3>hydra docs built in</h3>
+            <p>Every hydra function with its parameters and examples, one click away while you code.</p>
+          </article>
+          <article class="card feature">
+            <div class="media"><img src="/site/import-export.png" width="810" height="701" loading="lazy"
+                alt="Exporting a scene bank"></div>
+            <h3>Import and export banks</h3>
+            <p>Save all 64 slots, thumbnails included, as one JSON file to back up or share.</p>
+          </article>
+          <article class="card feature feature-text">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />
+              <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
+            </svg>
+            <h3>Share sketches as links</h3>
+            <p><kbd>Alt/⌥</kbd> + <kbd>U</kbd> copies a link with your sketch inside it. Whoever opens it sees it
+              running straight away, without touching their own scenes. The background of this page works the same
+              way: open it from the corner.</p>
+          </article>
+          <article class="card feature feature-text">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path
+                d="M9 3h6v3a2 2 0 1 0 4 0V3h2v6h-3a2 2 0 1 0 0 4h3v8h-6v-3a2 2 0 1 0-4 0v3H3v-8h3a2 2 0 1 0 0-4H3V3h6z" />
+            </svg>
+            <h3>Plugins</h3>
+            <p>New features are isolated plugins on a small core, so a broken one can't take down a live set. Write
+              your own with the <a href="https://github.com/dxviie/HYDRACTRL/blob/main/docs/PLUGINS.md">plugin
+                docs</a>.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="shortcuts" class="section">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Shortcuts</p>
+          <h2>Keep your hands on the keys</h2>
+        </div>
+        <dl class="card shortcuts">
+          <div>
+            <dt><kbd>Ctrl/⌘</kbd> + <kbd>Enter</kbd></dt>
+            <dd>Run the current code</dd>
+          </div>
+          <div>
+            <dt><kbd>Ctrl/⌘</kbd> + <kbd>S</kbd></dt>
+            <dd>Save code to the active slot</dd>
+          </div>
+          <div>
+            <dt><kbd>Ctrl/⌘</kbd> + <kbd>`</kbd></dt>
+            <dd>Hide or show the interface</dd>
+          </div>
+          <div>
+            <dt><kbd>Esc</kbd></dt>
+            <dd>Bring back a hidden interface</dd>
+          </div>
+          <div>
+            <dt><kbd>Ctrl/⌘</kbd> + <kbd>Y</kbd></dt>
+            <dd>Toggle auto-run</dd>
+          </div>
+          <div>
+            <dt><kbd>Alt/⌥</kbd> + <kbd>U</kbd></dt>
+            <dd>Copy the sketch as a link</dd>
+          </div>
+          <div>
+            <dt><kbd>Alt/⌥</kbd> + <kbd>0–9</kbd> / <kbd>A–F</kbd></dt>
+            <dd>Select slot 1 to 16 of the current bank</dd>
+          </div>
+          <div>
+            <dt><kbd>Alt/⌥</kbd> + <kbd>←</kbd> / <kbd>→</kbd></dt>
+            <dd>Previous or next bank (without MIDI)</dd>
+          </div>
+          <div>
+            <dt><kbd>Alt/⌥</kbd> + <kbd>X</kbd></dt>
+            <dd>Export the scene banks</dd>
+          </div>
+          <div>
+            <dt><kbd>Alt/⌥</kbd> + <kbd>I</kbd></dt>
+            <dd>Import scene banks</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <section id="resources" class="section">
+      <div class="container">
+        <div class="columns">
+          <div class="card">
+            <p class="eyebrow">New to hydra?</p>
+            <h2>Start here</h2>
+            <ul class="link-list">
+              <li><a href="https://hydra.ojack.xyz/docs/">hydra documentation</a>: the official guide</li>
+              <li><a href="https://hydra.ojack.xyz/functions/">Function reference</a>: every hydra function, with
+                examples</li>
+              <li><a href="https://hydra.ojack.xyz/garden/">hydra internet garden</a>: the community's collection of
+                projects, tutorials and code</li>
+              <li><a href="https://hydra-book.glitch.me/">hydra book</a>: a thorough guide by <a
+                  href="https://naotohieda.com/">Naoto Hieda</a></li>
+            </ul>
+          </div>
+          <div class="card">
+            <p class="eyebrow">Credits</p>
+            <h2>Built with</h2>
+            <ul class="link-list">
+              <li><a href="https://hydra.ojack.xyz/">hydra</a> by <a href="https://ojack.xyz/">Olivia Jack</a>: the
+                video synth at the heart of it all</li>
+              <li><a href="https://codemirror.net/">CodeMirror 6</a>, <a href="https://bun.sh/">Bun</a> and the Web
+                MIDI API</li>
+              <li><a href="https://www.electronjs.org/">Electron</a> and <a
+                  href="https://github.com/naporin0624/electron-texture-bridge">texture-bridge</a> for the desktop
+                app's Syphon and Spout output</li>
+              <li>Random scene banks from sketches collected by <a href="https://fentonia.com/">Jamie Faye Fenton</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="section">
+      <div class="container">
+        <div class="card contact">
+          <p class="eyebrow">Contact</p>
+          <h2>Say hi</h2>
+          <p class="lede contact-lede">Ideas, questions, a show you played with it? Get in touch, or
+            open an <a href="https://github.com/dxviie/HYDRACTRL/issues">issue on GitHub</a>.</p>
+          <iframe data-tally-src="https://tally.so/embed/3Erq04?hideTitle=1&transparentBackground=1&dynamicHeight=1"
+            loading="lazy" width="100%" height="324" title="Contact form"></iframe>
+          <noscript><a href="https://tally.so/r/3Erq04">Open the contact form</a></noscript>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>HYDRACTRL is made with ♥ by <a href="https://www.d17e.dev">D17E</a>, on top of <a
+          href="https://hydra.ojack.xyz/">hydra</a> by <a href="https://ojack.xyz/">Olivia Jack</a>. Licensed under the
+        <a href="https://github.com/dxviie/HYDRACTRL/blob/main/LICENSE">GNU AGPL v3</a>.</p>
+      <nav aria-label="Project links">
+        <a href="/app">Open the app</a>
+        <a href="https://github.com/dxviie/HYDRACTRL">GitHub</a>
+        <a href="https://github.com/dxviie/HYDRACTRL/releases">Releases</a>
+        <a href="https://github.com/dxviie/HYDRACTRL/blob/main/CHANGELOG.md">Changelog</a>
+      </nav>
+    </div>
+  </footer>
+
+  <div class="now-playing" id="now-playing" hidden>
+    <button type="button" data-backdrop-toggle aria-pressed="false" aria-label="Pause the background"
+      data-state="playing">
+      <svg data-icon="pause" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+        <rect x="2" y="1.5" width="2.8" height="9" rx="0.8" />
+        <rect x="7.2" y="1.5" width="2.8" height="9" rx="0.8" />
+      </svg>
+      <svg data-icon="play" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+        <path d="M3 1.8v8.4a.6.6 0 0 0 .9.5l6.6-4.2a.6.6 0 0 0 0-1L3.9 1.3a.6.6 0 0 0-.9.5z" />
+      </svg>
+    </button>
+    <span class="np-label">Background: <strong data-backdrop-name>Tide</strong></span>
+    <a href="/app" data-backdrop-open data-umami-event="open-backdrop-sketch"
+      aria-label="Open in HYDRACTRL (the background sketch)"><span class="np-open-text">Open in HYDRACTRL
+        ↗</span><span class="np-open-icon" aria-hidden="true">↗</span></a>
+  </div>
 </body>
 
 </html>

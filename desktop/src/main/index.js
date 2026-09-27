@@ -325,7 +325,7 @@ function main() {
           applicationVersion: app.getVersion(),
           version: `Electron ${process.versions.electron}`,
           copyright: "Built on hydra by Olivia Jack · AGPL v3 · D17E",
-          website: "https://dxviie.github.io/HYDRACTRL/",
+          website: "https://hydractrl.d17e.dev/",
         });
       }
 
