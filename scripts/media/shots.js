@@ -454,7 +454,10 @@ async function hero({ base, out }) {
     await clearToasts(page);
     await place(page, "#editor-container", { left: 24, top: 24, width: 640, height: 470 });
     await place(page, ".xy-pad-panel", { left: 1040, top: 24 });
-    await place(page, ".stats-panel", { left: 1391, top: 24 });
+    // 24px from the right edge, however wide the panel is
+    await place(page, ".stats-panel", { left: 0, top: 24 });
+    const stats = await box(page, ".stats-panel");
+    await place(page, ".stats-panel", { left: options.width - 24 - stats.width, top: 24 });
     await place(page, ".slots-panel", { left: 24, top: 736 });
     await sleep(300);
     const clip = { x: 0, y: 0, width: 1600, height: 900 };
