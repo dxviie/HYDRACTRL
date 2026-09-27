@@ -36,6 +36,11 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
 - The version number in the About panel, the server's startup banner and
   `/api/capabilities`.
 - The server honours the `PORT` and `HOST` environment variables.
+- The browser version works on iPads and other tablets. They get the full
+  interface instead of the phone view, and it all works by touch: drag panels
+  by their title bars, resize the editor and the docs by the grip in their
+  corner, fling the XY pad, and tap anywhere to bring back a hidden
+  interface.
 
 ### Changed
 
@@ -52,8 +57,11 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
 
 ### Fixed
 
-- Sketches that use `nanoX` and `nanoY` also render on phones and tablets,
-  where there is no XY pad: both start at the centre (0.5).
+- Sketches that use `nanoX` and `nanoY` also render on phones, where there
+  is no XY pad: both start at the centre (0.5).
+- On touch screens, the first tap resumes suspended audio for `a.fft`.
+- The docs panel fits the window, so its last functions and its resize
+  corner stay within reach on shorter screens.
 
 ## [1.1.0] - 2026-07-06
 

@@ -2,7 +2,7 @@
  * InfoPanelPlugin - the "About" panel with keyboard shortcuts.
  *
  * Shows app information, the keyboard shortcut reference and the
- * "show on startup" preference. On mobile it doubles as the landing screen
+ * "show on startup" preference. On phones it doubles as the landing screen
  * with a big "load random scenes" button.
  *
  * Exposes `window.showInfoPanel` / `window.hideInfoPanel` because the stats
@@ -122,7 +122,7 @@ export function createInfoPanelPlugin() {
         const websiteLink = `<a href="${WEBSITE_URL}" target="_blank" rel="noopener" style="${linkStyle}">hydractrl.d17e.dev</a>`;
         const aboutText = document.createElement("p");
         if (isMobile) {
-          aboutText.innerHTML = `This app is designed for desktop, but you can play around here by loading random clips (by clicking on the dice 🎲). For the full experience, visit this site on a desktop computer. See ${websiteLink} for more info.`;
+          aboutText.innerHTML = `This app is designed for bigger screens, but you can play around here by loading random clips (tap the dice 🎲). For the full experience, open it on a computer or tablet. See ${websiteLink} for more info.`;
         } else {
           // Inside the desktop app there's no need to advertise the desktop app
           const moreInfo = window.hydractrlDesktop
@@ -260,19 +260,15 @@ export function createInfoPanelPlugin() {
           hide();
         });
 
-        // Add one-time event listeners to close the panel
+        // Add one-time event listeners to close the panel. Pointer events,
+        // because iPad Safari sends no mousedown for a tap on the visuals.
         const outsideClickHandler = (e) => {
           // Only close if click is outside the panel
           if (panel.parentNode && !panel.contains(e.target)) {
             hide();
-            document.removeEventListener("mousedown", outsideClickHandler);
+            document.removeEventListener("pointerdown", outsideClickHandler);
           }
         };
-
-        // Prevent clicks inside the panel from bubbling to document
-        panel.addEventListener("mousedown", (e) => {
-          e.stopPropagation();
-        });
 
         const escKeyHandler = (e) => {
           if (panel.parentNode && e.key === "Escape") {
@@ -286,7 +282,7 @@ export function createInfoPanelPlugin() {
         panel.outsideClickHandler = outsideClickHandler;
         panel.escKeyHandler = escKeyHandler;
 
-        // Make the panel draggable using the header as handle (desktop only)
+        // Make the panel draggable using the header as handle (not on phones)
         if (!isMobile) {
           makeDraggable(panel, header, "info-panel");
         }
@@ -307,11 +303,11 @@ export function createInfoPanelPlugin() {
 
         // Add event listeners to close when clicking outside or pressing ESC
         // First remove any existing listeners to avoid duplicates
-        document.removeEventListener("mousedown", panel.outsideClickHandler);
+        document.removeEventListener("pointerdown", panel.outsideClickHandler);
         document.removeEventListener("keydown", panel.escKeyHandler);
 
         // Then add the listeners
-        document.addEventListener("mousedown", panel.outsideClickHandler);
+        document.addEventListener("pointerdown", panel.outsideClickHandler);
         document.addEventListener("keydown", panel.escKeyHandler);
       }
 
@@ -319,7 +315,7 @@ export function createInfoPanelPlugin() {
         const panel = document.getElementById("info-panel");
         if (panel) {
           // Remove event listeners
-          document.removeEventListener("mousedown", panel.outsideClickHandler);
+          document.removeEventListener("pointerdown", panel.outsideClickHandler);
           document.removeEventListener("keydown", panel.escKeyHandler);
 
           // Fade out and hide
@@ -350,7 +346,7 @@ export function createInfoPanelPlugin() {
           clearTimeout(startupTimer);
           const panel = document.getElementById("info-panel");
           if (panel) {
-            document.removeEventListener("mousedown", panel.outsideClickHandler);
+            document.removeEventListener("pointerdown", panel.outsideClickHandler);
             document.removeEventListener("keydown", panel.escKeyHandler);
             panel.remove();
           }

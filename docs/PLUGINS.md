@@ -16,7 +16,7 @@ implementations:
 | `OutputSyncPlugin` | `output-sync` | Mirrors every run and the XY-pad values to external outputs (`/output` pages) over the server's WebSocket. |
 | `DesktopOutputPlugin` | `desktop-output` | Inside the desktop app: Syphon/Spout output status, Start/Stop and a settings shortcut in the stats panel. No-op in a browser. |
 | `MidiUiPlugin` | `midi-ui` | MIDI device list, status and mapping controls in the stats panel. |
-| `MobileUiPlugin` | `mobile-ui` | Touch-device UI: read-only code overlay, dice button, hides the editor. |
+| `MobileUiPlugin` | `mobile-ui` | Phone UI: read-only code overlay, dice button, hides the editor. Tablets get the full interface. |
 
 `UrlSharePlugin` and `AudioWatchdogPlugin` are the simplest starting points;
 `SlotAdvancePlugin` shows how to keep the logic pure and testable.
@@ -63,7 +63,7 @@ export function createMyPlugin() {
 | `events` | App-wide event bus: `on(event, fn)`, `once`, `off`, `emit(event, payload)`. |
 | `storage` | Quota-safe localStorage wrapper: `get`, `set`, `remove`, `getJSON`, `setJSON`, `keys(prefix)`. Never throws. |
 | `notify(msg, {type, duration})` | Toast notifications (`type`: `"info"`, `"success"`, `"error"`). |
-| `isMobile` | `true` when running on a mobile/tablet device (see `src/utils/DeviceDetection.js`). |
+| `isMobile` | `true` on phones, which get the mobile UI instead of the editor and panels; `false` on computers and tablets (see `isPhone()` in `src/utils/DeviceDetection.js`). |
 | `midi` | `{ manager, supported }` — the MidiManager instance (or `undefined` on mobile) and whether Web MIDI initialized. |
 | `getPanels()` | Returns `{ stats, slots, doc, xyPad }` panel objects (may contain `undefined` on mobile). |
 

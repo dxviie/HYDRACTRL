@@ -286,7 +286,8 @@ body {
   position: absolute;
   top: 20px;
   left: 20px;
-  width: 680px;
+  /* Narrower on narrow screens (an iPad in portrait), clear of the system panel */
+  width: min(680px, calc(100vw - 260px));
   height: 500px;
   background-color: rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important;
   border-radius: 8px;
@@ -303,6 +304,23 @@ body {
 .editor-content {
   overflow: auto;
   flex-grow: 1;
+}
+
+/* Resize grip in a panel's bottom-right corner. The doc panel resizes by it;
+   the editor has CSS resize, and shows its grip only on touch screens (below),
+   which draw no handle for CSS resize. */
+.resize-grip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nwse-resize;
+  z-index: 5;
+}
+
+.editor-resize-grip {
+  display: none;
 }
 
 /* Hydra Editor Styles */
@@ -873,5 +891,56 @@ input[type="range"]:active::-moz-range-thumb {
 @media screen and (min-width: 1025px) {
   .code-overlay {
     font-size: clamp(14px, 1.2vw, 18px);
+  }
+}
+
+/* Touch screens: iPads and other tablets get the full interface */
+html {
+  /* Tapping buttons in quick succession doesn't zoom the page */
+  touch-action: manipulation;
+}
+
+.preview-container {
+  /* Touching the visuals neither scrolls nor zooms the page */
+  touch-action: none;
+}
+
+/* Safari only knows the prefixed user-select, which the panels don't set */
+.editor-handle,
+.stats-handle,
+.slots-handle,
+.xy-pad-handle,
+.doc-handle,
+.info-panel-header {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+@media (any-pointer: coarse) {
+  /* Grips big enough for a finger, and visible */
+  .resize-grip {
+    display: block;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg,
+        transparent 55%,
+        var(--color-text-secondary) 55% 61%,
+        transparent 61% 71%,
+        var(--color-text-secondary) 71% 77%,
+        transparent 77%);
+    opacity: 0.8;
+  }
+
+  /* Keeps the Save button clear of the editor's grip */
+  .editor-footer {
+    padding-right: 34px;
+  }
+
+  /* A bigger target around the XY pad's puck */
+  .xy-pad-indicator::after {
+    content: "";
+    position: absolute;
+    inset: -14px;
+    border-radius: 50%;
   }
 }

@@ -38,9 +38,15 @@ const browser = await chromium.launch({
 });
 ```
 
-- **Desktop session:** viewport ≥ 1280×800, no touch. **Mobile session:**
-  small viewport + `hasTouch: true` + mobile UA (the app branches hard on
-  `isMobileOrTablet()`).
+- **Desktop session:** viewport ≥ 1280×800, no touch. **Phone session:** a
+  Playwright phone profile (`devices["iPhone 13"]`): the app branches hard on
+  `isPhone()`, a coarse pointer with a screen under 600px on its short side.
+  **Tablet session:** `devices["iPad (gen 7)"]`, or `hasTouch` + `isMobile`
+  with a Mac UA as iPadOS sends: the full interface, driven by touch.
+- Drive touch drags with CDP `Input.dispatchTouchEvent` (touchStart,
+  touchMove…, touchEnd) through `context.newCDPSession(page)`; Playwright
+  itself only taps. `page.evaluate` counts as a user gesture, so set up
+  anything that must happen without one in `page.addInitScript`.
 - Wait ~2.5s after `goto` — init is async (hydra, panels, plugins).
 
 ## Flows worth driving
@@ -57,6 +63,9 @@ const browser = await chromium.launch({
 - Slot advance: enable `moveToNextSlotCheckbox`, call
   `slotsPanel.saveToActiveSlot()` + `window.moveToNextSlot(info)`, active
   slot moves after ~500ms.
+- Touch: panels drag by their title bars, the editor and doc panel resize by
+  the grip in their corner, and with the UI hidden (`body.ui-hidden`) a tap
+  anywhere brings it back without clicking what reappears under the finger.
 
 ## Gotchas
 

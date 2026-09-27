@@ -3,6 +3,7 @@ import hydraData from "./data/hydra-functions.json" assert { type: "json" };
  * Documentation Panel Component
  * A draggable panel with Hydra function reference
  */
+import { trackPointerDrag } from "./utils/Draggable.js";
 import { loadPanelPosition, savePanelPosition } from "./utils/PanelStorage.js";
 
 // Extract categories and functions from the shared JSON resource
@@ -99,6 +100,7 @@ export function createDocPanel() {
   const leftSidebar = document.createElement("div");
   leftSidebar.style.width = "100%";
   leftSidebar.style.height = "fit-content";
+  leftSidebar.style.minHeight = "0"; // Scrolls when the panel is shorter than the list
   leftSidebar.style.borderRight = "1px solid rgba(var(--color-bg-tertiary-rgb), 0.5)";
   leftSidebar.style.overflow = "auto";
   leftSidebar.style.padding = "10px";
@@ -287,33 +289,23 @@ export function createDocPanel() {
   // Add content container to panel
   panel.appendChild(contentContainer);
 
-  // Make panel resizable
+  // Make panel resizable by its bottom-right corner
   const resizeHandle = document.createElement("div");
-  resizeHandle.style.position = "absolute";
-  resizeHandle.style.width = "10px";
-  resizeHandle.style.height = "10px";
-  resizeHandle.style.bottom = "0";
-  resizeHandle.style.right = "0";
-  resizeHandle.style.cursor = "nwse-resize";
-  resizeHandle.style.zIndex = "5";
+  resizeHandle.className = "resize-grip";
   panel.appendChild(resizeHandle);
 
-  let isResizing = false;
   let initialX, initialY, initialWidth, initialHeight;
 
-  resizeHandle.addEventListener("mousedown", (e) => {
-    isResizing = true;
+  function onResizeStart(e) {
     initialX = e.clientX;
     initialY = e.clientY;
     initialWidth = panel.offsetWidth;
     initialHeight = panel.offsetHeight;
     e.preventDefault();
     e.stopPropagation();
-  });
+  }
 
-  document.addEventListener("mousemove", (e) => {
-    if (!isResizing) return;
-
+  function onResizeMove(e) {
     const width = initialWidth + (e.clientX - initialX);
     const height = initialHeight + (e.clientY - initialY);
 
@@ -327,61 +319,70 @@ export function createDocPanel() {
       width: Number.parseInt(panel.style.width),
       height: Number.parseInt(panel.style.height),
     });
-  });
+  }
 
-  document.addEventListener("mouseup", () => {
-    isResizing = false;
-  });
+  trackPointerDrag(resizeHandle, { start: onResizeStart, move: onResizeMove });
 
   // Add the panel to the document
   document.body.appendChild(panel);
 
   // Make the panel draggable
-  let isDragging = false;
   let offsetX, offsetY;
 
-  handle.addEventListener("mousedown", (e) => {
-    isDragging = true;
+  function onDragStart(e) {
     panel.classList.add("dragging");
     offsetX = e.clientX - panel.getBoundingClientRect().left;
     offsetY = e.clientY - panel.getBoundingClientRect().top;
-  });
+  }
 
-  document.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-
+  function onDragMove(e) {
+    // Keep the title bar on screen, or there is nothing left to drag it back by
+    const top = Math.min(
+      Math.max(0, e.clientY - offsetY),
+      window.innerHeight - handle.offsetHeight,
+    );
     panel.style.left = e.clientX - offsetX + "px";
-    panel.style.top = e.clientY - offsetY + "px";
-  });
+    panel.style.top = top + "px";
+  }
 
-  document.addEventListener("mouseup", () => {
-    if (isDragging) {
-      isDragging = false;
-      panel.classList.remove("dragging");
+  function onDragEnd() {
+    panel.classList.remove("dragging");
 
-      // Save the new position
-      savePanelPosition("doc-panel", {
-        left: Number.parseInt(panel.style.left),
-        top: Number.parseInt(panel.style.top),
-        width: Number.parseInt(panel.style.width),
-        height: Number.parseInt(panel.style.height),
-      });
-    }
-  });
+    // Save the new position
+    savePanelPosition("doc-panel", {
+      left: Number.parseInt(panel.style.left),
+      top: Number.parseInt(panel.style.top),
+      width: Number.parseInt(panel.style.width),
+      height: Number.parseInt(panel.style.height),
+    });
+  }
+
+  trackPointerDrag(handle, { start: onDragStart, move: onDragMove, end: onDragEnd });
+
+  // Keep the panel's bottom and its resize grip on screen: the 900px default
+  // is taller than an iPad in landscape, or a small laptop screen
+  function fitToWindow() {
+    const top = Math.max(0, Number.parseInt(panel.style.top) || 0);
+    const maxHeight = Math.max(200, window.innerHeight - top - 20);
+    if (panel.offsetHeight > maxHeight) panel.style.height = `${maxHeight}px`;
+  }
+
+  function show() {
+    panel.style.display = "flex";
+    fitToWindow();
+  }
 
   // Return an object with methods to control the panel
   return {
     panel,
     toggle: () => {
       if (panel.style.display === "none") {
-        panel.style.display = "flex";
+        show();
       } else {
         panel.style.display = "none";
       }
     },
-    show: () => {
-      panel.style.display = "flex";
-    },
+    show,
     hide: () => {
       panel.style.display = "none";
     },

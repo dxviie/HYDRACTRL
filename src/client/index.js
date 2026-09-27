@@ -5,8 +5,8 @@ import { createSlotsPanel } from "../SlotsPanel.js";
 import { createStatsPanel } from "../StatsPanel.js";
 import { SKETCHES, sketchSource } from "../sketches.js";
 import { createCodeMirrorEditor } from "../utils/CodeMirrorEditor.js";
-import { isMobileOrTablet } from "../utils/DeviceDetection.js";
-import { makeDraggable } from "../utils/Draggable.js";
+import { isPhone, isTouchFirst } from "../utils/DeviceDetection.js";
+import { makeDraggable, trackPointerDrag } from "../utils/Draggable.js";
 import { savePanelPosition } from "../utils/PanelStorage.js";
 import { createEventBus } from "./core/EventBus.js";
 import { createPluginHost } from "./core/PluginHost.js";
@@ -50,9 +50,15 @@ function debounce(func, wait) {
 const DEFAULT_CODE = sketchSource(SKETCHES[0]);
 
 // The XY pad's values, for sketches that use them. The pad and MIDI take
-// over on desktop; elsewhere they stay centred instead of undefined.
+// over on computers and tablets; on phones they stay centred instead of undefined.
 window.nanoX ??= 0.5;
 window.nanoY ??= 0.5;
+
+// Hand focus back to the editor after a button press, as keyboard users
+// expect. Not on touch screens, where it would pop up the on-screen keyboard.
+function refocusEditor(editor) {
+  if (!isTouchFirst()) editor.focus();
+}
 
 // Initialize a CodeMirror editor for Hydra
 function initEditor() {
@@ -98,7 +104,7 @@ function initEditor() {
 
       // Load new tab content
       editor.setCode(editorTabs[currentTab].code);
-      editor.focus();
+      refocusEditor(editor);
     });
   });
 
@@ -137,6 +143,28 @@ function initEditor() {
 
   // Make the editor draggable by the handle with position persistence
   makeDraggable(editorContainer, document.getElementById("editor-handle"), "editor-panel");
+
+  // Touch screens draw no handle for CSS resize, so styles.css shows this
+  // grip in the corner instead
+  const resizeGrip = document.createElement("div");
+  resizeGrip.className = "resize-grip editor-resize-grip";
+  editorContainer.appendChild(resizeGrip);
+  let resizeFrom = null;
+  trackPointerDrag(resizeGrip, {
+    start: (e) => {
+      e.preventDefault();
+      const rect = editorContainer.getBoundingClientRect();
+      resizeFrom = { x: e.clientX, y: e.clientY, rect };
+    },
+    move: (e) => {
+      // CSS sets the minimum size; the window the maximum, so the grip stays in reach
+      const { x, y, rect } = resizeFrom;
+      const width = Math.min(rect.width + e.clientX - x, window.innerWidth - rect.left);
+      const height = Math.min(rect.height + e.clientY - y, window.innerHeight - rect.top);
+      editorContainer.style.width = `${width}px`;
+      editorContainer.style.height = `${height}px`;
+    },
+  });
 
   // Add a resize observer to save dimensions when resized
   const resizeObserver = new ResizeObserver(
@@ -336,6 +364,9 @@ async function runCode(editor, hydra) {
   }
 }
 
+// Whether this page load has told a touch-screen user how to bring back the UI
+let hiddenUiHintShown = false;
+
 // Show or hide the editor and all panels. Uses the visibility property to
 // preserve layout. This is the single source of truth for UI visibility —
 // used by the toggle button, the keyboard shortcut and startup restore.
@@ -360,11 +391,17 @@ function setUiVisibility(visible) {
   storage.set("hydractrl-ui-visible", visible ? "true" : "false");
   events.emit("ui:visibility", { visible });
 
+  // Without a keyboard there is no Esc to press, so say it once
+  if (!visible && isTouchFirst() && !hiddenUiHintShown) {
+    hiddenUiHintShown = true;
+    notify("Tap anywhere to bring back the interface", { duration: 3000 });
+  }
+
   if (visible) {
     // Focus the editor and trigger resize after showing
     setTimeout(() => {
       if (window._editorProxy) {
-        window._editorProxy.focus();
+        refocusEditor(window._editorProxy);
       }
       // Force a resize event to make sure sizes are updated
       window.dispatchEvent(new Event("resize"));
@@ -495,7 +532,8 @@ async function runCodeOnAllInstances(editor, mainHydra) {
 // Initialize the application
 async function init() {
   try {
-    const isMobile = isMobileOrTablet();
+    // Phones get the mobile UI; tablets such as the iPad get the full interface
+    const isMobile = isPhone();
 
     const editor = initEditor(); // No longer async
     const hydra = await initHydra();
@@ -521,7 +559,7 @@ async function init() {
     document.getElementById("run-btn").addEventListener("click", async () => {
       const success = await runCodeOnAllInstances(editor, hydra);
       if (success) {
-        editor.focus(); // Return focus to editor after successful run
+        refocusEditor(editor); // Return focus to editor after successful run
       }
     });
 
@@ -544,7 +582,7 @@ async function init() {
         notify("Saved!", { duration: 1500 });
       }
 
-      editor.focus(); // Return focus to editor after saving
+      refocusEditor(editor); // Return focus to editor after saving
     });
 
     // Add keyboard shortcuts
@@ -678,6 +716,19 @@ async function init() {
       }
     });
 
+    // Touch screens have no Esc key, so a tap brings back a hidden UI. Cancelling
+    // the touch keeps its click from landing on a panel that reappears under
+    // the finger.
+    document.addEventListener(
+      "touchend",
+      (e) => {
+        if (!document.body.classList.contains("ui-hidden")) return;
+        e.preventDefault();
+        setUiVisibility(true);
+      },
+      { passive: false },
+    );
+
     // A sketch shared via URL (#sketch=...) takes precedence over saved code
     // and is deliberately NOT persisted — the user's banks stay untouched
     // unless they explicitly save (issue #5).
@@ -695,7 +746,7 @@ async function init() {
 
     // Focus the editor initially
     if (!isMobile) {
-      editor.focus();
+      refocusEditor(editor);
     }
 
     // Only create certain panels based on device type

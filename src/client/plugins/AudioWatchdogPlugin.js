@@ -66,13 +66,15 @@ export function createAudioWatchdogPlugin(options = {}) {
         gestureRetryArmed = true;
         const onGesture = () => {
           gestureRetryArmed = false;
-          document.removeEventListener("pointerdown", onGesture);
+          document.removeEventListener("pointerup", onGesture);
           document.removeEventListener("keydown", onGesture);
           if (context.state === "suspended") {
             resumeContext(context, "user gesture");
           }
         };
-        document.addEventListener("pointerdown", onGesture);
+        // pointerup, not pointerdown: a touch only counts as a gesture once the
+        // finger lifts, so iPad Safari refuses to resume audio on touchstart
+        document.addEventListener("pointerup", onGesture);
         document.addEventListener("keydown", onGesture);
       }
 

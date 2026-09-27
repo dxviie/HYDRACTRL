@@ -2,6 +2,7 @@
  * Simple Stats Panel
  * A minimal, draggable FPS counter that doesn't rely on complex component architecture
  */
+import { trackPointerDrag } from "./utils/Draggable.js";
 import { loadPanelPosition, savePanelPosition } from "./utils/PanelStorage.js";
 
 export function createStatsPanel() {
@@ -870,8 +871,8 @@ export function createStatsPanel() {
     }
   });
 
-  // Also prevent mousedown from bubbling to avoid immediate panel hide
-  infoButton.addEventListener("mousedown", (e) => {
+  // Also keep the press from reaching the info panel's outside-click handler
+  infoButton.addEventListener("pointerdown", (e) => {
     e.stopPropagation();
   });
 
@@ -1104,8 +1105,8 @@ function makeDraggable(element, handle, panelId) {
     }
   }, 100);
 
-  // Mouse down handler
-  function onMouseDown(e) {
+  // Pointer down handler (mouse, finger or pen)
+  function onPointerDown(e) {
     e.preventDefault();
     e.stopPropagation();
 
@@ -1114,7 +1115,7 @@ function makeDraggable(element, handle, panelId) {
       element.style.right = "";
     }
 
-    // Calculate initial mouse position
+    // Calculate initial pointer position
     initialX = e.clientX;
     initialY = e.clientY;
 
@@ -1126,18 +1127,11 @@ function makeDraggable(element, handle, panelId) {
     // Start dragging
     isDragging = true;
     element.classList.add("dragging");
-
-    // Add listeners
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
   }
 
-  // Mouse move handler
-  function onMouseMove(e) {
+  // Pointer move handler
+  function onPointerMove(e) {
     if (!isDragging) return;
-
-    e.preventDefault();
-    e.stopPropagation();
 
     // Calculate offset
     offsetX = e.clientX - initialX;
@@ -1155,8 +1149,8 @@ function makeDraggable(element, handle, panelId) {
     element.style.top = newY + "px";
   }
 
-  // Mouse up handler
-  function onMouseUp(e) {
+  // Pointer up handler
+  function onPointerUp() {
     if (!isDragging) return;
 
     // Update current position with final offsets
@@ -1176,12 +1170,7 @@ function makeDraggable(element, handle, panelId) {
     // End dragging
     isDragging = false;
     element.classList.remove("dragging");
-
-    // Remove listeners
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", onMouseUp);
   }
 
-  // Add listener to handle
-  handle.addEventListener("mousedown", onMouseDown);
+  trackPointerDrag(handle, { start: onPointerDown, move: onPointerMove, end: onPointerUp });
 }

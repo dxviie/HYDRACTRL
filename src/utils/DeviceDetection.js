@@ -1,31 +1,27 @@
 /**
  * DeviceDetection - shared device heuristics used by the core and plugins.
+ * Each takes the browser environment (window) as an argument so it can be tested.
  */
 
-/** Detect if the device is a mobile or tablet. */
-export function isMobileOrTablet() {
-  // Check user agent for mobile indicators
-  const userAgent = navigator.userAgent.toLowerCase();
-  const mobileKeywords = [
-    "mobile",
-    "android",
-    "iphone",
-    "ipad",
-    "ipod",
-    "blackberry",
-    "windows phone",
-  ];
-  const hasMobileKeyword = mobileKeywords.some((keyword) => userAgent.includes(keyword));
+/**
+ * Screens whose shorter side is narrower than this, in CSS pixels, are phones.
+ * It is where Android draws the line between phones and tablets (600dp); the
+ * smallest iPad, the mini, is 744 wide.
+ */
+const TABLET_MIN_SHORT_SIDE = 600;
 
-  // Check screen size (typical mobile/tablet sizes)
-  const isMobileScreen = window.innerWidth <= 1024 || window.innerHeight <= 768;
+/** Whether the main pointer is a finger (phones, tablets) rather than a mouse or trackpad. */
+export function isTouchFirst(env = globalThis) {
+  return Boolean(env.matchMedia?.("(pointer: coarse)").matches);
+}
 
-  // Check for touch capability
-  const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
-
-  // Check device orientation API (common on mobile devices)
-  const hasOrientation = "orientation" in window;
-
-  // Return true if any mobile indicator is present
-  return hasMobileKeyword || (isMobileScreen && hasTouch) || hasOrientation;
+/**
+ * Whether this is a phone: touch first, on a small screen. Phones get the
+ * mobile UI (see MobileUiPlugin); tablets such as the iPad get the full
+ * interface, like desktops. Measures the screen rather than the window, so
+ * an iPad in Split View is still a tablet.
+ */
+export function isPhone(env = globalThis) {
+  const { width = 0, height = 0 } = env.screen ?? {};
+  return isTouchFirst(env) && Math.min(width, height) < TABLET_MIN_SHORT_SIDE;
 }

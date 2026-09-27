@@ -1,19 +1,19 @@
 /**
- * MobileUiPlugin - the touch-device experience.
+ * MobileUiPlugin - the phone experience.
  *
- * On mobile/tablet the editor is unusable, so this plugin hides it and adds:
+ * On a phone the editor is unusable, so this plugin hides it and adds:
  *  - a read-only code overlay showing the current sketch (updated by the
  *    slots panel through the `window.codeOverlay` global);
  *  - a floating dice button that loads random scenes.
  *
- * Does nothing on desktop.
+ * Does nothing on computers and tablets, which get the full interface.
  */
 
 export function createMobileUiPlugin() {
   return {
     id: "mobile-ui",
     name: "Mobile UI",
-    description: "Code overlay and random-scenes dice button for touch devices",
+    description: "Code overlay and random-scenes dice button for phones",
 
     setup(ctx) {
       if (!ctx.isMobile) return;
