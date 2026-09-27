@@ -519,6 +519,26 @@
       color: var(--muted);
     }
 
+    /* "Everything in the browser version, plus:" on the desktop card */
+    .version .includes {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      border: 1px solid rgba(12, 245, 144, 0.3);
+      border-radius: var(--radius-small);
+      background: rgba(12, 245, 144, 0.07);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .includes svg {
+      width: 20px;
+      height: 20px;
+      flex: none;
+      color: var(--mint);
+    }
+
     .checks {
       display: grid;
       gap: 9px;
@@ -663,12 +683,12 @@
     .output-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-      gap: 28px;
-      align-items: start;
+      gap: 20px;
     }
 
     .flow {
-      display: grid;
+      display: flex;
+      flex-direction: column;
       gap: 12px;
       padding: 26px;
     }
@@ -703,8 +723,10 @@
       font-size: 1.3rem;
     }
 
+    /* Sits at the bottom when the settings card next to it is taller */
     .flow-note {
-      margin: 6px 0 0;
+      margin: auto 0 0;
+      padding-top: 6px;
     }
 
     .targets {
@@ -724,29 +746,15 @@
       font-size: 0.9rem;
     }
 
-    .spec-list {
-      display: grid;
-      gap: 12px;
+    .output-settings {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 26px;
+    }
+
+    .output-settings .checks {
       margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .spec-list li {
-      padding: 14px 18px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-small);
-      background: var(--surface);
-    }
-
-    .spec-list strong {
-      display: block;
-      margin-bottom: 2px;
-    }
-
-    .spec-list span {
-      color: var(--muted);
-      font-size: 0.95rem;
     }
 
     /* ── Download ───────────────────────────────────────────── */
@@ -1013,14 +1021,23 @@
       font-weight: 650;
     }
 
-    .contact-lede {
-      margin-bottom: 18px;
+    /* The intro on the left, the Tally form (restyled to match this page) on the right */
+    .contact {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+      gap: 24px 48px;
+      align-items: start;
+    }
+
+    .contact .link-list {
+      margin-top: 22px;
+      font-size: 0.95rem;
     }
 
     .contact iframe {
       display: block;
       width: 100%;
-      min-height: 324px;
+      min-height: 350px;
       border: 0;
     }
 
@@ -1173,6 +1190,7 @@
       .versions,
       .features,
       .columns,
+      .contact,
       .shortcuts,
       .download-notes,
       .first-launch-body {
@@ -1363,6 +1381,15 @@
             </h3>
             <p>The same interface as a standalone app, plus a live feed of your visuals that other software can pick
               up.</p>
+            <p class="includes">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="16" rx="2.5" />
+                <path d="M3 9h18" />
+                <path d="M6.5 6.5h.01M9 6.5h.01" />
+              </svg>
+              Everything in the browser version, plus:
+            </p>
             <ul class="checks">
               <li>Syphon output on macOS, Spout output on Windows</li>
               <li>Output at 720p up to 4K, 24 to 120 fps, with optional alpha</li>
@@ -1510,17 +1537,17 @@
               Apple Silicon Mac. Spout on Windows is new: <a href="https://github.com/dxviie/HYDRACTRL/issues">tell
                 us how it runs</a>.</p>
           </div>
-          <ul class="spec-list">
-            <li><strong>Resolution and frame rate</strong><span>720p, 1080p, 1440p, 4K or any custom size, at 24 to
-                120 fps. Changes apply live.</span></li>
-            <li><strong>Sender name, alpha and preview</strong><span>Pick the name other apps see, share per-pixel
-                alpha for overlays, and watch the exact frames in a preview window.</span></li>
-            <li><strong>Output menu and settings</strong><span>Start and stop with <kbd>Cmd/Ctrl</kbd> +
-                <kbd>Shift</kbd> + <kbd>O</kbd>. The output starts at launch and keeps the display awake while it
-                runs.</span></li>
-            <li><strong>OBS or TouchDesigner on another computer</strong><span>Allow network access and point a
-                browser source at the app's <code>/output</code> page.</span></li>
-          </ul>
+          <div class="card output-settings">
+            <h3>Output settings</h3>
+            <ul class="checks">
+              <li>720p to 4K or any custom size</li>
+              <li>24 to 120 fps</li>
+              <li>Your own sender name</li>
+              <li>Alpha channel and preview window</li>
+              <li>Start and stop with <kbd>Cmd/Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>O</kbd></li>
+              <li>OBS or TouchDesigner on another computer</li>
+            </ul>
+          </div>
         </div>
       </div>
     </section>
@@ -1817,13 +1844,23 @@
     <section id="contact" class="section">
       <div class="container">
         <div class="card contact">
-          <p class="eyebrow">Contact</p>
-          <h2>Say hi</h2>
-          <p class="lede contact-lede">Ideas, questions, a show you played with it? Get in touch, or
-            open an <a href="https://github.com/dxviie/HYDRACTRL/issues">issue on GitHub</a>.</p>
-          <iframe data-tally-src="https://tally.so/embed/3Erq04?hideTitle=1&transparentBackground=1&dynamicHeight=1"
-            loading="lazy" width="100%" height="324" title="Contact form"></iframe>
-          <noscript><a href="https://tally.so/r/3Erq04">Open the contact form</a></noscript>
+          <div class="contact-intro">
+            <p class="eyebrow">Contact</p>
+            <h2>Say hi</h2>
+            <p class="lede">Ideas, questions, a show you played with it? Get in touch.</p>
+            <ul class="link-list">
+              <li>Found a bug or missing a feature? <a href="https://github.com/dxviie/HYDRACTRL/issues">Open an
+                  issue on GitHub</a></li>
+              <li>Made something with it? Copy it as a link with <kbd>Alt/⌥</kbd> + <kbd>U</kbd> and paste it in.
+              </li>
+            </ul>
+          </div>
+          <div class="contact-form">
+            <iframe
+              data-tally-src="https://tally.so/embed/3Erq04?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
+              loading="lazy" width="100%" height="350" title="Contact form"></iframe>
+            <noscript><a href="https://tally.so/r/3Erq04">Open the contact form</a></noscript>
+          </div>
         </div>
       </div>
     </section>
