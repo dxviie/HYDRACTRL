@@ -912,8 +912,8 @@
 
     .features {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 18px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
     }
 
     .feature {
@@ -924,20 +924,20 @@
     }
 
     .feature .media {
-      display: grid;
-      place-items: center;
-      aspect-ratio: 4 / 3;
+      aspect-ratio: 16 / 9;
       margin-bottom: 6px;
       border-radius: 10px;
       overflow: hidden;
-      background: rgba(0, 0, 0, 0.45);
+      background: #000;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
     }
 
     .feature .media img,
     .feature .media video {
+      display: block;
       width: 100%;
       height: 100%;
-      object-fit: scale-down;
+      object-fit: cover;
     }
 
     .feature h3,
@@ -1136,10 +1136,6 @@
 
     @media (max-width: 960px) {
 
-      .features {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
       .downloads {
         grid-template-columns: 1fr;
       }
@@ -1318,7 +1314,7 @@
         <p class="cta-note">Nothing to install: the browser version runs right here. The desktop app for macOS and
           Windows adds a Syphon or Spout feed for your VJ software.</p>
         <figure class="hero-shot">
-          <img src="/site/hydractrl-preview.jpg" width="1707" height="931"
+          <img src="/site/hydractrl-preview.jpg" width="1920" height="1080"
             alt="The HYDRACTRL interface: a code editor, scene slots, an XY pad and the system panel over a running hydra sketch">
         </figure>
       </div>
@@ -1636,67 +1632,73 @@
 
         <div class="features">
           <article class="card feature">
-            <div class="media"><video src="/site/scene-management.mp4" width="400" height="400" muted loop playsinline
-                preload="none" data-autoplay aria-label="Saving and recalling scenes"></video></div>
+            <div class="media"><video src="/site/scene-management.mp4" poster="/site/scene-management-poster.jpg"
+                width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                aria-label="Recalling scenes from the slot grid"></video></div>
             <h3>Scene management</h3>
             <p>Store and recall up to 64 scenes in 4 banks of 16 slots, with thumbnails so you can find them mid-set.
             </p>
           </article>
           <article class="card feature">
-            <div class="media"><img src="/site/midi-integration.png" width="185" height="155" loading="lazy"
-                alt="The Korg nanoPAD2 MIDI controller"></div>
+            <div class="media"><video src="/site/midi-integration.mp4" poster="/site/midi-integration-poster.jpg"
+                width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                aria-label="Pads on a nanoPAD2 switching scenes and its touchpad moving the XY pad"></video></div>
             <h3>MIDI control</h3>
             <p>Built around the Korg nanoPAD2: pads recall scenes and switch banks, the XY pad feeds
               <code>nanoX</code> and <code>nanoY</code> into your sketches.</p>
           </article>
           <article class="card feature">
-            <div class="media"><video src="/site/xy-pad-physics.mp4" width="340" height="356" muted loop playsinline
-                preload="none" data-autoplay aria-label="The XY pad bouncing with physics"></video></div>
+            <div class="media"><video src="/site/xy-pad-physics.mp4" poster="/site/xy-pad-physics-poster.jpg"
+                width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                aria-label="Flicking the XY pad and letting it bounce, with the sketch following it"></video></div>
             <h3>XY pad with physics</h3>
             <p>Flick the XY pad and let a small physics engine keep it bouncing. Works with a mouse too.</p>
           </article>
           <article class="card feature">
-            <div class="media"><video src="/site/code-editor.mp4" width="594" height="596" muted loop playsinline
-                preload="none" data-autoplay aria-label="Typing in the code editor with completions"></video></div>
+            <div class="media"><video src="/site/code-editor.mp4" poster="/site/code-editor-poster.jpg"
+                width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                aria-label="Adding a line with completions and running it"></video></div>
             <h3>A real code editor</h3>
             <p>CodeMirror 6 with hydra-aware highlighting, completions, error messages and auto-run.</p>
           </article>
           <article class="card feature">
-            <div class="media"><video src="/site/audio-reactivity.mp4" width="210" height="192" muted loop playsinline
-                preload="none" data-autoplay aria-label="Visuals reacting to music"></video></div>
+            <div class="media"><video src="/site/audio-reactivity.mp4" poster="/site/audio-reactivity-poster.jpg"
+                width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                aria-label="A sketch flashing on the beat through a.fft, with hydra's audio meter"></video></div>
             <h3>Audio reactivity</h3>
             <p>hydra's <code>a.fft</code> out of the box, watched over by a watchdog that revives audio when the
               browser suspends it.</p>
           </article>
           <article class="card feature">
-            <div class="media"><video src="/site/breakout-view.mp4" width="920" height="692" muted loop playsinline
-                preload="none" data-autoplay aria-label="Opening the breakout window"></video></div>
+            <div class="media"><img src="/site/breakout-view.jpg" width="1280" height="720" loading="lazy"
+                alt="The interface next to a breakout window that shows only the visuals at 1280×720"></div>
             <h3>Breakout view</h3>
             <p>Send the visuals to a second window at an exact size, for a projector, a recording or an
               <a href="https://obsproject.com/">OBS</a> window capture.</p>
           </article>
           <article class="card feature">
-            <div class="media"><video src="/site/multiple-themes.mp4" width="608" height="606" muted loop playsinline
-                preload="none" data-autoplay aria-label="Switching between interface themes"></video></div>
+            <div class="media"><video src="/site/multiple-themes.mp4" poster="/site/multiple-themes-poster.jpg"
+                width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                aria-label="Switching between the five interface themes and dialing down panel opacity"></video></div>
             <h3>Themes</h3>
             <p>Five interface themes with matching editor colors, and panel opacity you can dial down to see your
               visuals.</p>
           </article>
           <article class="card feature">
-            <div class="media"><img src="/site/setup-code.png" width="727" height="571" loading="lazy"
-                alt="The setup tab of the code editor"></div>
+            <div class="media"><img src="/site/setup-code.jpg" width="1280" height="720" loading="lazy"
+                alt="The Setup tab of the code editor with audio settings and shared colors"></div>
             <h3>Setup code</h3>
             <p>A setup tab that runs before every sketch, for audio settings and globals you always want around.</p>
           </article>
           <article class="card feature">
-            <div class="media"><img src="/site/builtin-docs.png" width="770" height="673" loading="lazy"
-                alt="The built-in hydra documentation panel"></div>
+            <div class="media"><img src="/site/builtin-docs.jpg" width="1280" height="720" loading="lazy"
+                alt="The built-in hydra documentation showing modulateRotate"></div>
             <h3>hydra docs built in</h3>
             <p>Every hydra function with its parameters and examples, one click away while you code.</p>
           </article>
           <article class="card feature">
-            <div class="media"><img src="/site/import-export.png" width="810" height="701" loading="lazy"
-                alt="Exporting a scene bank"></div>
+            <div class="media"><img src="/site/import-export.jpg" width="1280" height="720" loading="lazy"
+                alt="The export button on the slots panel next to the exported JSON file"></div>
             <h3>Import and export banks</h3>
             <p>Save all 64 slots, thumbnails included, as one JSON file to back up or share.</p>
           </article>

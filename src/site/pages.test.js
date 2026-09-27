@@ -48,6 +48,27 @@ describe("site layout", () => {
   });
 });
 
+describe("landing page media", () => {
+  const tags = [...read("index.html").matchAll(/<(?:img|video)\b[^>]*>/g)].map((match) => match[0]);
+  const attr = (tag, name) => tag.match(new RegExp(`\\s${name}="([^"]*)"`))?.[1];
+
+  test("every image, video and poster exists", () => {
+    for (const tag of tags) {
+      for (const url of [attr(tag, "src"), attr(tag, "poster")]) {
+        if (url?.startsWith("/")) expect(existsSync(join(PUBLIC, url))).toBe(true);
+      }
+    }
+  });
+
+  test("screenshots and videos are all 16:9", () => {
+    const media = tags.filter((tag) => attr(tag, "src")?.startsWith("/site/"));
+    expect(media.length).toBeGreaterThan(10);
+    for (const tag of media) {
+      expect(Number(attr(tag, "width")) * 9).toBe(Number(attr(tag, "height")) * 16);
+    }
+  });
+});
+
 describe("inject-analytics", () => {
   test("covers the landing page and the interface, not the output page", () => {
     expect(PAGES).toEqual(["index.html", "app.html"]);
