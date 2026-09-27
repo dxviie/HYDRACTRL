@@ -5,7 +5,13 @@
 import { trackPointerDrag } from "./utils/Draggable.js";
 import { loadPanelPosition, savePanelPosition } from "./utils/PanelStorage.js";
 
-export function createStatsPanel() {
+/**
+ * @param {object} [options]
+ * @param {boolean} [options.midi] - MIDI status, devices and MIDI Learn (off on tablets,
+ *   which keep only the XY pad button of that section).
+ * @param {boolean} [options.breakout] - The display section with the breakout window.
+ */
+export function createStatsPanel({ midi = true, breakout = true } = {}) {
   // Load saved position or use defaults
   const savedPosition = loadPanelPosition("stats-panel");
 
@@ -226,14 +232,18 @@ export function createStatsPanel() {
   });
 
   // Add buttons to container
-  midiButtonsContainer.appendChild(midiLearnButton);
+  if (midi) midiButtonsContainer.appendChild(midiLearnButton);
   midiButtonsContainer.appendChild(xyPadButton);
 
-  // Add to MIDI section
-  midiSection.appendChild(midiStatusText);
-  midiSection.appendChild(midiDeviceContainer);
+  // Add to MIDI section; without MIDI only the XY pad button is left
+  if (midi) {
+    midiSection.appendChild(midiStatusText);
+    midiSection.appendChild(midiDeviceContainer);
+  } else {
+    midiButtonsContainer.style.marginTop = "0";
+  }
   midiSection.appendChild(midiButtonsContainer);
-  midiSection.appendChild(midiMappingDisplay);
+  if (midi) midiSection.appendChild(midiMappingDisplay);
 
   // Create a theme settings section
   const themeSection = document.createElement("div");
@@ -884,7 +894,7 @@ export function createStatsPanel() {
   content.appendChild(details);
   content.appendChild(themeSection);
   content.appendChild(midiSection);
-  content.appendChild(displaySection);
+  if (breakout) content.appendChild(displaySection);
   content.appendChild(slotsSection);
   content.appendChild(footerSection);
 
@@ -1037,19 +1047,23 @@ export function createStatsPanel() {
       section: themeSection,
       selector: themeSelector,
     },
-    midi: {
-      statusText: midiStatusText,
-      deviceContainer: midiDeviceContainer,
-      section: midiSection,
-    },
-    display: {
-      section: displaySection,
-      breakoutButton: breakoutButton,
-      sizeSelectionContainer: sizeSelectionContainer,
-      sizeButtons: Array.from(sizeButtonsContainer.querySelectorAll("button")),
-      selectedSizeIndicator: selectedSizeIndicator,
-      selectedSize: selectedSize,
-    },
+    midi: midi
+      ? {
+          statusText: midiStatusText,
+          deviceContainer: midiDeviceContainer,
+          section: midiSection,
+        }
+      : undefined,
+    display: breakout
+      ? {
+          section: displaySection,
+          breakoutButton: breakoutButton,
+          sizeSelectionContainer: sizeSelectionContainer,
+          sizeButtons: Array.from(sizeButtonsContainer.querySelectorAll("button")),
+          selectedSizeIndicator: selectedSizeIndicator,
+          selectedSize: selectedSize,
+        }
+      : undefined,
     slots: {
       section: slotsSection,
       moveToNextSlotCheckbox: moveToNextSlotCheckbox,

@@ -37,10 +37,10 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
   `/api/capabilities`.
 - The server honours the `PORT` and `HOST` environment variables.
 - The browser version works on iPads and other tablets. They get the full
-  interface instead of the phone view, and it all works by touch: drag panels
-  by their title bars, resize the editor and the docs by the grip in their
-  corner, fling the XY pad, and tap anywhere to bring back a hidden
-  interface.
+  interface instead of the phone view, without MIDI and the breakout window,
+  which don't work there, and it all works by touch: drag panels by their
+  title bars, resize the editor and the docs by the grip in their corner,
+  fling the XY pad, and tap anywhere to bring back a hidden interface.
 
 ### Changed
 

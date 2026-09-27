@@ -5,7 +5,7 @@ import { createSlotsPanel } from "../SlotsPanel.js";
 import { createStatsPanel } from "../StatsPanel.js";
 import { SKETCHES, sketchSource } from "../sketches.js";
 import { createCodeMirrorEditor } from "../utils/CodeMirrorEditor.js";
-import { isPhone, isTouchFirst } from "../utils/DeviceDetection.js";
+import { isPhone, isTablet, isTouchFirst } from "../utils/DeviceDetection.js";
 import { makeDraggable, trackPointerDrag } from "../utils/Draggable.js";
 import { savePanelPosition } from "../utils/PanelStorage.js";
 import { createEventBus } from "./core/EventBus.js";
@@ -533,7 +533,9 @@ async function runCodeOnAllInstances(editor, mainHydra) {
 async function init() {
   try {
     // Phones get the mobile UI; tablets such as the iPad get the full interface
+    // except MIDI and the breakout window, which don't work there
     const isMobile = isPhone();
+    const tablet = isTablet();
 
     const editor = initEditor(); // No longer async
     const hydra = await initHydra();
@@ -754,7 +756,7 @@ async function init() {
 
     if (!isMobile) {
       // Create the stats panel using our simple implementation
-      statsPanel = createStatsPanel();
+      statsPanel = createStatsPanel({ midi: !tablet, breakout: !tablet });
 
       // Create the documentation panel (hidden by default)
       docPanel = createDocPanel();
@@ -798,9 +800,9 @@ async function init() {
     // Apply UI visibility state after all panels are created
     applyUiVisibility();
 
-    // Initialize MIDI access (desktop only)
+    // Initialize MIDI access (not on phones or tablets)
     let midiSupported = false;
-    if (!isMobile && midiManager) {
+    if (!isMobile && !tablet && midiManager) {
       midiSupported = midiManager.init();
     }
 

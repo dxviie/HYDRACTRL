@@ -42,7 +42,8 @@ const browser = await chromium.launch({
   Playwright phone profile (`devices["iPhone 13"]`): the app branches hard on
   `isPhone()`, a coarse pointer with a screen under 600px on its short side.
   **Tablet session:** `devices["iPad (gen 7)"]`, or `hasTouch` + `isMobile`
-  with a Mac UA as iPadOS sends: the full interface, driven by touch.
+  with a Mac UA as iPadOS sends: the full interface, driven by touch, minus
+  the system panel's MIDI controls and breakout window (`isTablet()`).
 - Drive touch drags with CDP `Input.dispatchTouchEvent` (touchStart,
   touchMove…, touchEnd) through `context.newCDPSession(page)`; Playwright
   itself only taps. `page.evaluate` counts as a user gesture, so set up

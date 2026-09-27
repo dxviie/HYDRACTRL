@@ -65,7 +65,7 @@ export function createMyPlugin() {
 | `notify(msg, {type, duration})` | Toast notifications (`type`: `"info"`, `"success"`, `"error"`). |
 | `isMobile` | `true` on phones, which get the mobile UI instead of the editor and panels; `false` on computers and tablets (see `isPhone()` in `src/utils/DeviceDetection.js`). |
 | `midi` | `{ manager, supported }` — the MidiManager instance (or `undefined` on mobile) and whether Web MIDI initialized. |
-| `getPanels()` | Returns `{ stats, slots, doc, xyPad }` panel objects (may contain `undefined` on mobile). |
+| `getPanels()` | Returns `{ stats, slots, doc, xyPad }` panel objects (may contain `undefined` on mobile; on tablets the stats panel has no `midi` or `display` section). |
 
 ## Events you can listen to
 

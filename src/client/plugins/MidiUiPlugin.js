@@ -18,7 +18,8 @@ export function createMidiUiPlugin() {
     setup(ctx) {
       const stats = ctx.getPanels().stats;
       const manager = ctx.midi?.manager;
-      if (ctx.isMobile || !stats || !manager) return;
+      // No MIDI section on phones and tablets
+      if (ctx.isMobile || !stats?.midi || !manager) return;
 
       if (!ctx.midi.supported) {
         stats.midi.statusText.textContent = "MIDI: Not supported";
