@@ -136,7 +136,9 @@ export async function record(page, { clip, file, fps = 30, crf = 27, warmup = 0 
   for (let i = 0; i < Math.round(warmup * fps); i++) await step();
 
   // Bun.spawn rather than node:child_process: under Bun the latter can miss
-  // ffmpeg's exit and hang the run
+  // ffmpeg's exit and hang the run. Bun.spawn can too, next to Playwright's
+  // browser in some Linux containers, so finish() also watches for ffmpeg's
+  // stdout to close, which it does when it exits.
   const encoder = Bun.spawn(
     [
       FFMPEG,
@@ -144,8 +146,9 @@ export async function record(page, { clip, file, fps = 30, crf = 27, warmup = 0 
       ...["-vf", "format=yuv420p", "-c:v", "libx264", "-preset", "slow", "-crf", String(crf)],
       ...["-profile:v", "high", "-movflags", "+faststart", "-an", file],
     ],
-    { stdin: "pipe", stdout: "inherit", stderr: "inherit" },
+    { stdin: "pipe", stdout: "pipe", stderr: "inherit" },
   );
+  const stdoutClosed = new Response(encoder.stdout).arrayBuffer();
   let cursor = null;
 
   async function frame() {
@@ -213,8 +216,14 @@ export async function record(page, { clip, file, fps = 30, crf = 27, warmup = 0 
     },
     async finish() {
       encoder.stdin.end();
-      const code = await encoder.exited;
-      if (code !== 0) throw new Error(`ffmpeg exited ${code} while encoding ${file}`);
+      await Promise.race([encoder.exited, stdoutClosed]);
+      const code = await Promise.race([encoder.exited, sleep(2000).then(() => null)]);
+      if (code === null) {
+        // Bun missed the exit: make sure the video decodes instead
+        ffmpeg(["-i", file, "-f", "null", "-"]);
+      } else if (code !== 0) {
+        throw new Error(`ffmpeg exited ${code} while encoding ${file}`);
+      }
       ffmpeg(["-i", file, "-frames:v", "1", "-q:v", "4", file.replace(/\.mp4$/, "-poster.jpg")]);
     },
   };
