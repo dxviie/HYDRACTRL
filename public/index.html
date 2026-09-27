@@ -245,6 +245,10 @@
       color: var(--text);
     }
 
+    .topbar .button {
+      white-space: nowrap;
+    }
+
     main {
       display: block;
     }
@@ -356,7 +360,8 @@
     }
 
     .hero h1 {
-      font-size: clamp(3.2rem, 11vw, 7.5rem);
+      /* One long word: scale with the viewport so it never outgrows a phone */
+      font-size: clamp(2.2rem, 12.5vw, 7.5rem);
       font-weight: 900;
       letter-spacing: 0.02em;
       background: linear-gradient(100deg, #f7f2ff 20%, var(--purple-soft) 55%, var(--mint) 90%);
@@ -1109,6 +1114,14 @@
         display: grid;
       }
     }
+
+    @media (max-width: 400px) {
+
+      /* The logo alone leaves room for the button; the page title says the rest */
+      .brand-name {
+        display: none;
+      }
+    }
   </style>
   <script type="module" src="/site/landing.js"></script>
 </head>
@@ -1124,7 +1137,7 @@
     <div class="container">
       <a class="brand" href="/" aria-label="HYDRACTRL home">
         <img src="/assets/img/hydractrl-logo-colored.png" alt="" width="30" height="30">
-        HYDRACTRL
+        <span class="brand-name">HYDRACTRL</span>
       </a>
       <nav aria-label="Sections">
         <a href="#versions">Browser &amp; desktop</a>
