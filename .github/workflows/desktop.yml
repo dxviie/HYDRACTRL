@@ -99,7 +99,7 @@ jobs:
             # open a downloaded app with no signature at all) and don't try
             # to notarize. With one, electron-builder signs, and notarizes
             # when the Apple credentials are set.
-            args="$args -c.mac.identity=-"
+            args="$args -c.mac.identity=- -c.mac.timestamp=none"
             unset APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
           fi
           echo "electron-builder $args"

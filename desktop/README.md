@@ -161,8 +161,11 @@ Builds are unsigned by default. To sign on macOS, provide a Developer ID
 certificate through `CSC_LINK` / `CSC_KEY_PASSWORD`; the build is notarized
 when Apple credentials (`APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`,
 `APPLE_TEAM_ID`) are in the environment too. Without a certificate, sign ad
-hoc with `bunx electron-builder --mac -c.mac.identity=-`: a build with no
-signature at all won't open on Apple Silicon once it has been downloaded. The
+hoc with `bunx electron-builder --mac -c.mac.identity=- -c.mac.timestamp=none`:
+a build with no signature at all won't open on Apple Silicon once it has been
+downloaded. An `afterPack` hook (`scripts/after-pack.cjs`) restores the
+symlinks of the Syphon framework that npm flattens, which codesign insists
+on. The
 entitlements in `resources/` already allow JIT for Electron and the Bun
 server, library validation for the ad-hoc case, and microphone and camera
 access.

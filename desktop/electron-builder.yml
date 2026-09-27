@@ -30,6 +30,9 @@ extraResources:
     to: server
 
 beforePack: scripts/before-pack.cjs
+# Restores the symlinks of the Syphon framework that npm flattens, so macOS
+# signing accepts it
+afterPack: scripts/after-pack.cjs
 
 npmRebuild: false
 nodeGypRebuild: false
@@ -49,7 +52,8 @@ mac:
   entitlements: resources/entitlements.mac.plist
   entitlementsInherit: resources/entitlements.mac.inherit.plist
   # Signing needs a Developer ID certificate (CSC_LINK / CSC_KEY_PASSWORD);
-  # without one, pass -c.mac.identity=- for an ad-hoc signature. Notarization
+  # without one, pass -c.mac.identity=- -c.mac.timestamp=none for an ad-hoc
+  # signature (those can't be timestamped). Notarization
   # runs whenever Apple credentials are in the environment (APPLE_ID,
   # APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID); see RELEASING.md.
   extendInfo:
