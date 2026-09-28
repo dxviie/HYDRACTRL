@@ -126,8 +126,18 @@ async function main() {
     }),
   );
 
+  const printOutputTail = () => {
+    if (output)
+      console.log(`--- app output (tail) ---\n${output.split("\n").slice(-30).join("\n")}`);
+    const logFile = join(userData, "logs", "hydractrl-desktop.log");
+    if (existsSync(logFile)) {
+      const log = readFileSync(logFile, "utf8").trim().split("\n").slice(-20).join("\n");
+      console.log(`--- app log (tail) ---\n${log}`);
+    }
+  };
   const deadline = setTimeout(() => {
     check("finished within 4 minutes", false);
+    printOutputTail();
     finish();
   }, 240000);
 
@@ -146,7 +156,7 @@ async function main() {
   }
 
   try {
-    for (let i = 0; i < 150 && !wsUrl; i++) await sleep(200);
+    for (let i = 0; i < 150 && !wsUrl && !exited; i++) await sleep(200);
     check("main process inspector reachable", Boolean(wsUrl));
     if (!wsUrl) throw new Error(`no inspector url in output:\n${output.slice(-800)}`);
 
@@ -213,7 +223,7 @@ async function main() {
     // inspector answers while Node is still starting, before require exists,
     // so the first polls may fail.
     let firstUrl = "";
-    for (let i = 0; i < 80 && !firstUrl; i++) {
+    for (let i = 0; i < 80 && !firstUrl && !exited; i++) {
       firstUrl = await inMain(
         `const w = ${MAIN_WINDOW}; return w ? w.webContents.getURL() : "";`,
       ).catch(() => "");
@@ -225,13 +235,13 @@ async function main() {
       String(firstUrl),
     );
     let ready = false;
-    for (let i = 0; i < 360 && !ready; i++) {
+    for (let i = 0; i < 360 && !ready && !exited; i++) {
       ready = await inMain(
         `const w = ${MAIN_WINDOW}; if (!w || !w.webContents.getURL().startsWith("http://127.0.0.1:")) return false; return w.webContents.executeJavaScript("Boolean(window.hydractrl && window.hydractrl.plugins)").catch(() => false);`,
       ).catch(() => false);
       if (!ready) await sleep(250);
     }
-    check("interface loaded from the local server", ready);
+    check("interface loaded from the local server", ready, exited ? "the app exited" : "");
     if (!ready) throw new Error("interface did not load");
     await sleep(1000);
 
@@ -421,8 +431,7 @@ async function main() {
     ws.close();
   } catch (error) {
     check("smoke test completed", false, String(error.message || error).slice(0, 300));
-    if (output)
-      console.log(`--- app output (tail) ---\n${output.split("\n").slice(-15).join("\n")}`);
+    printOutputTail();
   }
   await finish();
 }
