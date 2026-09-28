@@ -53,9 +53,10 @@ mac:
   entitlementsInherit: resources/entitlements.mac.inherit.plist
   # Signing needs a Developer ID certificate (CSC_LINK / CSC_KEY_PASSWORD);
   # without one, pass -c.mac.identity=- -c.mac.timestamp=none for an ad-hoc
-  # signature (those can't be timestamped). Notarization
-  # runs whenever Apple credentials are in the environment (APPLE_ID,
-  # APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID); see RELEASING.md.
+  # signature (those can't be timestamped). Notarization runs whenever Apple
+  # credentials are in the environment (APPLE_API_KEY, APPLE_API_KEY_ID and
+  # APPLE_API_ISSUER, or APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD and
+  # APPLE_TEAM_ID); see RELEASING.md.
   extendInfo:
     NSMicrophoneUsageDescription: HYDRACTRL listens to the microphone for audio-reactive sketches (a.fft).
     NSCameraUsageDescription: HYDRACTRL uses the camera when a sketch calls s0.initCam().

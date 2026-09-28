@@ -88,30 +88,86 @@ launch people confirm the app once (macOS: System Settings → Privacy &
 Security → *Open Anyway*; Windows: *More info* → *Run anyway*). The landing
 page and the release notes explain this.
 
-To sign, add these repository secrets (Settings → Secrets and variables →
-Actions). Release builds pick them up automatically; pull request builds
-never use them.
+Signing credentials go in repository secrets (Settings → Secrets and
+variables → Actions). Release builds and *Desktop app* runs with *Sign*
+checked use them; pull request builds never do. Once a platform is signed,
+the release notes leave out its first-launch hint; update the *Opening the
+app for the first time* notes on the landing page (`public/index.html`) as
+well.
+
+### macOS
+
+1. **Join the [Apple Developer Program](https://developer.apple.com/programs/enroll/)**
+   (99 USD a year) with an Apple Account that has two-factor authentication.
+   Enroll *as an organization* when the publisher is a legal entity (not a
+   trade name or a sole proprietorship): that takes a D-U-N-S number, a
+   website on the organization's domain and an email address there, and
+   the organization's name becomes the developer name. Otherwise enroll *as
+   an individual*, under your legal name; an individual membership can be
+   converted to an organization later and keeps its team ID and
+   certificates. Either way, an Apple Account on the project's own domain
+   is easier to hand over than a personal one: it stays with the membership.
+2. **Create a Developer ID certificate** (the account holder has to, on a
+   Mac):
+   1. Keychain Access → Certificate Assistant → *Request a Certificate From
+      a Certificate Authority*, saved to disk.
+   2. [Certificates](https://developer.apple.com/account/resources/certificates/list)
+      → **+** → *Developer ID Application*, upload the request, download
+      the certificate and double-click it.
+   3. In Keychain Access, under *My Certificates*, export *Developer ID
+      Application: …* as a `.p12` with a strong password.
+   4. `base64 -i certificate.p12 | pbcopy` gives `MAC_CERTIFICATE_P12_BASE64`;
+      the password is `MAC_CERTIFICATE_PASSWORD`.
+3. **Create an API key for notarization**: App Store Connect → Users and
+   Access → Integrations → App Store Connect API → *Team Keys* (request
+   access the first time), generate a key with the *Developer* role and
+   download `AuthKey_<key ID>.p8`, which is offered only once. Its contents
+   (`pbcopy < AuthKey_<key ID>.p8`) go in `APPLE_API_KEY_P8`, the key ID in
+   `APPLE_API_KEY_ID` and the issuer ID above the list of keys in
+   `APPLE_API_ISSUER`. Personal keys can't notarize; it has to be a team key.
+   An Apple ID with an app-specific password works too (`APPLE_ID`,
+   `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`), but ties the releases to
+   one person's account.
+4. **Test it**: Actions → Desktop app → Run workflow, with *Sign* checked.
+   A signed build has to pass Gatekeeper as notarized with its ticket
+   stapled, or the macOS jobs fail. So a certificate without notarization
+   credentials fails the build: macOS blocks a signed app that isn't
+   notarized just like an unsigned one.
+
+The app is signed with the hardened runtime and the entitlements in
+`desktop/resources/`.
+
+### Windows
+
+Signed or not, SmartScreen can warn about a new release until it has built up
+a download reputation; a signature puts the publisher's name on the warning
+and on the installer. Certificates issued since mid-2023 live on hardware
+tokens or in cloud key vaults and can't be exported, so the
+`WINDOWS_CERTIFICATE_P12_BASE64` route below only fits an older certificate.
+
+The practical route is [Azure Artifact Signing](https://learn.microsoft.com/en-us/azure/artifact-signing/quickstart)
+(formerly Trusted Signing): 9.99 USD a month on the Basic tier, with a paid
+Azure subscription and an identity validation that takes 1 to 20 business
+days. It is open to organizations in the US, Canada, the EU, the UK and a
+few more countries, but to individuals only in the US and Canada.
+electron-builder signs with it through `win.azureSignOptions` and a service
+principal (`AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET`),
+which the Package step in `.github/workflows/desktop.yml` doesn't set up yet.
+
+### Secrets
 
 | Secret | What it holds |
 | --- | --- |
-| `MAC_CERTIFICATE_P12_BASE64` | A *Developer ID Application* certificate exported as `.p12`, base64-encoded (`base64 -i certificate.p12`) |
+| `MAC_CERTIFICATE_P12_BASE64` | The *Developer ID Application* certificate as a `.p12`, base64-encoded |
 | `MAC_CERTIFICATE_PASSWORD` | The password of that `.p12` |
-| `APPLE_ID` | The Apple ID used for notarization |
-| `APPLE_APP_SPECIFIC_PASSWORD` | An app-specific password for that Apple ID ([account.apple.com](https://account.apple.com)) |
-| `APPLE_TEAM_ID` | The 10-character team ID of the developer account |
+| `APPLE_API_KEY_P8` | The contents of the App Store Connect API key (`AuthKey_<key ID>.p8`) |
+| `APPLE_API_KEY_ID` | That key's ID |
+| `APPLE_API_ISSUER` | The issuer ID from App Store Connect → Users and Access → Integrations |
+| `APPLE_ID` | Instead of the API key: the Apple ID used for notarization |
+| `APPLE_APP_SPECIFIC_PASSWORD` | Instead of the API key: an app-specific password for that Apple ID ([account.apple.com](https://account.apple.com)) |
+| `APPLE_TEAM_ID` | Instead of the API key: the 10-character team ID |
 | `WINDOWS_CERTIFICATE_P12_BASE64` | A Windows code-signing certificate (`.pfx`), base64-encoded |
 | `WINDOWS_CERTIFICATE_PASSWORD` | The password of that `.pfx` |
-
-With a macOS certificate the build is signed with the hardened runtime and
-the entitlements in `desktop/resources/`, and notarized when the three Apple
-secrets are set. Once a platform is signed, the release notes leave out its
-first-launch hint; update the *Opening the app for the first time* notes on the
-landing page (`public/index.html`) as well.
-
-Windows certificates issued since mid-2023 live on hardware tokens or in cloud
-key vaults and can't be exported as a `.pfx`. For those, electron-builder's
-`win.azureSignOptions` (Azure Trusted Signing) is the way to go; it needs a
-change to the Package step in `.github/workflows/desktop.yml`.
 
 ## Testing a desktop build before a release
 

@@ -88,7 +88,7 @@ jobs:
       - name: Release notes
         env:
           VERSION: ${{ needs.check.outputs.version }}
-          MAC_SIGNED: ${{ secrets.MAC_CERTIFICATE_P12_BASE64 != '' && secrets.APPLE_ID != '' }}
+          MAC_SIGNED: ${{ secrets.MAC_CERTIFICATE_P12_BASE64 != '' && (secrets.APPLE_API_KEY_P8 != '' || secrets.APPLE_ID != '') }}
           WINDOWS_SIGNED: ${{ secrets.WINDOWS_CERTIFICATE_P12_BASE64 != '' }}
         run: |
           flags=""

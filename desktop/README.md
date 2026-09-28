@@ -159,8 +159,10 @@ change `artifactName` (a test checks it).
 
 Builds are unsigned by default. To sign on macOS, provide a Developer ID
 certificate through `CSC_LINK` / `CSC_KEY_PASSWORD`; the build is notarized
-when Apple credentials (`APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`,
-`APPLE_TEAM_ID`) are in the environment too. Without a certificate, sign ad
+when Apple credentials are in the environment too: an App Store Connect API
+key (`APPLE_API_KEY`, the path to the `.p8` file, with `APPLE_API_KEY_ID` and
+`APPLE_API_ISSUER`) or an Apple ID (`APPLE_ID`,
+`APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`). Without a certificate, sign ad
 hoc with `bunx electron-builder --mac -c.mac.identity=- -c.mac.timestamp=none`:
 a build with no signature at all won't open on Apple Silicon once it has been
 downloaded. An `afterPack` hook (`scripts/after-pack.cjs`) restores the
