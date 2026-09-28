@@ -244,7 +244,13 @@ async function multipleThemes({ base, out }) {
     await place(page, ".slots-panel", { left: 292, top: 420 });
     await place(page, ".stats-panel", { left: statsLeft, top: 162 });
     await page.evaluate(() => {
-      document.querySelector("#editor-content").scrollTop = 5 * 21;
+      // Start the view at src(s0), however the lines above it wrap
+      const content = document.querySelector("#editor-content");
+      const lines = [...content.querySelectorAll(".cm-line")];
+      const line = lines.find((el) => el.textContent.startsWith("src("));
+      if (line) {
+        content.scrollTop += line.getBoundingClientRect().top - content.getBoundingClientRect().top;
+      }
     });
     const swatches = await page.evaluate(() =>
       [...document.querySelectorAll(".theme-swatch")].map((swatch) => {
