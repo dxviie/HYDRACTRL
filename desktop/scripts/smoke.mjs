@@ -11,6 +11,10 @@
  *   node scripts/smoke.mjs --dev               development mode (electron .)
  *   node scripts/smoke.mjs --executable <app>  a specific executable
  *   --software-gl      use SwiftShader (headless Linux CI without a GPU)
+ *   --no-gpu           start without the GPU, for machines where not even
+ *                      SwiftShader runs (the Intel macOS runners): check
+ *                      everything but the interface's own start, which needs
+ *                      WebGL
  *   --optional-output  report a Syphon or Spout output that doesn't start as a
  *                      warning, not a failure (hosted CI runners have no GPU)
  *
@@ -90,7 +94,9 @@ async function main() {
   }
   const userData = mkdtempSync(join(tmpdir(), "hydractrl-smoke-"));
   const chromiumFlags = ["--no-sandbox", `--user-data-dir=${userData}`, "--inspect=0"];
-  if (flag("--software-gl")) {
+  const noGpu = flag("--no-gpu");
+  if (noGpu) chromiumFlags.push("--disable-gpu");
+  else if (flag("--software-gl")) {
     chromiumFlags.push(
       "--use-gl=angle",
       "--use-angle=swiftshader",
@@ -234,14 +240,25 @@ async function main() {
       /loading\.html|127\.0\.0\.1/.test(String(firstUrl)),
       String(firstUrl),
     );
+    // Without a GPU the interface can't start hydra, so only wait for the page
+    // and the desktop bridge
+    const readyProbe = noGpu
+      ? 'typeof window.hydractrlDesktop === "object"'
+      : "Boolean(window.hydractrl && window.hydractrl.plugins)";
     let ready = false;
     for (let i = 0; i < 360 && !ready && !exited; i++) {
       ready = await inMain(
-        `const w = ${MAIN_WINDOW}; if (!w || !w.webContents.getURL().startsWith("http://127.0.0.1:")) return false; return w.webContents.executeJavaScript("Boolean(window.hydractrl && window.hydractrl.plugins)").catch(() => false);`,
+        `const w = ${MAIN_WINDOW}; if (!w || !w.webContents.getURL().startsWith("http://127.0.0.1:")) return false; return w.webContents.executeJavaScript(${JSON.stringify(readyProbe)}).catch(() => false);`,
       ).catch(() => false);
       if (!ready) await sleep(250);
     }
-    check("interface loaded from the local server", ready, exited ? "the app exited" : "");
+    check(
+      noGpu
+        ? "interface page loaded from the local server"
+        : "interface loaded from the local server",
+      ready,
+      exited ? "the app exited" : "",
+    );
     if (!ready) throw new Error("interface did not load");
     await sleep(1000);
 
@@ -267,19 +284,24 @@ async function main() {
       state.settings.output.name === "HYDRACTRL" && state.settings.output.width === 1920,
     );
 
-    const plugins = await inMainWindow("window.hydractrl.plugins.list()");
-    check(
-      "all interface plugins active",
-      plugins.every((p) => p.status === "active") && plugins.some((p) => p.id === "desktop-output"),
-      plugins
-        .filter((p) => p.status !== "active")
-        .map((p) => p.id)
-        .join(",") || `${plugins.length} plugins`,
-    );
-    const block = await inMainWindow(
-      '(document.querySelector(".desktop-output") || {}).innerText || ""',
-    );
-    check("OUTPUT block in the stats panel", /OUTPUT/.test(block), block.replace(/\n/g, " | "));
+    if (noGpu) {
+      console.log("SKIP interface plugins and the OUTPUT block (they need WebGL)");
+    } else {
+      const plugins = await inMainWindow("window.hydractrl.plugins.list()");
+      check(
+        "all interface plugins active",
+        plugins.every((p) => p.status === "active") &&
+          plugins.some((p) => p.id === "desktop-output"),
+        plugins
+          .filter((p) => p.status !== "active")
+          .map((p) => p.id)
+          .join(",") || `${plugins.length} plugins`,
+      );
+      const block = await inMainWindow(
+        '(document.querySelector(".desktop-output") || {}).innerText || ""',
+      );
+      check("OUTPUT block in the stats panel", /OUTPUT/.test(block), block.replace(/\n/g, " | "));
+    }
 
     const outputMenu = await inMain(
       'const menu = Menu.getApplicationMenu().items.find((i) => i.label === "Output"); return menu ? menu.submenu.items.map((i) => ({ label: i.label, enabled: i.enabled })) : null;',

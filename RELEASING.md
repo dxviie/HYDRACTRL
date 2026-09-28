@@ -126,8 +126,9 @@ macOS report the app as damaged, with no *Open Anyway*. Then
 `desktop/scripts/smoke.mjs` launches the packaged app, waits for its bundled
 server and the interface, and goes through the output controls, the
 settings window and a clean quit. The runners have no real GPU, so a Syphon
-or Spout output that doesn't start there is only a warning: that part still
-needs real hardware.
+or Spout output that doesn't start there is only a warning, and the Intel
+macOS runner, which can't render WebGL at all, skips the interface's own
+start: those parts still need real hardware.
 
 ## Versions before the release workflow
 

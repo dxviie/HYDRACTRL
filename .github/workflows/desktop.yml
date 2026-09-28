@@ -51,10 +51,11 @@ jobs:
             os: macos-15-intel
             platform: mac
             args: --mac --x64
-            # These runners have no Metal device, so Chromium's GPU process
-            # can't start there without software GL. Real Intel Macs that
-            # run macOS 11 or later all have one.
-            smoke: --software-gl
+            # These runners have no Metal device, and SwiftShader doesn't run
+            # there either, so they can't render WebGL: the smoke test checks
+            # all but the interface's own start. Real Intel Macs that run
+            # macOS 11 or later all have Metal.
+            smoke: --no-gpu
           - name: Windows (x64)
             os: windows-latest
             platform: win
