@@ -230,9 +230,19 @@ async function multipleThemes({ base, out }) {
     await selectSlot(page, 3);
     await page.click(".stats-toggle");
     await clearToasts(page);
-    await place(page, "#editor-container", { left: 292, top: 162, width: 500, height: 250 });
+    const clip = { x: 280, y: 150, width: 720, height: 405 };
+    // The system panel 12px inside the clip's right edge, however wide it is,
+    // and the editor up to 12px before it
+    const stats = await box(page, ".stats-panel");
+    const statsLeft = clip.x + clip.width - 12 - stats.width;
+    await place(page, "#editor-container", {
+      left: 292,
+      top: 162,
+      width: statsLeft - 12 - 292,
+      height: 250,
+    });
     await place(page, ".slots-panel", { left: 292, top: 420 });
-    await place(page, ".stats-panel", { left: 804, top: 162 });
+    await place(page, ".stats-panel", { left: statsLeft, top: 162 });
     await page.evaluate(() => {
       document.querySelector("#editor-content").scrollTop = 5 * 21;
     });
@@ -245,7 +255,6 @@ async function multipleThemes({ base, out }) {
     const slider = await box(page, ".stats-panel input[type=range]");
     // The opacity slider runs from 30 to 100 percent (its thumb is 14px wide)
     const at = (percent) => slider.x + 7 + ((slider.width - 14) * (percent - 30)) / 70;
-    const clip = { x: 280, y: 150, width: 720, height: 405 };
     const rest = { x: clip.x + clip.width - 30, y: clip.y + clip.height - 30 };
     const file = join(out, "multiple-themes.mp4");
     const rec = await record(page, { clip, file, warmup: 4 });
