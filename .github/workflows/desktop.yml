@@ -1,10 +1,11 @@
 name: Desktop app
 
 # Builds the packaged desktop app for macOS (Apple Silicon and Intel) and
-# Windows, and smoke-tests a Linux directory build. Runs for pull requests
-# that touch the app, on demand, and from the Release workflow, which asks for
-# signed builds. Builds are unsigned (ad-hoc signed on macOS) unless signing
-# credentials are configured as repository secrets; see RELEASING.md.
+# Windows and checks that each build starts, and smoke-tests a Linux directory
+# build. Runs for pull requests that touch the app, on demand, and from the
+# Release workflow, which asks for signed builds. Builds are unsigned (ad-hoc
+# signed on macOS) unless signing credentials are configured as repository
+# secrets; see RELEASING.md.
 on:
   workflow_dispatch:
     inputs:
@@ -113,6 +114,28 @@ jobs:
             desktop/dist/*.zip
             desktop/dist/*.exe
           if-no-files-found: error
+
+      # What people download has to open. On macOS that takes a valid
+      # signature: a broken one makes macOS call the app damaged, with no way
+      # to open it anyway.
+      - name: Verify the macOS signature
+        if: matrix.platform == 'mac'
+        working-directory: desktop
+        run: |
+          app=$(ls -d dist/mac*/HYDRACTRL.app)
+          codesign --verify --deep --strict --verbose=2 "$app"
+          codesign --display --verbose=2 "$app"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The packaged app has to start its bundled server under the hardened
+      # runtime and load the interface. Runners have no real GPU, so a Syphon
+      # or Spout output that doesn't start here only warns.
+      - name: Smoke test the packaged app
+        working-directory: desktop
+        run: node scripts/smoke.mjs --optional-output
 
   smoke:
     name: Linux smoke test (packaged app)

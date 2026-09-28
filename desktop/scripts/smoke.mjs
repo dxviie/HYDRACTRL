@@ -10,7 +10,9 @@
  *   node scripts/smoke.mjs                     packaged directory build (dist/<platform>-unpacked)
  *   node scripts/smoke.mjs --dev               development mode (electron .)
  *   node scripts/smoke.mjs --executable <app>  a specific executable
- *   --software-gl   use SwiftShader (headless Linux CI without a GPU)
+ *   --software-gl      use SwiftShader (headless Linux CI without a GPU)
+ *   --optional-output  report a Syphon or Spout output that doesn't start as a
+ *                      warning, not a failure (hosted CI runners have no GPU)
  *
  * On Linux without a display, run under `xvfb-run -a`. Exits 1 on any failure.
  */
@@ -31,10 +33,14 @@ const option = (name) => {
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const results = [];
 let failures = 0;
-function check(name, ok, detail = "") {
-  results.push(`${ok ? "PASS" : "FAIL"} ${name}${detail ? ` (${detail})` : ""}`);
+let warnings = 0;
+function check(name, ok, detail = "", { optional = false } = {}) {
+  const verdict = ok ? "PASS" : optional ? "WARN" : "FAIL";
+  results.push(`${verdict} ${name}${detail ? ` (${detail})` : ""}`);
   console.log(results.at(-1));
-  if (!ok) failures += 1;
+  if (ok) return;
+  if (optional) warnings += 1;
+  else failures += 1;
 }
 
 function findPackagedExecutable() {
@@ -71,6 +77,10 @@ function resolveLaunch() {
 }
 
 async function main() {
+  if (typeof WebSocket === "undefined") {
+    console.error("smoke: needs Node.js 22 or later (for its built-in WebSocket)");
+    process.exit(1);
+  }
   const launch = resolveLaunch();
   if (!launch.executable || !existsSync(launch.executable)) {
     console.error(
@@ -129,7 +139,9 @@ async function main() {
       if (!exited) child.kill("SIGKILL");
     }
     rmSync(userData, { recursive: true, force: true });
-    console.log(`\nsmoke: ${results.length - failures}/${results.length} checks passed`);
+    const passed = results.length - failures - warnings;
+    const warned = warnings > 0 ? `, ${warnings} optional check(s) failed` : "";
+    console.log(`\nsmoke: ${passed}/${results.length} checks passed${warned}`);
     process.exit(failures > 0 ? 1 : 0);
   }
 
@@ -271,14 +283,17 @@ async function main() {
         if (running.state === "running" && running.fps !== null) break;
         await sleep(250);
       }
+      const optional = flag("--optional-output");
       check(
         "output starts and reports fps",
         started && running.state === "running" && running.fps > 0,
         JSON.stringify({ state: running.state, fps: running.fps, error: running.error }),
+        { optional },
       );
       await inMainWindow("window.hydractrlDesktop.stopOutput()");
       await sleep(500);
-      check("output stops", (await getState()).output.state === "stopped");
+      const stopped = (await getState()).output;
+      check("output stops", stopped.state === "stopped", stopped.state, { optional });
     } else {
       const started = await inMainWindow("window.hydractrlDesktop.startOutput()");
       const after = (await getState()).output;

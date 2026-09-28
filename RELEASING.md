@@ -39,8 +39,9 @@ desktop downloads contain.
 5. The **Release** workflow takes it from there, in about 15 minutes. It
    checks the tag against both versions and the changelog, runs the linter and
    the tests, builds the desktop app on macOS (Apple Silicon and Intel) and
-   Windows, and publishes a GitHub release with the installers,
-   `SHA256SUMS.txt` and the changelog notes plus a downloads table.
+   Windows, checks that every build starts, and publishes a GitHub release
+   with the installers, `SHA256SUMS.txt` and the changelog notes plus a
+   downloads table.
 
 The download buttons on the landing page point at
 `releases/latest/download/<file>`, so they serve the new version as soon as
@@ -58,6 +59,10 @@ the release is published. No change to the site is needed.
   swapping files in an existing one; people may already have downloaded it.
 - **The tag is wrong or a check fails**: the workflow lists every problem it
   found (a version that doesn't match, a missing changelog section).
+- **Publishing failed halfway**: re-run the workflow. When a release for the
+  tag already exists (a draft that a failed upload left behind, or one made
+  on GitHub), it attaches the files to that release, replaces its notes with
+  the changelog's and publishes it.
 
 ### Pre-releases
 
@@ -114,6 +119,15 @@ The **Desktop app** workflow builds all three installers for pull requests
 that touch the app, and on demand (Actions → Desktop app → Run workflow). The
 installers end up as workflow artifacts, so you can try a build on real
 hardware, Syphon and Spout included, before tagging.
+
+Every build is also started on its own platform before it counts. On macOS
+the workflow first verifies the app's signature, since a broken one makes
+macOS report the app as damaged, with no *Open Anyway*. Then
+`desktop/scripts/smoke.mjs` launches the packaged app, waits for its bundled
+server and the interface, and goes through the output controls, the
+settings window and a clean quit. The runners have no real GPU, so a Syphon
+or Spout output that doesn't start there is only a warning: that part still
+needs real hardware.
 
 ## Versions before the release workflow
 

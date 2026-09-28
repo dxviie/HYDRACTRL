@@ -34,9 +34,13 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # Through a variable: a failing check inside echo's arguments would not
+      # fail the step
       - name: Check the tag against both package.json files and CHANGELOG.md
         id: version
-        run: echo "version=$(bun scripts/release.js check "$GITHUB_REF_NAME")" >> "$GITHUB_OUTPUT"
+        run: |
+          version=$(bun scripts/release.js check "$GITHUB_REF_NAME")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Lint
         run: bun run lint
@@ -100,8 +104,19 @@ jobs:
         run: |
           prerelease=""
           case "$VERSION" in *-*) prerelease="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" dist/* \
-            --verify-tag \
-            --title "HYDRACTRL $VERSION" \
-            --notes-file notes.md \
-            $prerelease
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            # A release made on GitHub for this tag, or a draft that a failed
+            # upload left behind: attach the files and the notes, and publish
+            gh release upload "$GITHUB_REF_NAME" dist/* --clobber
+            gh release edit "$GITHUB_REF_NAME" \
+              --title "HYDRACTRL $VERSION" \
+              --notes-file notes.md \
+              --draft=false \
+              $prerelease
+          else
+            gh release create "$GITHUB_REF_NAME" dist/* \
+              --verify-tag \
+              --title "HYDRACTRL $VERSION" \
+              --notes-file notes.md \
+              $prerelease
+          fi
