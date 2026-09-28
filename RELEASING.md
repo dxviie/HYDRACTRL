@@ -105,8 +105,10 @@ well.
    the organization's name becomes the developer name. Otherwise enroll *as
    an individual*, under your legal name; an individual membership can be
    converted to an organization later and keeps its team ID and
-   certificates. Either way, an Apple Account on the project's own domain
-   is easier to hand over than a personal one: it stays with the membership.
+   certificates (then make a new Developer ID certificate, so the signature
+   carries the organization's name, and swap the two certificate secrets).
+   Either way, an Apple Account on the project's own domain is easier to
+   hand over than a personal one: it stays with the membership.
 2. **Create a Developer ID certificate** (the account holder has to, on a
    Mac):
    1. Keychain Access → Certificate Assistant → *Request a Certificate From
