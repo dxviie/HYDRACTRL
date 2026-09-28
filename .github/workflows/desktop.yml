@@ -51,6 +51,10 @@ jobs:
             os: macos-15-intel
             platform: mac
             args: --mac --x64
+            # These runners have no Metal device, so Chromium's GPU process
+            # can't start there without software GL. Real Intel Macs that
+            # run macOS 11 or later all have one.
+            smoke: --software-gl
           - name: Windows (x64)
             os: windows-latest
             platform: win
@@ -135,7 +139,7 @@ jobs:
       # or Spout output that doesn't start here only warns.
       - name: Smoke test the packaged app
         working-directory: desktop
-        run: node scripts/smoke.mjs --optional-output
+        run: node scripts/smoke.mjs --optional-output ${{ matrix.smoke }}
 
   smoke:
     name: Linux smoke test (packaged app)

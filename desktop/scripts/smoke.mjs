@@ -194,20 +194,25 @@ async function main() {
     };
     const windowTitles = () =>
       inMain("return BrowserWindow.getAllWindows().map((w) => w.getTitle());");
-    const inWindow = (title, code) =>
+    // The interface's window is the first one the app opens. On macOS and
+    // Windows the output renders in an offscreen window of its own, which
+    // can come first in getAllWindows().
+    const MAIN_WINDOW =
+      "BrowserWindow.getAllWindows().filter((w) => !w.webContents.isOffscreen()).sort((a, b) => a.id - b.id)[0]";
+    const SETTINGS_WINDOW =
+      'BrowserWindow.getAllWindows().find((w) => w.getTitle() === "Output Settings")';
+    const inWindow = (finder, name, code) =>
       inMain(
-        `const w = BrowserWindow.getAllWindows().find((w) => w.getTitle() === ${JSON.stringify(title)}); if (!w) throw new Error("no window titled ${title}"); return w.webContents.executeJavaScript(${JSON.stringify(code)});`,
+        `const w = ${finder}; if (!w) throw new Error("no ${name} window"); return w.webContents.executeJavaScript(${JSON.stringify(code)});`,
       );
-    const inMainWindow = (code) => inWindow("HYDRACTRL", code);
-    const inSettings = (code) => inWindow("Output Settings", code);
+    const inMainWindow = (code) => inWindow(MAIN_WINDOW, "main", code);
+    const inSettings = (code) => inWindow(SETTINGS_WINDOW, "settings", code);
     const getState = () => inMainWindow("window.hydractrlDesktop.getState()");
 
     // Startup: loading screen, then the interface from the local server
     let firstUrl = "";
     for (let i = 0; i < 80 && !firstUrl; i++) {
-      firstUrl = await inMain(
-        'const w = BrowserWindow.getAllWindows()[0]; return w ? w.webContents.getURL() : "";',
-      );
+      firstUrl = await inMain(`const w = ${MAIN_WINDOW}; return w ? w.webContents.getURL() : "";`);
       if (!firstUrl) await sleep(250);
     }
     check(
@@ -218,7 +223,7 @@ async function main() {
     let ready = false;
     for (let i = 0; i < 360 && !ready; i++) {
       ready = await inMain(
-        'const w = BrowserWindow.getAllWindows()[0]; if (!w || !w.webContents.getURL().startsWith("http://127.0.0.1:")) return false; return w.webContents.executeJavaScript("Boolean(window.hydractrl && window.hydractrl.plugins)").catch(() => false);',
+        `const w = ${MAIN_WINDOW}; if (!w || !w.webContents.getURL().startsWith("http://127.0.0.1:")) return false; return w.webContents.executeJavaScript("Boolean(window.hydractrl && window.hydractrl.plugins)").catch(() => false);`,
       );
       if (!ready) await sleep(250);
     }
