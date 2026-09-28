@@ -209,10 +209,14 @@ async function main() {
     const inSettings = (code) => inWindow(SETTINGS_WINDOW, "settings", code);
     const getState = () => inMainWindow("window.hydractrlDesktop.getState()");
 
-    // Startup: loading screen, then the interface from the local server
+    // Startup: loading screen, then the interface from the local server. The
+    // inspector answers while Node is still starting, before require exists,
+    // so the first polls may fail.
     let firstUrl = "";
     for (let i = 0; i < 80 && !firstUrl; i++) {
-      firstUrl = await inMain(`const w = ${MAIN_WINDOW}; return w ? w.webContents.getURL() : "";`);
+      firstUrl = await inMain(
+        `const w = ${MAIN_WINDOW}; return w ? w.webContents.getURL() : "";`,
+      ).catch(() => "");
       if (!firstUrl) await sleep(250);
     }
     check(
@@ -224,7 +228,7 @@ async function main() {
     for (let i = 0; i < 360 && !ready; i++) {
       ready = await inMain(
         `const w = ${MAIN_WINDOW}; if (!w || !w.webContents.getURL().startsWith("http://127.0.0.1:")) return false; return w.webContents.executeJavaScript("Boolean(window.hydractrl && window.hydractrl.plugins)").catch(() => false);`,
-      );
+      ).catch(() => false);
       if (!ready) await sleep(250);
     }
     check("interface loaded from the local server", ready);
