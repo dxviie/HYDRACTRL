@@ -37,6 +37,7 @@ for how it works and how to build it.
 - **Built-in Hydra documentation** — always at hand while coding
 - **Breakout view** — send visuals to a second window at a precise size for projections or recordings ([OBS](https://obsproject.com/) and [NDI](https://ndi.video/) work great)
 - **Desktop app with Syphon/Spout output** — share your visuals with Resolume, MadMapper, VDMX, TouchDesigner or OBS as a GPU texture, plus a chrome-less `/output` page for OBS and TouchDesigner browser sources (see below)
+- **Your own images and videos** — drop them on the editor in the desktop app, which copies them into its media folder and writes the line that loads them (see below)
 - **Import/export banks** — save and share entire scene banks as JSON
 - **Share sketches as URLs** — `Alt/⌥ + U` copies a link with your sketch encoded in it
 - **Plugin system** — new features are isolated plugins; write your own (see below)
@@ -106,8 +107,8 @@ This creates:
 
 ### Local File Support
 
-In the desktop app you drop images and videos on the editor instead, see
-[Images and videos](./desktop/README.md#images-and-videos).
+In the desktop app you drop images and videos on the editor instead, as
+described in [Your own images and videos](#your-own-images-and-videos).
 
 When using the executable, you can serve local images and videos by placing them in a `local-assets/` directory before building. These files will be available at `http://localhost:3000/filename.ext` in your hydra sketches:
 
@@ -129,6 +130,29 @@ Opening such a link loads and runs the sketch without touching the recipient's
 saved banks — nothing is persisted unless they explicitly save it. Links
 copied in the desktop app or on a local server point at the browser version,
 so anyone can open them.
+
+## Your own images and videos
+
+In the desktop app, drop an image or a video on the editor. HYDRACTRL copies
+it into its media folder and adds the line that loads it into a free source:
+
+```javascript
+s0.initVideo("/media/clip.mp4");
+```
+
+The line goes where you drop the file, or above the chain you drop it on, and
+an empty sketch also gets `src(s0).out()`. The app's server serves the media
+folder at `/media/`, so the Syphon or Spout output and any `/output` page play
+the same file. Images can be PNG, JPG, GIF, WebP, AVIF, BMP or SVG, and videos
+MP4, MOV, M4V, WebM or OGV. You choose the folder in the settings window; the
+[desktop README](./desktop/README.md#images-and-videos) has the details.
+
+A sketch keeps only the file's address, so a shared link or an exported bank
+shows the image or video only on a computer with the same file in its media
+folder. The browser version can't read files from your computer. It loads
+images and videos from web addresses that allow it, such as
+`s0.initImage("https://…")`. The standalone executable serves files from a
+`local-assets/` folder, described under [Local File Support](#local-file-support).
 
 ## External Outputs (Syphon, Spout, OBS, TouchDesigner)
 

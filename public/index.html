@@ -972,6 +972,19 @@
       color: var(--mint);
     }
 
+    /* The features without a picture share the last row, three across */
+    .features-more {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    /* A line of code in a narrow card wraps rather than spilling out */
+    .feature code {
+      overflow-wrap: anywhere;
+    }
+
     /* ── Shortcuts, resources, contact ──────────────────────── */
 
     .shortcuts {
@@ -1154,7 +1167,8 @@
 
     @media (max-width: 960px) {
 
-      .downloads {
+      .downloads,
+      .features-more {
         grid-template-columns: 1fr;
       }
 
@@ -1395,6 +1409,7 @@
               <li>Syphon output on macOS, Spout output on Windows</li>
               <li>Output at 720p up to 4K, 24 to 120 fps, with optional alpha</li>
               <li>The output keeps running when the window is minimized or covered</li>
+              <li>Drop your own images and videos into a sketch</li>
               <li>Audio reactivity starts straight away, no click needed</li>
             </ul>
             <a class="button" href="#download" data-platform-cta data-umami-event="go-download"
@@ -1481,6 +1496,17 @@
               </tr>
               <tr>
                 <th scope="row">Output settings, preview window, alpha</th>
+                <td><span class="mark mark-no"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" aria-hidden="true">
+                      <path d="M4.5 8h7" />
+                    </svg><span class="visually-hidden">No</span></span></td>
+                <td><span class="mark mark-yes"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="m3.5 8.5 3 3 6-7" />
+                    </svg><span class="visually-hidden">Yes</span></span></td>
+              </tr>
+              <tr>
+                <th scope="row">Your own images and videos, dropped on the editor</th>
                 <td><span class="mark mark-no"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"
                       stroke-linecap="round" aria-hidden="true">
                       <path d="M4.5 8h7" />
@@ -1731,28 +1757,41 @@
             <h3>Import and export banks</h3>
             <p>Save all 64 slots, thumbnails included, as one JSON file to back up or share.</p>
           </article>
-          <article class="card feature feature-text">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />
-              <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
-            </svg>
-            <h3>Share sketches as links</h3>
-            <p><kbd>Alt/⌥</kbd> + <kbd>U</kbd> copies a link with your sketch inside it. Whoever opens it sees it
-              running straight away, without touching their own scenes. The background of this page works the same
-              way: open it from the corner.</p>
-          </article>
-          <article class="card feature feature-text">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path
-                d="M9 3h6v3a2 2 0 1 0 4 0V3h2v6h-3a2 2 0 1 0 0 4h3v8h-6v-3a2 2 0 1 0-4 0v3H3v-8h3a2 2 0 1 0 0-4H3V3h6z" />
-            </svg>
-            <h3>Plugins</h3>
-            <p>New features are isolated plugins on a small core, so a broken one can't take down a live set. Write
-              your own with the <a href="https://github.com/dxviie/HYDRACTRL/blob/main/docs/PLUGINS.md">plugin
-                docs</a>.</p>
-          </article>
+          <div class="features-more">
+            <article class="card feature feature-text">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="16" rx="2.5" />
+                <circle cx="9" cy="9.5" r="1.8" />
+                <path d="m21 15.5-5-5L6 20" />
+              </svg>
+              <h3>Your own images and videos</h3>
+              <p>In the desktop app, drop a picture or a clip on the editor. HYDRACTRL copies it into its media
+                folder and writes the line that loads it, such as <code>s0.initVideo("/media/clip.mp4")</code>.</p>
+            </article>
+            <article class="card feature feature-text">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7" />
+                <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7" />
+              </svg>
+              <h3>Share sketches as links</h3>
+              <p><kbd>Alt/⌥</kbd> + <kbd>U</kbd> copies a link with your sketch inside it. Whoever opens it sees it
+                running straight away, without touching their own scenes. The background of this page works the same
+                way: open it from the corner.</p>
+            </article>
+            <article class="card feature feature-text">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path
+                  d="M9 3h6v3a2 2 0 1 0 4 0V3h2v6h-3a2 2 0 1 0 0 4h3v8h-6v-3a2 2 0 1 0-4 0v3H3v-8h3a2 2 0 1 0 0-4H3V3h6z" />
+              </svg>
+              <h3>Plugins</h3>
+              <p>New features are isolated plugins on a small core, so a broken one can't take down a live set. Write
+                your own with the <a href="https://github.com/dxviie/HYDRACTRL/blob/main/docs/PLUGINS.md">plugin
+                  docs</a>.</p>
+            </article>
+          </div>
         </div>
       </div>
     </section>
