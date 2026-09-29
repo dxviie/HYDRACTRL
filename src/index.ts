@@ -27,6 +27,7 @@ const CONTENT_TYPES: Record<string, string> = {
   ".js": "application/javascript",
   ".css": "text/css",
   ".json": "application/json",
+  ".webmanifest": "application/manifest+json",
   ".txt": "text/plain; charset=utf-8",
   ".png": "image/png",
   ".jpg": "image/jpeg",

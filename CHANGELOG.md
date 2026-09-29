@@ -42,6 +42,9 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
   title bars, resize the editor, the docs and the slots by the grip in their
   corner, fling the XY pad, and tap anywhere to bring back a hidden
   interface.
+- The browser version installs as an app: Chrome and Edge offer to install
+  it, and phones and tablets can add it to the home screen. It then opens
+  without the browser's toolbars.
 - Send feedback from inside the interface: the About panel's Send feedback
   button, or the speech bubble in the system panel, opens the contact form in
   a panel. Your HYDRACTRL version, browser or desktop app, OS and browser go

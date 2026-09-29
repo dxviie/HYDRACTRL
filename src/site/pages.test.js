@@ -6,6 +6,7 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { isServerAsset } from "../../scripts/copy-public.js";
 import { PAGES, withAnalytics } from "../../scripts/inject-analytics.js";
 import { FEEDBACK_FORM_ID } from "../project.js";
 
@@ -70,6 +71,42 @@ describe("landing page media", () => {
     expect(media.length).toBeGreaterThan(10);
     for (const tag of media) {
       expect(Number(attr(tag, "width")) * 9).toBe(Number(attr(tag, "height")) * 16);
+    }
+  });
+});
+
+describe("web manifest", () => {
+  const manifest = JSON.parse(read("manifest.webmanifest"));
+  // A PNG's IHDR chunk holds its width and height, big-endian, at bytes 16 and 20
+  const pngSize = (file) => {
+    const png = readFileSync(join(PUBLIC, file));
+    return `${png.readUInt32BE(16)}x${png.readUInt32BE(20)}`;
+  };
+
+  test("the landing page and the interface link it", () => {
+    for (const file of ["index.html", "app.html"]) {
+      expect(read(file)).toContain('<link rel="manifest" href="/manifest.webmanifest">');
+    }
+  });
+
+  test("an installed app opens the interface", () => {
+    expect(manifest.start_url).toBe("/app");
+    expect(manifest.display).toBe("standalone");
+  });
+
+  test("every icon exists at the size it claims", () => {
+    for (const icon of manifest.icons) {
+      expect(pngSize(icon.src)).toBe(icon.sizes);
+    }
+    // Browsers want a 192 and a 512 pixel icon before they offer to install
+    const sizes = manifest.icons.filter((icon) => !icon.purpose).map((icon) => icon.sizes);
+    expect(sizes).toEqual(["192x192", "512x512"]);
+    expect(manifest.icons.some((icon) => icon.purpose === "maskable")).toBe(true);
+  });
+
+  test("a local server ships it with its icons", () => {
+    for (const file of ["manifest.webmanifest", ...manifest.icons.map((icon) => icon.src)]) {
+      expect(isServerAsset(file.replace(/^\//, ""))).toBe(true);
     }
   });
 });
