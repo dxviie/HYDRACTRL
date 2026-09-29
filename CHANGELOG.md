@@ -64,7 +64,9 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
   and one rages. The chains wrap round the body and bite into it, with a
   loose end hanging free. The starter scenes that load the logo show the
   new one.
-- A new favicon: a purple hydra on black.
+- New icons, a deep violet hydra on near-black: the favicon, the home screen
+  icons, the logo in the landing page header and the desktop app, whose icon
+  now has rounded corners like the other apps in the Dock.
 - The code editor uses [Fira Code](https://github.com/tonsky/FiraCode), with
   its ligatures, and the rest of the interface IBM Plex Mono. Both are
   bundled, so they work offline and in the desktop app.
