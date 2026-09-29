@@ -12,6 +12,10 @@ import { chromium } from "playwright-core";
 const PAGE_DIR = join(import.meta.dir, "page");
 export const FFMPEG = process.env.FFMPEG || "ffmpeg";
 const LAUNCH = {
+  // The full Chromium, not the headless shell Playwright picks by default:
+  // the shell sets text a little narrower, so lines wrap differently from
+  // the media already on the site
+  channel: "chromium",
   executablePath: process.env.CHROMIUM || undefined,
   // Software WebGL: slow, but it renders the same everywhere, and speed doesn't
   // matter on the virtual clock

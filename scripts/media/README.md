@@ -20,7 +20,9 @@ stops it again. A full run takes several minutes.
 - **ffmpeg** on the `PATH`, or `FFMPEG=/path/to/ffmpeg`.
 - **Chromium** for `playwright-core` (a dev dependency):
   `bunx playwright-core install chromium`, or `CHROMIUM=/path/to/chrome` for a
-  browser you already have.
+  browser you already have. It has to be the full browser: Playwright's
+  headless shell (`chrome-headless-shell`) sets text a little narrower, so
+  lines wrap differently from the media already on the site.
 
 ## How it works
 
