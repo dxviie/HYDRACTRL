@@ -99,3 +99,50 @@ describe("executeSketch", () => {
     expect(result.message).toBe("no outputs yet");
   });
 });
+
+describe("videos of earlier runs", () => {
+  function fakeVideo() {
+    return {
+      paused: false,
+      pause() {
+        this.paused = true;
+      },
+    };
+  }
+
+  // hydra's sources: hush() drops them, init() shows a new one straight away
+  function hydraWithSources(sources) {
+    return {
+      s: sources.map((src) => ({
+        src,
+        init(options) {
+          this.src = options.src;
+        },
+      })),
+      hush() {
+        for (const source of this.s) source.src = null;
+      },
+    };
+  }
+
+  test("pauses the videos the new run no longer shows", async () => {
+    const old = fakeVideo();
+    const kept = fakeVideo();
+    const image = { width: 1, height: 1 };
+    const hydra = hydraWithSources([old, kept, image, null]);
+    globalThis.keptVideo = kept;
+    const result = await executeSketch(hydra, { main: "h.s[1].init({ src: keptVideo })" });
+    expect(result.success).toBe(true);
+    expect(old.paused).toBe(true);
+    expect(kept.paused).toBe(false);
+    globalThis.keptVideo = undefined;
+  });
+
+  test("also after a sketch that fails", async () => {
+    const old = fakeVideo();
+    const hydra = hydraWithSources([old]);
+    const result = await executeSketch(hydra, { main: "osc(" });
+    expect(result.success).toBe(false);
+    expect(old.paused).toBe(true);
+  });
+});

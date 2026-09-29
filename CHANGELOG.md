@@ -89,6 +89,8 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
 
 ### Fixed
 
+- Running a sketch that plays a video again no longer leaves the previous
+  run's video playing in the background, one more on every run.
 - Sketches that use `nanoX` and `nanoY` also render on phones, where there
   is no XY pad: both start at the centre (0.5).
 - On touch screens, the first tap resumes suspended audio for `a.fft`.

@@ -18,6 +18,34 @@ export function combineSketchCode(setup = "", main = "") {
   return setupCode ? `${setupCode}\n\n${mainCode}` : mainCode;
 }
 
+/** The video elements a hydra instance's sources show (initVideo, initCam...). */
+function sourceVideos(hydra) {
+  const videos = new Set();
+  for (const source of Array.isArray(hydra?.s) ? hydra.s : []) {
+    const media = source?.src;
+    if (media && typeof media.pause === "function") videos.add(media);
+  }
+  return videos;
+}
+
+/**
+ * hush() drops the sources of the previous run without stopping them, and a
+ * video that nothing shows keeps playing, and decoding, in the background:
+ * one more for every run of a sketch that calls s0.initVideo(). Pause the
+ * videos the new run doesn't show.
+ */
+function pauseDroppedVideos(previous, hydra) {
+  const current = sourceVideos(hydra);
+  for (const video of previous) {
+    if (current.has(video)) continue;
+    try {
+      video.pause();
+    } catch (_error) {
+      // not a media element after all
+    }
+  }
+}
+
 /**
  * Run a sketch on a hydra instance.
  * @param {object} hydra - A hydra-synth instance (needs `hush()` and its generator functions).
@@ -25,6 +53,7 @@ export function combineSketchCode(setup = "", main = "") {
  * @returns {Promise<{success: true} | {success: false, message: string, error?: unknown}>}
  */
 export async function executeSketch(hydra, { setup = "", main = "" } = {}) {
+  const previousVideos = sourceVideos(hydra);
   try {
     // Reset all outputs so leftovers from the previous sketch don't linger
     hydra.hush();
@@ -73,5 +102,7 @@ export async function executeSketch(hydra, { setup = "", main = "" } = {}) {
       error,
       message: (error && error.message) || "Failed to execute Hydra code",
     };
+  } finally {
+    pauseDroppedVideos(previousVideos, hydra);
   }
 }
