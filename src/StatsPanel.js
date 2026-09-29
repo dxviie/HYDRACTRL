@@ -935,7 +935,8 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
 
       // Update UI
       fpsValue.textContent = fps.toString();
-      avgFpsValue.textContent = Math.round(avgFps * 10) / 10;
+      // Whole numbers only, so the panel keeps its width as the rate wobbles
+      avgFpsValue.textContent = Math.round(avgFps).toString();
       frameCountValue.textContent = frameCount.toString();
 
       // Update color based on FPS

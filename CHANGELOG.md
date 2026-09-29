@@ -74,6 +74,8 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
   bundled, so they work offline and in the desktop app.
 - Tighter panels: the editor's Sketch and Setup tabs sit in its title bar,
   and every panel has less padding around its contents.
+- Frame rates show as whole numbers, so the system panel keeps its width
+  when the rate wobbles around 60.
 - The Light and Pop 90s themes are redesigned, each with its own editor
   colors: Light is ink on white with a violet accent, Pop 90s has cream
   panels with black outlines, sunny title bars, hot pink and teal.

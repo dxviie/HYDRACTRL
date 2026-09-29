@@ -153,7 +153,8 @@ export function createOutputManager({
   function hook(current) {
     current.on("fps", (fps) => {
       if (bridge !== current) return;
-      set({ fps: Math.round(fps * 10) / 10 });
+      // Whole numbers: 59.9 against 60 would make the status line change width
+      set({ fps: Math.round(fps) });
     });
     current.on("frameDropped", (defect) => {
       if (bridge !== current) return;

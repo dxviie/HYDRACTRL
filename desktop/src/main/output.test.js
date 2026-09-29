@@ -145,7 +145,7 @@ describe("createOutputManager", () => {
     await new Promise((resolve) => setTimeout(resolve, 550));
     const status = manager.getStatus();
     expect(status.state).toBe("running");
-    expect(status.fps).toBe(59.9);
+    expect(status.fps).toBe(60);
     expect(status.droppedFrames).toBe(2);
     expect(status.lastDropReason).toBe("send-failed");
     expect(status.error).toBe("transient");
