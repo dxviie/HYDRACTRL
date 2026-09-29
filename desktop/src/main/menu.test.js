@@ -162,4 +162,18 @@ describe("buildMenuTemplate", () => {
     });
     expect(find(template, "File").submenu[0].enabled).toBe(false);
   });
+
+  test("the file menu shows the media folder, server or not", () => {
+    const { actions, calls } = noopActions();
+    const template = buildMenuTemplate({
+      platform: "darwin",
+      appName: "HYDRACTRL",
+      state: makeState({ server: { url: null } }),
+      actions,
+    });
+    const item = find(find(template, "File").submenu, "Show Media Folder");
+    expect(item.enabled).toBeUndefined();
+    item.click();
+    expect(calls).toEqual([["openMediaFolder"]]);
+  });
 });

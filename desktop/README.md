@@ -77,6 +77,37 @@ Settings live in the app's data folder (`Application Support/HYDRACTRL` on
 macOS, `%APPDATA%\HYDRACTRL` on Windows) next to the log file, which the
 settings window and the Help menu can open for you.
 
+### Images and videos
+
+Drop an image or a video on the editor to use it in a sketch. HYDRACTRL
+copies the file into its media folder and adds a line that loads it into the
+first free source:
+
+```js
+s1.initVideo("/media/clip.mp4");
+```
+
+The line goes where you drop the file, or above the chain you drop it on.
+An empty sketch also gets `src(s0).out()`, so `Ctrl/⌘+Enter` shows the file
+right away. Drop several files and each gets its own line and source.
+
+Images can be PNG, JPG, GIF, WebP, AVIF, BMP or SVG, and videos MP4, MOV,
+M4V, WebM or OGV. A video also needs a codec Chrome plays, such as H.264 or
+VP9. ProRes doesn't play.
+
+The media folder is `media` in the app's data folder until you choose
+another one in the settings window, and **File → Show Media Folder** opens
+it. A file you drop from inside the folder stays where it is, so a folder of
+clips you already keep can be the media folder. Dropping the same file twice
+reuses the first copy.
+
+The app's server serves the folder at `/media/` to the interface, the
+Syphon or Spout output and any `/output` page. When you choose another
+folder, the server switches to it straight away, so move over the files your
+sketches still use. A sketch holds only the file's address. A shared link or
+an exported bank shows the image or video only on a computer with the same
+file in its media folder.
+
 ### Things to know
 
 - **Your banks live in the app.** The desktop app has its own browser storage,
@@ -88,7 +119,8 @@ settings window and the Help menu can open for you.
   `http://localhost:3000/...` as documented in the main README.
 - **A running `bun dev` is reused.** In a repository checkout the app attaches
   to a server that is already running on port 3000 instead of starting its
-  own, which is handy while developing.
+  own, which is handy while developing. That server has no media folder, so
+  the app turns down dropped files until you stop it.
 - **Display sleep is blocked** while the output runs.
 - **Linux** runs the interface but has no shared output: neither Syphon nor
   Spout exist there.
@@ -113,7 +145,8 @@ lint` covers `desktop/src` and `desktop/scripts`.
 `bun run smoke` launches a directory build (`bun run pack` first, or
 `--dev` for the checkout), drives it through the main process's inspector
 and checks startup, the server, the interface plugins, the output controls,
-the settings window, persistence, menu sync and a clean shutdown. On macOS
+a file dropped on the editor, the media folder, the settings window,
+persistence, menu sync and a clean shutdown. On macOS
 and Windows it also starts and stops the real Syphon/Spout output. On a
 headless Linux machine run it as `xvfb-run -a node scripts/smoke.mjs --software-gl`.
 
@@ -125,6 +158,7 @@ desktop/
     index.js         wiring: single instance, lifecycle, IPC, menu, broadcast
     server.js        find or spawn the HYDRACTRL server, restart with backoff
     output.js        Syphon/Spout bridge lifecycle and status
+    media.js         copy dropped images and videos into the media folder
     settings.js      defaults, validation, atomic JSON store
     security.js      permissions, navigation and popup policy
     windows.js       main + settings windows, bounds persistence, crash recovery

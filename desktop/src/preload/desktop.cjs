@@ -1,7 +1,8 @@
 // Preload for every HYDRACTRL desktop window. Runs sandboxed with context
 // isolation; exposes a small, typed-by-convention API as window.hydractrlDesktop.
-// The web interface's DesktopOutputPlugin and the settings/loading pages use it.
-const { contextBridge, ipcRenderer } = require("electron");
+// The web interface's DesktopOutputPlugin and DesktopMediaPlugin and the
+// settings/loading pages use it.
+const { contextBridge, ipcRenderer, webUtils } = require("electron");
 
 const STATE_CHANNEL = "desktop:state";
 const FOCUS_CHANNEL = "desktop:focus-section";
@@ -32,6 +33,15 @@ contextBridge.exposeInMainWorld("hydractrlDesktop", {
   retryServer: () => invoke("desktop:retry-server"),
   copyServerUrl: () => invoke("desktop:copy-server-url"),
   openOutputPage: () => invoke("desktop:open-output-page"),
+  // Takes the File objects of a drop, never paths: the page can't name a
+  // file on disk that the user didn't drop on it
+  importMedia: (files) =>
+    invoke(
+      "desktop:import-media",
+      Array.from(files || [], (file) => webUtils.getPathForFile(file)),
+    ),
+  openMediaFolder: () => invoke("desktop:open-media-folder"),
+  chooseMediaFolder: () => invoke("desktop:choose-media-folder"),
   onState: (callback) => subscribe(STATE_CHANNEL, callback),
   onFocusSection: (callback) => subscribe(FOCUS_CHANNEL, callback),
 });

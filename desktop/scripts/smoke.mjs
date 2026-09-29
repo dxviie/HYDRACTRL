@@ -3,8 +3,8 @@
  * End-to-end smoke test of the desktop app, driven through the main process's
  * own inspector, so no browser-automation dependency is needed. It launches
  * the app, waits for the server and the interface, exercises the output
- * controls, the settings window, settings persistence and menu sync, then
- * quits and verifies the server was stopped.
+ * controls, media files dropped on the editor, the settings window, settings
+ * persistence and menu sync, then quits and verifies the server was stopped.
  *
  * Usage:
  *   node scripts/smoke.mjs                     packaged directory build (dist/<platform>-unpacked)
@@ -21,7 +21,16 @@
  * On Linux without a display, run under `xvfb-run -a`. Exits 1 on any failure.
  */
 import { spawn } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -35,6 +44,11 @@ const option = (name) => {
 };
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+// A 1×1 PNG, for the media checks
+const PIXEL_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64",
+);
 const results = [];
 let failures = 0;
 let warnings = 0;
@@ -93,6 +107,8 @@ async function main() {
     process.exit(1);
   }
   const userData = mkdtempSync(join(tmpdir(), "hydractrl-smoke-"));
+  // Files to drop, and a second media folder, outside the app's data folder
+  const mediaFiles = mkdtempSync(join(tmpdir(), "hydractrl-smoke-files-"));
   const chromiumFlags = ["--no-sandbox", `--user-data-dir=${userData}`, "--inspect=0"];
   const noGpu = flag("--no-gpu");
   if (noGpu) chromiumFlags.push("--disable-gpu");
@@ -155,6 +171,7 @@ async function main() {
       if (!exited) child.kill("SIGKILL");
     }
     rmSync(userData, { recursive: true, force: true });
+    rmSync(mediaFiles, { recursive: true, force: true });
     const passed = results.length - failures - warnings;
     const warned = warnings > 0 ? `, ${warnings} optional check(s) failed` : "";
     console.log(`\nsmoke: ${passed}/${results.length} checks passed${warned}`);
@@ -224,6 +241,30 @@ async function main() {
     const inMainWindow = (code) => inWindow(MAIN_WINDOW, "main", code);
     const inSettings = (code) => inWindow(SETTINGS_WINDOW, "settings", code);
     const getState = () => inMainWindow("window.hydractrlDesktop.getState()");
+    /** Drop files at a point of a window, the way the OS does, through the DevTools protocol. */
+    const dropFiles = (finder, files, point) =>
+      inMain(`
+        const w = ${finder};
+        const debug = w.webContents.debugger;
+        if (!debug.isAttached()) debug.attach("1.3");
+        const data = { items: [], files: ${JSON.stringify(files)}, dragOperationsMask: 1 };
+        try {
+          for (const type of ["dragEnter", "dragOver", "drop"]) {
+            await debug.sendCommand("Input.dispatchDragEvent", { type, x: ${point.x}, y: ${point.y}, data });
+          }
+        } finally {
+          debug.detach();
+        }
+        return true;`);
+    /** Status and body of a file the server serves. */
+    const fetchMedia = async (path, headers = {}) => {
+      const response = await fetch(`${(await getState()).server.url}${path}`, { headers });
+      return {
+        status: response.status,
+        type: response.headers.get("content-type"),
+        bytes: Buffer.from(await response.arrayBuffer()),
+      };
+    };
 
     // Startup: loading screen, then the interface from the local server. The
     // inspector answers while Node is still starting, before require exists,
@@ -345,6 +386,95 @@ async function main() {
       );
     }
 
+    // Media: images and videos dropped on the editor go to the media folder,
+    // which the server serves at /media/
+    const mediaState = (await getState()).media;
+    const mediaDir = join(dirname(dirname(state.app.logPath)), "media");
+    check(
+      "media folder defaults to the app's data folder",
+      mediaState?.folder === mediaDir && mediaState.isDefault && mediaState.available,
+      JSON.stringify(mediaState),
+    );
+    const pixel = join(mediaFiles, "smoke pixel.png");
+    writeFileSync(pixel, PIXEL_PNG);
+    if (noGpu) {
+      // No interface to drop on: put the file in the folder by hand
+      console.log("SKIP dropping a file on the editor (the interface needs WebGL)");
+      mkdirSync(mediaDir, { recursive: true });
+      copyFileSync(pixel, join(mediaDir, "smoke pixel.png"));
+    } else {
+      // The About panel covers the editor on a first start
+      const point = await inMainWindow(`(() => {
+        const info = document.getElementById("info-panel");
+        if (info) info.style.display = "none";
+        const box = document.querySelector("#editor-content .cm-content").getBoundingClientRect();
+        const point = { x: Math.round(box.left + 60), y: Math.round(box.top + 8) };
+        return { ...point, onEditor: Boolean(document.elementFromPoint(point.x, point.y)?.closest(".cm-editor")) };
+      })()`);
+      await dropFiles(MAIN_WINDOW, [pixel], point);
+      const line = 's0.initImage("/media/smoke pixel.png");';
+      let code = "";
+      for (let i = 0; i < 40 && !code.includes(line); i++) {
+        await sleep(250);
+        code = await inMainWindow("window._editorProxy._editor.getCode()");
+      }
+      check(
+        "a file dropped on the editor adds a line that loads it",
+        point.onEditor && code.includes(line),
+        code.split("\n").slice(0, 2).join(" | "),
+      );
+      check(
+        "the dropped file is copied into the media folder",
+        existsSync(join(mediaDir, "smoke pixel.png")) && existsSync(pixel),
+      );
+      const loaded = await inMainWindow(`new Promise((resolve) => {
+        const image = new Image();
+        image.crossOrigin = "anonymous";
+        image.onload = () => resolve(image.width);
+        image.onerror = () => resolve(-1);
+        image.src = "/media/smoke pixel.png";
+      })`);
+      check("the interface loads it the way hydra does", loaded === 1, `width ${loaded}`);
+    }
+    const served = await fetchMedia("/media/smoke%20pixel.png");
+    check(
+      "the server serves the media folder at /media/",
+      served.status === 200 && served.type === "image/png" && served.bytes.equals(PIXEL_PNG),
+      `${served.status} ${served.type}`,
+    );
+    const ranged = await fetchMedia("/media/smoke%20pixel.png", { Range: "bytes=0-7" });
+    check("media answers byte ranges", ranged.status === 206 && ranged.bytes.length === 8);
+
+    const otherFolder = join(mediaFiles, "other media");
+    mkdirSync(otherFolder, { recursive: true });
+    writeFileSync(join(otherFolder, "other.png"), PIXEL_PNG);
+    const pidBeforeSwitch = (await getState()).server.pid;
+    await inMainWindow(
+      `window.hydractrlDesktop.updateSettings({ media: { folder: ${JSON.stringify(otherFolder)} } }).then(() => true)`,
+    );
+    let switched = null;
+    for (let i = 0; i < 20 && switched?.status !== 200; i++) {
+      await sleep(150);
+      switched = await fetchMedia("/media/other.png");
+    }
+    const oldFile = await fetchMedia("/media/smoke%20pixel.png");
+    check(
+      "the server follows a new media folder without restarting",
+      switched?.status === 200 &&
+        oldFile.status === 404 &&
+        (await getState()).server.pid === pidBeforeSwitch,
+      `new ${switched?.status}, old ${oldFile.status}`,
+    );
+    await inMainWindow(
+      'window.hydractrlDesktop.updateSettings({ media: { folder: "" } }).then(() => true)',
+    );
+    let restored = null;
+    for (let i = 0; i < 20 && restored?.status !== 200; i++) {
+      await sleep(150);
+      restored = await fetchMedia("/media/smoke%20pixel.png");
+    }
+    check("Use Default goes back to the app's media folder", restored?.status === 200);
+
     // Settings window
     await inMainWindow('window.hydractrlDesktop.openSettings("resolution")');
     let serverText = "";
@@ -402,6 +532,14 @@ async function main() {
       "invalid settings are clamped",
       clamped.output.width === 16 && clamped.output.name === "SmokeTest",
       JSON.stringify(clamped.output),
+    );
+    const mediaRow = await inSettings(
+      'JSON.stringify({ text: document.getElementById("media-folder").textContent, title: document.getElementById("media-folder").title })',
+    );
+    check(
+      "settings window shows the media folder",
+      JSON.parse(mediaRow).title === mediaDir && JSON.parse(mediaRow).text.endsWith("media"),
+      mediaRow,
     );
     await sleep(2000);
     check(

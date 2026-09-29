@@ -18,6 +18,9 @@ export const IPC = Object.freeze({
   retryServer: "desktop:retry-server",
   copyServerUrl: "desktop:copy-server-url",
   openOutputPage: "desktop:open-output-page",
+  importMedia: "desktop:import-media",
+  openMediaFolder: "desktop:open-media-folder",
+  chooseMediaFolder: "desktop:choose-media-folder",
   /** Push channel: the full app state, on every change. */
   state: "desktop:state",
   /** Push channel: ask the settings window to focus a section. */

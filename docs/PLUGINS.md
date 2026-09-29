@@ -16,6 +16,7 @@ implementations:
 | `BreakoutPlugin` | `breakout-view` | Opens the visualization in a separate window at a chosen resolution. |
 | `OutputSyncPlugin` | `output-sync` | Mirrors every run and the XY-pad values to external outputs (`/output` pages) over the server's WebSocket. |
 | `DesktopOutputPlugin` | `desktop-output` | Inside the desktop app: Syphon/Spout output status, Start/Stop and a settings shortcut in the stats panel. No-op in a browser. |
+| `DesktopMediaPlugin` | `desktop-media` | Inside the desktop app: images and videos dropped on the editor go to the media folder, and the editor gets a line that loads each one into a free source. No-op in a browser. |
 | `MidiUiPlugin` | `midi-ui` | MIDI device list, status and mapping controls in the stats panel. |
 | `MobileUiPlugin` | `mobile-ui` | Phone UI: read-only code overlay, dice button, hides the editor. Tablets get the full interface. |
 
@@ -84,6 +85,7 @@ export function createMyPlugin() {
 | `feedback:open` | — | Emit it to open the feedback panel (the About panel's "Send feedback" does). |
 | `sketch:run` | `{ setup, main }` | A sketch ran successfully on the main hydra instance (any trigger: run button, shortcut, auto-run, slot load). |
 | `output:count` | `{ count }` | The number of connected external outputs changed (output sync plugin). |
+| `media:added` | `{ files: [{ name, kind, url, source }] }` | Files dropped on the editor were added to the sketch, `kind` is `"image"` or `"video"` and `source` the number of the source they load into (desktop media plugin). |
 
 Emit your own namespaced events (`"my-plugin:thing-happened"`) to let other
 plugins integrate with yours.

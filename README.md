@@ -20,6 +20,7 @@ HYDRACTRL comes in two flavours with the same interface, scenes and shortcuts:
 | Editor, 64 scenes, XY pad, docs, audio reactivity | Yes | Yes |
 | MIDI (Korg nanoPAD2) | Chrome and Edge | Yes |
 | Syphon (macOS) / Spout (Windows) output | No | Yes, 720p to 4K, 24 to 120 fps, optional alpha |
+| Images and videos dropped on the editor | No | Yes, from a media folder |
 
 The desktop app is an Electron shell around the same interface, with a live
 Syphon or Spout feed of your visuals for Resolume, MadMapper, VDMX,
@@ -104,6 +105,9 @@ This creates:
 - `hydractrl-public/` - Directory containing web assets (the website's landing page and its media are left out)
 
 ### Local File Support
+
+In the desktop app you drop images and videos on the editor instead, see
+[Images and videos](./desktop/README.md#images-and-videos).
 
 When using the executable, you can serve local images and videos by placing them in a `local-assets/` directory before building. These files will be available at `http://localhost:3000/filename.ext` in your hydra sketches:
 

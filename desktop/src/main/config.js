@@ -29,6 +29,8 @@ export function resolvePaths({ packaged, resourcesPath, userDataPath, platform }
     logFile: join(userDataPath, "logs", "hydractrl-desktop.log"),
     settingsFile: join(userDataPath, "settings.json"),
     windowStateFile: join(userDataPath, "window-state.json"),
+    /** The default media folder: dropped images and videos, served at /media/ */
+    mediaDir: join(userDataPath, "media"),
   };
 }
 

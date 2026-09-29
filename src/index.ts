@@ -3,6 +3,7 @@ import { dirname, extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Elysia } from "elysia";
 import { VERSION } from "./project.js";
+import { createMediaFolder, readLines } from "./server/mediaFolder";
 import { createOutputHub } from "./server/outputHub";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -55,6 +56,16 @@ const html = (content: string) =>
 // Fan-out between the UI and external render heads (see src/server/outputHub.ts)
 const outputHub = createOutputHub({ log: (message) => console.log(message) });
 
+// Images and videos for sketches at /media/ (see src/server/mediaFolder.ts).
+// Only the desktop app names a folder, and it sends a control line on stdin
+// when the folder changes; other servers have no media folder.
+const mediaDir = process.env.HYDRACTRL_MEDIA_DIR?.trim();
+const media = mediaDir ? createMediaFolder({ log: (message) => console.log(message) }) : null;
+if (media) {
+  media.setFolder(mediaDir);
+  if (!process.stdin.isTTY) readLines(process.stdin, media.control);
+}
+
 // Port and bind address are overridable for hosts such as the desktop app:
 // PORT picks the port (default 3000), HOST the interface (default: all).
 const port = Number.parseInt(process.env.PORT || "", 10) || 3000;
@@ -100,7 +111,9 @@ const app = new Elysia()
     const css = readFileSync(join(publicDir, "styles.css"), "utf-8");
     return new Response(css, { headers: { "Content-Type": "text/css" } });
   })
-  .get("/*", ({ path }) => {
+  .get("/*", ({ path, request }) => {
+    if (media && path.startsWith("/media/")) return media.respond(request);
+
     // Skip if it's already handled by other routes
     if (
       path === "/" ||

@@ -93,6 +93,21 @@
       </label>
     </section>
 
+    <section class="card" id="section-media">
+      <h2>Media</h2>
+      <div class="kv">
+        <span class="key">Folder</span>
+        <code id="media-folder">–</code>
+        <button class="small" id="show-media">Show</button>
+      </div>
+      <div class="actions">
+        <button id="choose-media">Choose Folder…</button>
+        <button id="default-media">Use Default</button>
+      </div>
+      <p class="hint">HYDRACTRL copies images and videos you drop on the editor into this folder and adds a line that loads each one, such as <code>s0.initVideo("/media/clip.mp4")</code>. Files already in the folder stay where they are.</p>
+      <div class="error-box" id="media-warning" hidden></div>
+    </section>
+
     <section class="card" id="section-diagnostics">
       <h2>Diagnostics</h2>
       <div class="kv">

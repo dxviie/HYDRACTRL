@@ -16,6 +16,7 @@ import { executeSketch } from "./core/sketchRunner.js";
 import { createAudioWatchdogPlugin } from "./plugins/AudioWatchdogPlugin.js";
 import { createAutoRunPlugin } from "./plugins/AutoRunPlugin.js";
 import { createBreakoutPlugin } from "./plugins/BreakoutPlugin.js";
+import { createDesktopMediaPlugin } from "./plugins/DesktopMediaPlugin.js";
 import { createDesktopOutputPlugin } from "./plugins/DesktopOutputPlugin.js";
 import { createFeedbackPlugin } from "./plugins/FeedbackPlugin.js";
 import { createInfoPanelPlugin } from "./plugins/InfoPanelPlugin.js";
@@ -853,6 +854,7 @@ async function init() {
     pluginHost.register(createBreakoutPlugin());
     pluginHost.register(createOutputSyncPlugin());
     pluginHost.register(createDesktopOutputPlugin());
+    pluginHost.register(createDesktopMediaPlugin());
     pluginHost.register(createMidiUiPlugin());
     pluginHost.register(createMobileUiPlugin());
     pluginHost.init();

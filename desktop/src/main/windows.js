@@ -236,6 +236,7 @@ export function createWindowManager({
     focusMain,
     toggleDevTools,
     getMainWindow: () => mainWindow,
+    getSettingsWindow: () => settingsWindow,
     getView: () => view,
   };
 }

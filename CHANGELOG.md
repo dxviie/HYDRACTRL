@@ -25,6 +25,10 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
     start at launch and optional network access.
   - Output status, frame rate and a start/stop button in the interface's
     system panel.
+  - Drop images and videos on the editor to use them in a sketch. The app
+    copies them into its media folder and adds the line that loads each
+    one, such as `s1.initVideo("/media/clip.mp4")`. Choose the folder in
+    the settings window; files already in it stay where they are.
 - A chrome-less `/output` page that mirrors the interface live over a
   WebSocket, for OBS browser sources, TouchDesigner's Web Render TOP or a
   second browser window.

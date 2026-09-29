@@ -463,6 +463,12 @@ textarea {
   height: 100%;
 }
 
+/* Desktop app: images and videos dragged over the editor (DesktopMediaPlugin) */
+.editor-content .cm-editor.cm-file-drop-target {
+  outline: 2px dashed var(--color-accent, var(--color-perf-good));
+  outline-offset: -4px;
+}
+
 .cm-tooltip {
   z-index: 1001 !important;
   /* Ensure it's on top of other UI elements */

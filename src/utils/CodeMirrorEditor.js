@@ -12,6 +12,7 @@ import { EditorView, highlightActiveLineGutter, keymap, lineNumbers } from "@cod
 import { monokai } from "@uiw/codemirror-theme-monokai";
 import { solarizedDark } from "@uiw/codemirror-theme-solarized";
 import hydraData from "../data/hydra-functions.json" assert { type: "json" };
+import { insertLines } from "./editorInsert.js";
 import { lightEditorTheme, popEditorTheme } from "./editorThemes.js";
 
 // Language compartment for JavaScript with Hydra extensions
@@ -200,6 +201,53 @@ function hydraCompletions(context) {
   return null;
 }
 
+// Set on the editor while files are dragged over it (styles.css)
+const FILE_DROP_CLASS = "cm-file-drop-target";
+
+function hasFiles(event) {
+  return Array.from(event.dataTransfer?.types ?? []).includes("Files");
+}
+
+/**
+ * Hand files dropped anywhere on the editor, gutter included, to
+ * `handler({ files, pos })`, with the document position under the pointer.
+ * The listeners capture the events before CodeMirror sees them, and
+ * CodeMirror leaves handled events alone, so it doesn't paste the files' text.
+ * Returns a function that stops it.
+ */
+function watchFileDrops(view, handler) {
+  const target = view.dom;
+  let clearTimer = null;
+  const unmark = () => {
+    clearTimeout(clearTimer);
+    target.classList.remove(FILE_DROP_CLASS);
+  };
+  const onDragOver = (event) => {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    target.classList.add(FILE_DROP_CLASS);
+    // dragleave also fires between the editor's own elements, so the mark
+    // goes once the dragover events stop
+    clearTimeout(clearTimer);
+    clearTimer = setTimeout(unmark, 150);
+  };
+  const onDrop = (event) => {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    unmark();
+    const pos = view.posAtCoords({ x: event.clientX, y: event.clientY }, false);
+    handler({ files: Array.from(event.dataTransfer.files), pos });
+  };
+  target.addEventListener("dragover", onDragOver, true);
+  target.addEventListener("drop", onDrop, true);
+  return () => {
+    unmark();
+    target.removeEventListener("dragover", onDragOver, true);
+    target.removeEventListener("drop", onDrop, true);
+  };
+}
+
 /**
  * Create a CodeMirror editor for Hydra code
  * @param {HTMLElement} container - Container to add the editor to
@@ -320,6 +368,11 @@ export function createCodeMirrorEditor(container, initialCode = "") {
     },
     focus: () => view.focus(),
     element: view.dom,
+    // Take files dropped on the editor instead of pasting them (the desktop
+    // app's media drops). Returns a function that stops it.
+    handleFileDrops: (handler) => watchFileDrops(view, handler),
+    // Put lines of code near `pos`, where they don't split a statement
+    insertLines: (pos, lines) => view.dispatch(insertLines(view.state, pos, lines)),
     // Add method to manually update theme
     updateTheme: () => {
       const newTheme = getCurrentTheme();

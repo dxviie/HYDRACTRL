@@ -120,6 +120,8 @@ export function buildMenuTemplate({ platform, appName, state, actions }) {
         click: () => actions.copyServerUrl(),
       },
       { type: "separator" },
+      { label: "Show Media Folder", click: () => actions.openMediaFolder() },
+      { type: "separator" },
       isMac ? { role: "close" } : { role: "quit" },
     ],
   };
