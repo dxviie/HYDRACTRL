@@ -61,7 +61,9 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
   Pulse follows the XY pad. Scenes you already have are left alone.
 - A new logo: the hydra's heads each have a character of their own. One
   keeps its jaws shut and stays in control, one howls with its eyes closed
-  and one rages. The starter scenes that load the logo show the new one.
+  and one rages. The chains wrap round the body and bite into it, with a
+  loose end hanging free. The starter scenes that load the logo show the
+  new one.
 - A new favicon: a purple hydra on black.
 - The code editor uses [Fira Code](https://github.com/tonsky/FiraCode), with
   its ligatures, and the rest of the interface IBM Plex Mono. Both are
