@@ -61,7 +61,7 @@ jobs:
             platform: win
             args: --win --x64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -123,7 +123,7 @@ jobs:
           echo "electron-builder $args"
           bunx electron-builder $args
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: hydractrl-desktop-${{ matrix.platform }}-${{ runner.arch }}
           path: |
@@ -150,7 +150,7 @@ jobs:
             xcrun stapler validate "$app"
           fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
 
@@ -165,7 +165,7 @@ jobs:
     name: Linux smoke test (packaged app)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: oven-sh/setup-bun@v2
         with:
