@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import * as fs from "node:fs";
 import { tmpdir } from "node:os";
-import { join, win32 } from "node:path";
+import { join, posix, win32 } from "node:path";
 import { createMediaLibrary, mediaKind, mediaUrl, safeFileName } from "./media.js";
 
 const silentLog = { info() {}, warn() {}, error() {} };
@@ -25,12 +25,14 @@ describe("mediaUrl", () => {
     expect(mediaUrl("café.png")).toBe("/media/café.png");
     expect(mediaUrl("50% #1?.png")).toBe("/media/50%25 %231%3F.png");
     expect(mediaUrl("tab\there.png")).toBe("/media/tab%09here.png");
-    expect(mediaUrl("a\\b.png")).toBe("/media/a%5Cb.png");
+    // Part of a name on macOS and Linux, a separator on Windows
+    expect(mediaUrl("a\\b.png", posix)).toBe("/media/a%5Cb.png");
+    expect(mediaUrl("a\\b.png", win32)).toBe("/media/a/b.png");
     expect(mediaUrl("trailing.png  ")).toBe("/media/trailing.png%20%20");
   });
 
   test("joins folders with slashes on every platform", () => {
-    expect(mediaUrl("clips/intro.mp4")).toBe("/media/clips/intro.mp4");
+    expect(mediaUrl("clips/intro.mp4", posix)).toBe("/media/clips/intro.mp4");
     expect(mediaUrl("clips\\intro.mp4", win32)).toBe("/media/clips/intro.mp4");
   });
 });
