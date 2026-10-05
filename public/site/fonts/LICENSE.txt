@@ -1,9 +1,8 @@
 The fonts in this folder are latin subsets from Fontsource (https://fontsource.org),
 all licensed under the SIL Open Font License, Version 1.1 (below).
 
-- Unbounded: Copyright 2022 The Unbounded Project Authors (https://github.com/googlefonts/unbounded)
-- IBM Plex Sans: Copyright 2019 IBM Corp. All rights reserved. (https://github.com/IBM/plex)
-- IBM Plex Mono: Copyright 2017 IBM Corp. All rights reserved. (https://github.com/IBM/plex)
+- Martian Mono: Copyright 2020 The Martian Mono Project Authors (https://github.com/evilmartians/mono)
+- Fira Code: Copyright 2014-2020 The Fira Code Project Authors (https://github.com/tonsky/FiraCode)
 
 -----------------------------------------------------------
 SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007

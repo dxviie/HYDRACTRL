@@ -427,20 +427,20 @@ async function importExport({ base, out }) {
   const date = new Date().toISOString().split("T")[0];
   const html = `<!doctype html><html><head><style>${FONTS}${WINDOW_CSS}
     html, body { margin: 0; width: 1280px; height: 720px; overflow: hidden; }
-    body { font-family: "IBM Plex Sans", sans-serif;
+    body { font-family: "Martian Mono", monospace;
       background: radial-gradient(ellipse at 15% 20%, #2a1150 0%, transparent 55%),
         radial-gradient(ellipse at 90% 95%, #0b3a2a 0%, transparent 50%), #0b0a10; }
     .panel { position: absolute; left: 48px; top: 150px; width: 540px; height: 424px; border-radius: 14px;
       overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.09); }
     .panel img { width: 540px; height: 424px; display: block; }
     .file { left: 640px; top: 72px; width: 592px; }
-    .code { background: #16151c; padding: 14px 0 18px; font: 400 15px/1.62 "IBM Plex Mono", monospace; color: #cfcbe0; }
+    .code { background: #16151c; padding: 14px 0 18px; font: 400 15px/1.62 "Fira Code", monospace; color: #cfcbe0; }
     .l { display: flex; white-space: pre; }
     .l b { width: 44px; padding-right: 14px; text-align: right; color: #5c586b; font-weight: 400; flex: none; }
     .k { color: #c59bff; } .s { color: #6ff7bd; } .n { color: #ffd479; } .c { color: #5c586b; }
     .arrow { position: absolute; left: 596px; top: 350px; color: #0cf590; }
     .label { position: absolute; left: 48px; top: 96px; color: #aca6bd; font-size: 17px; }
-    .label kbd { font: 500 14px "IBM Plex Mono", monospace; border: 1px solid #4a4854; border-bottom-width: 2px;
+    .label kbd { font: 500 14px "Fira Code", monospace; border: 1px solid #4a4854; border-bottom-width: 2px;
       border-radius: 6px; padding: 1px 7px; color: #e8e5f2; background: rgba(255,255,255,.04); }
   </style></head><body>
     <div class="label">Export all 64 slots with <kbd>Alt/⌥</kbd> + <kbd>X</kbd>, import with <kbd>Alt/⌥</kbd> + <kbd>I</kbd></div>

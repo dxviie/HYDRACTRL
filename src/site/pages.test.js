@@ -9,6 +9,8 @@ import { join } from "node:path";
 import { isServerAsset } from "../../scripts/copy-public.js";
 import { PAGES, withAnalytics } from "../../scripts/inject-analytics.js";
 import { FEEDBACK_FORM_ID } from "../project.js";
+import { SKETCHES, sketchSource } from "../sketches.js";
+import { renderLines } from "./editor.js";
 
 const PUBLIC = join(import.meta.dir, "..", "..", "public");
 const read = (file) => readFileSync(join(PUBLIC, file), "utf8");
@@ -51,6 +53,14 @@ describe("site layout", () => {
     expect(regex.test("#foo=1&sketch=b3NjKCk")).toBe(true);
     expect(regex.test("#download")).toBe(false);
     expect(regex.test("")).toBe(false);
+  });
+});
+
+describe("the hero's code panel", () => {
+  test("shows the first sketch without JavaScript, exactly as the panel renders it", () => {
+    // When the sketch changes, paste renderLines(sketchSource(SKETCHES[0]).trimEnd()) into the <pre>
+    const view = read("index.html").match(/<pre class="code-view" data-code-view>(.*?)<\/pre>/s);
+    expect(view?.[1]).toBe(renderLines(sketchSource(SKETCHES[0]).trimEnd()));
   });
 });
 

@@ -253,9 +253,8 @@ export const dataUrl = (png) => `data:image/png;base64,${readFileSync(png).toStr
 
 /** The landing page's fonts, for composed stills (served by the local server). */
 export const FONTS = `
-  @font-face { font-family: "IBM Plex Sans"; src: url(/site/fonts/ibm-plex-sans-latin-wght.woff2) format("woff2"); font-weight: 100 700; }
-  @font-face { font-family: "IBM Plex Mono"; src: url(/site/fonts/ibm-plex-mono-latin-400.woff2) format("woff2"); font-weight: 400; }
-  @font-face { font-family: "IBM Plex Mono"; src: url(/site/fonts/ibm-plex-mono-latin-500.woff2) format("woff2"); font-weight: 500 700; }
+  @font-face { font-family: "Martian Mono"; src: url(/site/fonts/martian-mono-latin-standard-normal.woff2) format("woff2"); font-weight: 100 800; font-stretch: 75% 112.5%; }
+  @font-face { font-family: "Fira Code"; src: url(/site/fonts/fira-code-latin-wght-normal.woff2) format("woff2"); font-weight: 300 700; }
 `;
 
 export const WINDOW_CSS = `
@@ -266,7 +265,7 @@ export const WINDOW_CSS = `
     background: linear-gradient(#2b2a31, #232229); border-bottom: 1px solid rgba(0,0,0,.6); }
   .bar i { width: 11px; height: 11px; border-radius: 50%; background: #4a4854; }
   .bar span { position: absolute; left: 0; right: 0; text-align: center; pointer-events: none;
-    font: 500 13px "IBM Plex Sans", sans-serif; color: #b9b5c6; }
+    font: 500 13px "Martian Mono", monospace; color: #b9b5c6; }
 `;
 
 /** A plain, OS-neutral window frame around a screenshot. */

@@ -8,6 +8,12 @@ version and the desktop app share one version number; see
 
 ## [Unreleased]
 
+### Changed
+
+- The landing page is set like a hydra session now, with the sketch playing
+  behind it shown as code you can edit and run, and each section below as an
+  editor tab.
+
 ## [1.2.0] - 2026-09-27
 
 HYDRACTRL Desktop, the standalone app with Syphon and Spout output, and a new
