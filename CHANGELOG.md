@@ -34,6 +34,9 @@ version and the desktop app share one version number; see
 - The landing page is set like a hydra session now, with the sketch playing
   behind it shown as code you can edit and run, and each section below as an
   editor tab.
+- The icons are a white hydra on black now, like the one in the landing
+  page's top bar: the browser tab, the installed web app, the home screen
+  and the desktop app.
 
 ## [1.2.0] - 2026-09-27
 
