@@ -68,7 +68,9 @@
     :root {
       color-scheme: dark;
       --bg: #050505;
-      --pane: #0c0c0b;
+      /* The sheets every section sits on: barely see-through, blurred, a hint of violet */
+      --pane: rgba(13, 11, 19, 0.88);
+      --glass: rgba(6, 5, 9, 0.8);
       --box: rgba(0, 0, 0, 0.84);
       --text: #f3f3ef;
       --dim: #908f88;
@@ -77,6 +79,10 @@
       --select: #9000ff;
       --run: #0cf590;
       --num: #c3a2ff;
+      /* The violet in quieter doses: markers, numbers, lines */
+      --violet-mute: #8f72c9;
+      --violet-faint: #4b3d66;
+      --violet-line: rgba(195, 162, 255, 0.24);
       --str: #8af5c7;
       --add: rgba(12, 245, 144, 0.08);
 
@@ -94,7 +100,9 @@
       --pad: 16px;
       --gutter: 0px;
       --gap: 16px;
-      --content: 1280px;
+      --content: 1120px;
+      --sheet-pad: 16px;
+      --section-gap: 56px;
       --top-h: 64px;
       --status-h: 44px;
       --tap: 44px;
@@ -104,6 +112,8 @@
       :root {
         --pad: 24px;
         --gap: 24px;
+        --sheet-pad: 24px;
+        --section-gap: 80px;
       }
     }
 
@@ -118,6 +128,8 @@
       :root {
         --pad: 40px;
         --gutter: 80px;
+        --sheet-pad: 40px;
+        --section-gap: 112px;
       }
     }
 
@@ -147,6 +159,7 @@
     html {
       scroll-behavior: smooth;
       scroll-padding-top: calc(var(--top-h) + 16px);
+      scroll-padding-bottom: var(--status-h);
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
     }
@@ -191,7 +204,7 @@
       color: inherit;
       text-decoration-line: underline;
       text-decoration-thickness: 1px;
-      text-decoration-color: var(--faint);
+      text-decoration-color: var(--violet-mute);
       text-underline-offset: 0.28em;
     }
 
@@ -215,10 +228,15 @@
       font-size: var(--fs-small);
     }
 
+    /* A long call breaks rather than pushing out of a narrow column */
+    p code {
+      overflow-wrap: anywhere;
+    }
+
     kbd {
       display: inline-block;
       padding: 0 6px;
-      border: 1px solid var(--rule);
+      border: 1px solid var(--violet-line);
       border-radius: 2px;
       background: var(--bg);
       color: var(--text);
@@ -368,7 +386,9 @@
 
     .top.is-solid {
       border-bottom-color: var(--rule);
-      background: var(--bg);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
     }
 
     .top-inner {
@@ -431,27 +451,16 @@
       transform: translateY(1px);
     }
 
-    /* ── Hero ───────────────────────────────────────────────── */
+    /* ── Backdrop: the sketch plays behind the whole page ────── */
 
-    .hero {
-      position: relative;
-      isolation: isolate;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      min-height: max(640px, 100svh);
-      padding: calc(var(--top-h) + 48px) 0 calc(var(--status-h) + 48px);
-      overflow: hidden;
-      background: var(--bg);
-    }
-
-    .hero-visual {
-      position: absolute;
+    .backdrop {
+      position: fixed;
       inset: 0;
       z-index: -1;
+      pointer-events: none;
     }
 
-    .hero-visual canvas {
+    .backdrop canvas {
       display: block;
       width: 100%;
       height: 100%;
@@ -459,19 +468,32 @@
       opacity: 0;
     }
 
-    .hero-visual canvas.is-ready {
+    .backdrop canvas.is-ready {
       opacity: 1;
     }
 
     @media (forced-colors: active) {
-      .hero-visual canvas {
+      .backdrop {
         display: none;
       }
     }
 
+    /* ── Hero ───────────────────────────────────────────────── */
+
+    /* The words and the code sit in the middle of the first screen, between
+       the top bar and the status line (with room under the code for its
+       message line) */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: max(640px, 100svh);
+      padding: calc(var(--top-h) + 32px) 0 calc(var(--status-h) + 72px);
+    }
+
     .hero-grid {
       row-gap: 56px;
-      align-items: end;
+      align-items: center;
     }
 
     .hero-text {
@@ -811,14 +833,16 @@
     /* ── Status line ────────────────────────────────────────── */
 
     .status {
-      position: absolute;
+      position: fixed;
       left: 0;
       right: 0;
       bottom: 0;
-      z-index: 2;
+      z-index: 20;
       height: var(--status-h);
       border-top: 1px solid var(--rule);
-      background: var(--bg);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
       color: var(--dim);
       font: 400 var(--fs-label) / 1 var(--code);
     }
@@ -908,40 +932,49 @@
 
     /* ── Panes: every section after the hero is an editor tab ── */
 
+    /* Every section sits on a sheet of its own, with the sketch playing
+       around it, between the sheets and faintly through them */
     .pane {
+      margin-top: var(--section-gap);
+    }
+
+    .sheet {
+      border: 1px solid var(--violet-line);
       background: var(--pane);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
     }
 
+    /* The tab bar: the open file, then the bar's darker rest */
     .tabs {
+      display: flex;
       height: 40px;
-      border-top: 1px solid var(--rule);
-      border-bottom: 1px solid var(--rule);
-      background: var(--bg);
     }
 
-    .tabs .wrap {
-      display: flex;
-      align-items: flex-end;
-      height: 100%;
+    .tabs::after {
+      content: "";
+      flex: 1;
+      border-bottom: 1px solid var(--rule);
+      border-left: 1px solid var(--rule);
+      background: rgba(0, 0, 0, 0.45);
     }
 
     .tab {
       display: inline-flex;
       align-items: center;
       gap: 12px;
-      height: 40px;
-      margin-bottom: -1px;
-      padding: 0 16px;
-      border: solid var(--rule);
-      border-width: 0 1px;
-      border-top: 2px solid var(--run);
-      background: var(--pane);
+      padding: 0 16px 0 max(16px, var(--gutter) - 24px);
+      border-top: 2px solid var(--select);
       color: var(--text);
       font: 400 var(--fs-small) / 1 var(--code);
     }
 
     .pane-body {
-      padding-block: 80px 96px;
+      padding-block: 72px 88px;
+    }
+
+    .sheet .pane-body {
+      padding-inline: max(var(--gutter), var(--sheet-pad)) var(--sheet-pad);
     }
 
     .h2 {
@@ -959,7 +992,7 @@
     }
 
     .pfx {
-      color: var(--faint);
+      color: var(--violet-mute);
       font-weight: 400;
     }
 
@@ -980,7 +1013,7 @@
       width: var(--gutter);
       margin-left: calc(-1 * var(--gutter));
       padding-right: 24px;
-      color: var(--faint);
+      color: var(--violet-faint);
       font: 400 var(--fs-small) / 1 var(--code);
       text-align: right;
       vertical-align: baseline;
@@ -1029,6 +1062,11 @@
 
     .cmt code {
       color: var(--text);
+    }
+
+    /* The comment marker itself */
+    .cmt > span[aria-hidden]:first-child {
+      color: var(--violet-mute);
     }
 
     /* ── features.js ────────────────────────────────────────── */
@@ -1098,7 +1136,7 @@
     .feature-num {
       flex: none;
       width: 4ch;
-      color: var(--faint);
+      color: var(--violet-mute);
       font: 400 var(--fs-small) / 1 var(--code);
     }
 
@@ -1133,7 +1171,7 @@
       content: "+";
       position: absolute;
       left: -2ch;
-      color: var(--dim);
+      color: var(--num);
       font-family: var(--code);
       font-weight: 400;
     }
@@ -1170,6 +1208,8 @@
       display: grid;
       grid-row: span 4;
       grid-template-rows: subgrid;
+      /* A long button wraps instead of widening the column */
+      grid-template-columns: minmax(0, 1fr);
       justify-items: start;
       align-items: start;
       padding: 24px 24px 32px;
@@ -1306,7 +1346,7 @@
     }
 
     .prompt-cmd .ps {
-      color: var(--dim);
+      color: var(--num);
     }
 
     .prompt-cmt {
@@ -1524,7 +1564,7 @@
     }
 
     .fold-body li::marker {
-      color: var(--faint);
+      color: var(--violet-mute);
       font-family: var(--code);
     }
 
@@ -1590,7 +1630,7 @@
     }
 
     .md-list li::marker {
-      color: var(--faint);
+      color: var(--violet-mute);
       font-family: var(--code);
     }
 
@@ -1621,8 +1661,8 @@
     .contact-form {
       grid-column: 7 / span 6;
       padding: 24px;
-      border: 1px solid var(--rule);
-      background: var(--bg);
+      border: 1px solid var(--violet-line);
+      background: rgba(0, 0, 0, 0.4);
     }
 
     .contact-form iframe {
@@ -1637,16 +1677,21 @@
 
     /* ── Footer ─────────────────────────────────────────────── */
 
+    /* The last sheet clears the status line */
     .foot {
-      padding: 24px 0 64px;
-      border-top: 1px solid var(--rule);
+      margin-top: var(--section-gap);
+      padding-bottom: calc(var(--status-h) + var(--section-gap) / 2);
       color: var(--dim);
       font: 400 var(--fs-small) / 1.6 var(--code);
     }
 
+    .foot-sheet .col {
+      padding: 24px var(--sheet-pad) 24px max(var(--gutter), var(--sheet-pad));
+    }
+
     .tildes {
       margin: 0 0 16px;
-      color: var(--faint);
+      color: var(--violet-faint);
       white-space: pre;
     }
 
@@ -1698,21 +1743,22 @@
       .hero {
         justify-content: flex-start;
         padding-top: 0;
+        padding-bottom: calc(var(--status-h) + 72px);
       }
 
       .hero-grid {
         row-gap: 48px;
       }
 
-      /* The first screen keeps the visuals on top and the words at the bottom;
-         the code follows underneath */
+      /* The words sit in the middle of the first screen, the code
+         follows underneath */
       .hero-text {
         display: flex;
         flex-direction: column;
-        justify-content: flex-end;
+        justify-content: center;
         grid-column: 1 / -1;
-        min-height: calc(100svh - var(--status-h) - 24px);
-        padding-top: calc(var(--top-h) + 48px);
+        min-height: calc(100svh - var(--status-h));
+        padding-block: calc(var(--top-h) + 16px) 32px;
       }
 
       .code {
@@ -1823,7 +1869,7 @@
 
     @media (max-width: 599px) {
       .pane-body {
-        padding-block: 56px 72px;
+        padding-block: 48px 56px;
       }
 
       .features-small {
@@ -1846,6 +1892,15 @@
 
       .contact-form {
         padding: 16px;
+      }
+
+      .diff-head {
+        padding: 20px 16px 24px;
+      }
+
+      .diff-head .btn {
+        white-space: normal;
+        line-height: 1.3;
       }
     }
 
@@ -1882,6 +1937,10 @@
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
 
+  <div class="backdrop" aria-hidden="true">
+    <canvas id="backdrop"></canvas>
+  </div>
+
   <header class="top" data-top>
     <div class="wrap top-inner">
       <a class="brand" href="/" aria-label="HYDRACTRL home">
@@ -1900,11 +1959,7 @@
   </header>
 
   <main id="main">
-    <section class="hero" aria-labelledby="hero-title" data-hero>
-      <div class="hero-visual" aria-hidden="true">
-        <canvas id="backdrop"></canvas>
-      </div>
-
+    <section class="hero" aria-labelledby="hero-title">
       <div class="wrap">
         <div class="col grid hero-grid">
           <div class="hero-text">
@@ -1945,476 +2000,461 @@
           </figure>
         </div>
       </div>
-
-      <div class="status" id="now-playing" hidden>
-        <div class="wrap status-inner">
-          <button type="button" class="status-mode" data-backdrop-toggle aria-pressed="false"
-            aria-label="Live, pause the background" data-state="playing"><span class="when-playing">Live</span><span
-              class="when-paused">Paused</span></button>
-          <span class="status-file"><span data-backdrop-name>tide.js</span><span data-backdrop-modified hidden>
-              [+]</span></span>
-          <span class="status-scene">scene <span data-backdrop-index>1</span>/<span
-              data-backdrop-count>4</span></span>
-          <a class="status-open" href="/app" data-backdrop-open data-umami-event="open-backdrop-sketch"
-            aria-label="Open in HYDRACTRL, the background sketch"><span class="lc">Open</span><span
-              class="status-long">&nbsp;in HYDRACTRL</span><span aria-hidden="true">&nbsp;-&gt;</span></a>
-        </div>
-      </div>
     </section>
 
     <section id="features" class="pane" aria-labelledby="features-title">
-      <div class="tabs" aria-hidden="true">
-        <div class="wrap"><span class="tab">features.js</span></div>
-      </div>
       <div class="wrap">
-        <div class="col pane-body">
-          <h2 class="h2" id="features-title"><span class="ln" aria-hidden="true">1</span><span class="pfx"
-              aria-hidden="true">// </span>Built for the stage</h2>
-          <p class="lede"><span class="ln" aria-hidden="true">2</span>HYDRACTRL wraps <a
-              href="https://hydra.ojack.xyz/">hydra</a>, Olivia Jack's live-codable video synth, in tools for
-            performing. Recall a scene instead of typing it, play it with a controller, and keep the code one
-            keystroke away.</p>
+        <div class="sheet">
+          <div class="tabs" aria-hidden="true"><span class="tab">features.js</span></div>
+          <div class="col pane-body">
+            <h2 class="h2" id="features-title"><span class="ln" aria-hidden="true">1</span><span class="pfx"
+                aria-hidden="true">// </span>Built for the stage</h2>
+            <p class="lede"><span class="ln" aria-hidden="true">2</span>HYDRACTRL wraps <a
+                href="https://hydra.ojack.xyz/">hydra</a>, Olivia Jack's live-codable video synth, in tools for
+              performing. Recall a scene instead of typing it, play it with a controller, and keep the code one
+              keystroke away.</p>
 
-          <figure class="window">
-            <div class="window-bar" aria-hidden="true">HYDRACTRL · /app</div>
-            <img src="/site/hydractrl-preview.jpg" width="1920" height="1080" loading="lazy"
-              alt="The HYDRACTRL interface: a code editor, scene slots, an XY pad and the system panel over a running hydra sketch">
-          </figure>
+            <figure class="window">
+              <div class="window-bar" aria-hidden="true">HYDRACTRL · /app</div>
+              <img src="/site/hydractrl-preview.jpg" width="1920" height="1080" loading="lazy"
+                alt="The HYDRACTRL interface: a code editor, scene slots, an XY pad and the system panel over a running hydra sketch">
+            </figure>
 
-          <ul class="features features-big grid">
-            <li class="feature">
-              <div class="media"><video src="/site/scene-management.mp4" poster="/site/scene-management-poster.jpg"
-                  width="960" height="540" muted loop playsinline preload="none" data-autoplay
-                  aria-label="Recalling scenes from the slot grid"></video></div>
-              <h3 class="feature-title"><span class="feature-num" aria-hidden="true">01</span><span
-                  class="h3">Scenes</span></h3>
-              <p class="cmt"><span aria-hidden="true">//  </span>64 scenes in 4 banks of 16 slots, with thumbnails so
-                you find them mid-set.</p>
-            </li>
-            <li class="feature">
-              <div class="media"><video src="/site/midi-integration.mp4" poster="/site/midi-integration-poster.jpg"
-                  width="960" height="540" muted loop playsinline preload="none" data-autoplay
-                  aria-label="Pads on a nanoPAD2 switching scenes and its touchpad moving the XY pad"></video></div>
-              <h3 class="feature-title"><span class="feature-num" aria-hidden="true">02</span><span
-                  class="h3">MIDI</span></h3>
-              <p class="cmt"><span aria-hidden="true">//  </span>Made for the Korg nanoPAD2. Pads recall scenes and
-                switch banks; the touchpad feeds <code>nanoX</code> and <code>nanoY</code> into your sketches.</p>
-            </li>
-            <li class="feature">
-              <div class="media"><video src="/site/xy-pad-physics.mp4" poster="/site/xy-pad-physics-poster.jpg"
-                  width="960" height="540" muted loop playsinline preload="none" data-autoplay
-                  aria-label="Flicking the XY pad and letting it bounce, with the sketch following it"></video></div>
-              <h3 class="feature-title"><span class="feature-num" aria-hidden="true">03</span><span class="h3">XY
-                  pad</span></h3>
-              <p class="cmt"><span aria-hidden="true">//  </span>Flick it and a small physics engine keeps it
-                bouncing. Works with a mouse too.</p>
-            </li>
-            <li class="feature">
-              <div class="media"><video src="/site/code-editor.mp4" poster="/site/code-editor-poster.jpg" width="960"
-                  height="540" muted loop playsinline preload="none" data-autoplay
-                  aria-label="Adding a line with completions and running it"></video></div>
-              <h3 class="feature-title"><span class="feature-num" aria-hidden="true">04</span><span
-                  class="h3">Editor</span></h3>
-              <p class="cmt"><span aria-hidden="true">//  </span>CodeMirror 6 with hydra-aware completions, error
-                messages and auto-run, set in Fira Code with ligatures.</p>
-            </li>
-          </ul>
+            <ul class="features features-big grid">
+              <li class="feature">
+                <div class="media"><video src="/site/scene-management.mp4" poster="/site/scene-management-poster.jpg"
+                    width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                    aria-label="Recalling scenes from the slot grid"></video></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">01</span><span
+                    class="h3">Scenes</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>64 scenes in 4 banks of 16 slots, with thumbnails so
+                  you find them mid-set.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><video src="/site/midi-integration.mp4" poster="/site/midi-integration-poster.jpg"
+                    width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                    aria-label="Pads on a nanoPAD2 switching scenes and its touchpad moving the XY pad"></video></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">02</span><span
+                    class="h3">MIDI</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>Made for the Korg nanoPAD2. Pads recall scenes and
+                  switch banks; the touchpad feeds <code>nanoX</code> and <code>nanoY</code> into your sketches.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><video src="/site/xy-pad-physics.mp4" poster="/site/xy-pad-physics-poster.jpg"
+                    width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                    aria-label="Flicking the XY pad and letting it bounce, with the sketch following it"></video></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">03</span><span class="h3">XY
+                    pad</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>Flick it and a small physics engine keeps it
+                  bouncing. Works with a mouse too.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><video src="/site/code-editor.mp4" poster="/site/code-editor-poster.jpg" width="960"
+                    height="540" muted loop playsinline preload="none" data-autoplay
+                    aria-label="Adding a line with completions and running it"></video></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">04</span><span
+                    class="h3">Editor</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>CodeMirror 6 with hydra-aware completions, error
+                  messages and auto-run, set in Fira Code with ligatures.</p>
+              </li>
+            </ul>
 
-          <ul class="features features-small grid">
-            <li class="feature">
-              <div class="media"><video src="/site/audio-reactivity.mp4" poster="/site/audio-reactivity-poster.jpg"
-                  width="960" height="540" muted loop playsinline preload="none" data-autoplay
-                  aria-label="A sketch flashing on the beat through a.fft, with hydra's audio meter"></video></div>
-              <h3 class="feature-title"><span class="feature-num" aria-hidden="true">05</span><span
-                  class="h3">Audio</span></h3>
-              <p class="cmt"><span aria-hidden="true">//  </span>hydra's <code>a.fft</code> out of the box, with a
-                watchdog that revives audio when the browser suspends it.</p>
-            </li>
-            <li class="feature">
-              <div class="media"><img src="/site/breakout-view.jpg" width="1280" height="720" loading="lazy"
-                  alt="The interface next to a breakout window that shows only the visuals at 1280×720"></div>
-              <h3 class="feature-title"><span class="feature-num" aria-hidden="true">06</span><span
-                  class="h3">Breakout window</span></h3>
-              <p class="cmt"><span aria-hidden="true">//  </span>Send the visuals to a second window at an exact
-                size, for a projector, a recording or an OBS window capture.</p>
-            </li>
-            <li class="feature">
-              <div class="media"><video src="/site/multiple-themes.mp4" poster="/site/multiple-themes-poster.jpg"
-                  width="960" height="540" muted loop playsinline preload="none" data-autoplay
-                  aria-label="Switching between the five interface themes and dialing down panel opacity"></video>
-              </div>
-              <h3 class="feature-title"><span class="feature-num" aria-hidden="true">07</span><span
-                  class="h3">Themes</span></h3>
-              <p class="cmt"><span aria-hidden="true">//  </span>Five interface themes. Dial the panels down to see
-                your visuals.</p>
-            </li>
-            <li class="feature">
-              <div class="media"><img src="/site/setup-code.jpg" width="1280" height="720" loading="lazy"
-                  alt="The Setup tab of the code editor with audio settings and shared colors"></div>
-              <h3 class="feature-title"><span class="feature-num" aria-hidden="true">08</span><span class="h3">Setup
-                  code</span></h3>
-              <p class="cmt"><span aria-hidden="true">//  </span>A setup tab that runs before every sketch, for audio
-                settings and globals.</p>
-            </li>
-            <li class="feature">
-              <div class="media"><img src="/site/builtin-docs.jpg" width="1280" height="720" loading="lazy"
-                  alt="The built-in hydra documentation showing modulateRotate"></div>
-              <h3 class="feature-title"><span class="feature-num" aria-hidden="true">09</span><span class="h3">hydra
-                  docs</span></h3>
-              <p class="cmt"><span aria-hidden="true">//  </span>Every hydra function with parameters and examples,
-                one click away.</p>
-            </li>
-            <li class="feature">
-              <div class="media"><img src="/site/import-export.jpg" width="1280" height="720" loading="lazy"
-                  alt="The export button on the slots panel next to the exported JSON file"></div>
-              <h3 class="feature-title"><span class="feature-num" aria-hidden="true">10</span><span
-                  class="h3">Banks</span></h3>
-              <p class="cmt"><span aria-hidden="true">//  </span>Save all 64 slots, thumbnails included, as one JSON
-                file.</p>
-            </li>
-          </ul>
+            <ul class="features features-small grid">
+              <li class="feature">
+                <div class="media"><video src="/site/audio-reactivity.mp4" poster="/site/audio-reactivity-poster.jpg"
+                    width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                    aria-label="A sketch flashing on the beat through a.fft, with hydra's audio meter"></video></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">05</span><span
+                    class="h3">Audio</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>hydra's <code>a.fft</code> out of the box, with a
+                  watchdog that revives audio when the browser suspends it.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><img src="/site/breakout-view.jpg" width="1280" height="720" loading="lazy"
+                    alt="The interface next to a breakout window that shows only the visuals at 1280×720"></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">06</span><span
+                    class="h3">Breakout window</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>Send the visuals to a second window at an exact
+                  size, for a projector, a recording or an OBS window capture.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><video src="/site/multiple-themes.mp4" poster="/site/multiple-themes-poster.jpg"
+                    width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                    aria-label="Switching between the five interface themes and dialing down panel opacity"></video>
+                </div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">07</span><span
+                    class="h3">Themes</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>Five interface themes. Dial the panels down to see
+                  your visuals.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><img src="/site/setup-code.jpg" width="1280" height="720" loading="lazy"
+                    alt="The Setup tab of the code editor with audio settings and shared colors"></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">08</span><span class="h3">Setup
+                    code</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>A setup tab that runs before every sketch, for audio
+                  settings and globals.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><img src="/site/builtin-docs.jpg" width="1280" height="720" loading="lazy"
+                    alt="The built-in hydra documentation showing modulateRotate"></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">09</span><span class="h3">hydra
+                    docs</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>Every hydra function with parameters and examples,
+                  one click away.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><img src="/site/import-export.jpg" width="1280" height="720" loading="lazy"
+                    alt="The export button on the slots panel next to the exported JSON file"></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">10</span><span
+                    class="h3">Banks</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>Save all 64 slots, thumbnails included, as one JSON
+                  file.</p>
+              </li>
+            </ul>
 
-          <ul class="extras grid">
-            <li>
-              <h3>Your own images and videos</h3>
-              <p>In the desktop app, drop a picture or a clip on the editor. HYDRACTRL copies it into its media folder
-                and writes the line that loads it, like <code>s0.initVideo("/media/clip.mp4")</code>.</p>
-            </li>
-            <li>
-              <h3>Sketches as links</h3>
-              <p><span class="nowrap"><kbd>Alt/⌥</kbd> + <kbd>U</kbd></span> copies a link with your sketch inside. Whoever opens it sees it
-                running. The background of this page works the same way.</p>
-            </li>
-            <li>
-              <h3>Plugins</h3>
-              <p>Every feature is a plugin on a small core, so a broken one can't take down a live set. Write your
-                own with the <a href="https://github.com/dxviie/HYDRACTRL/blob/main/docs/PLUGINS.md">plugin
-                  docs</a>.</p>
-            </li>
-          </ul>
+            <ul class="extras grid">
+              <li>
+                <h3>Your own images and videos</h3>
+                <p>In the desktop app, drop a picture or a clip on the editor. HYDRACTRL copies it into its media folder
+                  and writes the line that loads it, like <code>s0.initVideo("/media/clip.mp4")</code>.</p>
+              </li>
+              <li>
+                <h3>Sketches as links</h3>
+                <p><span class="nowrap"><kbd>Alt/⌥</kbd> + <kbd>U</kbd></span> copies a link with your sketch inside. Whoever opens it sees it
+                  running. The background of this page works the same way.</p>
+              </li>
+              <li>
+                <h3>Plugins</h3>
+                <p>Every feature is a plugin on a small core, so a broken one can't take down a live set. Write your
+                  own with the <a href="https://github.com/dxviie/HYDRACTRL/blob/main/docs/PLUGINS.md">plugin
+                    docs</a>.</p>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </section>
 
     <section id="versions" class="pane" aria-labelledby="versions-title">
-      <div class="tabs" aria-hidden="true">
-        <div class="wrap"><span class="tab">browser-vs-desktop.diff</span></div>
-      </div>
       <div class="wrap">
-        <div class="col pane-body">
-          <div class="grid split">
-            <h2 class="h2" id="versions-title"><span class="ln" aria-hidden="true">1</span><span class="pfx"
-                aria-hidden="true">@@ </span>In your browser, or on your desktop</h2>
-            <p>Same interface, same scenes, same shortcuts. Start in the browser. Get the desktop app when your
-              visuals need to go into Resolume, MadMapper, VDMX, TouchDesigner or OBS.</p>
-          </div>
+        <div class="sheet">
+          <div class="tabs" aria-hidden="true"><span class="tab">browser-vs-desktop.diff</span></div>
+          <div class="col pane-body">
+            <div class="grid split">
+              <h2 class="h2" id="versions-title"><span class="ln" aria-hidden="true">1</span><span class="pfx"
+                  aria-hidden="true">@@ </span>In your browser, or on your desktop</h2>
+              <p>Same interface, same scenes, same shortcuts. Start in the browser. Get the desktop app when your
+                visuals need to go into Resolume, MadMapper, VDMX, TouchDesigner or OBS.</p>
+            </div>
 
-          <div class="diff">
-            <div class="diff-side diff-a">
-              <div class="diff-head">
-                <h3><span class="pfx" aria-hidden="true">--- </span>Browser</h3>
-                <p>Nothing to install, always the latest version.</p>
-                <a class="btn btn-run" href="/app" data-umami-event="open-app"
-                  data-umami-event-location="versions"><span class="tri" aria-hidden="true"></span><span
-                    class="lbl">Open in browser</span></a>
-                <p class="fine">Scenes live in your browser. Export them as JSON to move them around.</p>
+            <div class="diff">
+              <div class="diff-side diff-a">
+                <div class="diff-head">
+                  <h3><span class="pfx" aria-hidden="true">--- </span>Browser</h3>
+                  <p>Nothing to install, always the latest version.</p>
+                  <a class="btn btn-run" href="/app" data-umami-event="open-app"
+                    data-umami-event-location="versions"><span class="tri" aria-hidden="true"></span><span
+                      class="lbl">Open in browser</span></a>
+                  <p class="fine">Scenes live in your browser. Export them as JSON to move them around.</p>
+                </div>
+                <ul class="diff-lines" role="list">
+                  <li><span class="dn" aria-hidden="true">1</span><span class="dm" aria-hidden="true"></span><span>The
+                      whole interface (editor, 64 scenes, XY pad, hydra docs)</span></li>
+                  <li><span class="dn" aria-hidden="true">2</span><span class="dm"
+                      aria-hidden="true"></span><span>MIDI in Chrome and Edge</span></li>
+                  <li><span class="dn" aria-hidden="true">3</span><span class="dm"
+                      aria-hidden="true"></span><span>Breakout window</span></li>
+                  <li><span class="dn" aria-hidden="true">4</span><span class="dm"
+                      aria-hidden="true"></span><span>Sketch links</span></li>
+                </ul>
               </div>
-              <ul class="diff-lines" role="list">
-                <li><span class="dn" aria-hidden="true">1</span><span class="dm" aria-hidden="true"></span><span>The
-                    whole interface (editor, 64 scenes, XY pad, hydra docs)</span></li>
-                <li><span class="dn" aria-hidden="true">2</span><span class="dm"
-                    aria-hidden="true"></span><span>MIDI in Chrome and Edge</span></li>
-                <li><span class="dn" aria-hidden="true">3</span><span class="dm"
-                    aria-hidden="true"></span><span>Breakout window</span></li>
-                <li><span class="dn" aria-hidden="true">4</span><span class="dm"
-                    aria-hidden="true"></span><span>Sketch links</span></li>
-              </ul>
-            </div>
-            <div class="diff-side diff-b">
-              <div class="diff-head">
-                <h3><span class="pfx" aria-hidden="true">+++ </span>Desktop</h3>
-                <p>The same interface as an app, with a live feed for your VJ software.</p>
-                <a class="btn btn-line" href="#download" data-platform-cta data-umami-event="go-download"
-                  data-umami-event-location="versions"><span class="arrow" aria-hidden="true">↓</span><span
-                    class="lbl" data-platform-label>Download the desktop app</span></a>
-                <p class="fine">macOS 11 or later (Apple Silicon or Intel). Windows 10 or 11 (64-bit).</p>
+              <div class="diff-side diff-b">
+                <div class="diff-head">
+                  <h3><span class="pfx" aria-hidden="true">+++ </span>Desktop</h3>
+                  <p>The same interface as an app, with a live feed for your VJ software.</p>
+                  <a class="btn btn-line" href="#download" data-platform-cta data-umami-event="go-download"
+                    data-umami-event-location="versions"><span class="arrow" aria-hidden="true">↓</span><span
+                      class="lbl" data-platform-label>Download the desktop app</span></a>
+                  <p class="fine">macOS 11 or later (Apple Silicon or Intel). Windows 10 or 11 (64-bit).</p>
+                </div>
+                <ul class="diff-lines" role="list">
+                  <li class="same"><span class="dn" aria-hidden="true">1</span><span class="dm"
+                      aria-hidden="true"></span><span>The whole interface (editor, 64 scenes, XY pad, hydra
+                      docs)</span></li>
+                  <li class="same"><span class="dn" aria-hidden="true">2</span><span class="dm"
+                      aria-hidden="true"></span><span>MIDI</span></li>
+                  <li class="same"><span class="dn" aria-hidden="true">3</span><span class="dm"
+                      aria-hidden="true"></span><span>Breakout window</span></li>
+                  <li class="same"><span class="dn" aria-hidden="true">4</span><span class="dm"
+                      aria-hidden="true"></span><span>Sketch links</span></li>
+                  <li class="skip" aria-hidden="true"><span class="dn"></span><span class="dm"></span><span>… 4 lines
+                      as in the browser</span></li>
+                  <li class="add"><span class="dn" aria-hidden="true">5</span><span class="dm"
+                      aria-hidden="true">+</span><span>Syphon output on macOS, Spout on Windows</span></li>
+                  <li class="add"><span class="dn" aria-hidden="true">6</span><span class="dm"
+                      aria-hidden="true">+</span><span>720p to 4K or a custom size, 24 to 120 fps, optional
+                      alpha</span></li>
+                  <li class="add"><span class="dn" aria-hidden="true">7</span><span class="dm"
+                      aria-hidden="true">+</span><span>Your own sender name and a preview window</span></li>
+                  <li class="add"><span class="dn" aria-hidden="true">8</span><span class="dm"
+                      aria-hidden="true">+</span><span>Keeps running when the window is minimized or covered</span>
+                  </li>
+                  <li class="add"><span class="dn" aria-hidden="true">9</span><span class="dm"
+                      aria-hidden="true">+</span><span>Drop your own images and videos into a sketch</span></li>
+                  <li class="add"><span class="dn" aria-hidden="true">10</span><span class="dm"
+                      aria-hidden="true">+</span><span>Audio starts without a click</span></li>
+                  <li class="add"><span class="dn" aria-hidden="true">11</span><span class="dm"
+                      aria-hidden="true">+</span><span>Start and stop the output with <span class="nowrap"><kbd>Cmd/Ctrl</kbd> +
+                        <kbd>Shift</kbd> + <kbd>O</kbd></span></span></li>
+                  <li class="add"><span class="dn" aria-hidden="true">12</span><span class="dm"
+                      aria-hidden="true">+</span><span>OBS or TouchDesigner on another computer can pick it up</span>
+                  </li>
+                </ul>
               </div>
-              <ul class="diff-lines" role="list">
-                <li class="same"><span class="dn" aria-hidden="true">1</span><span class="dm"
-                    aria-hidden="true"></span><span>The whole interface (editor, 64 scenes, XY pad, hydra
-                    docs)</span></li>
-                <li class="same"><span class="dn" aria-hidden="true">2</span><span class="dm"
-                    aria-hidden="true"></span><span>MIDI</span></li>
-                <li class="same"><span class="dn" aria-hidden="true">3</span><span class="dm"
-                    aria-hidden="true"></span><span>Breakout window</span></li>
-                <li class="same"><span class="dn" aria-hidden="true">4</span><span class="dm"
-                    aria-hidden="true"></span><span>Sketch links</span></li>
-                <li class="skip" aria-hidden="true"><span class="dn"></span><span class="dm"></span><span>… 4 lines
-                    as in the browser</span></li>
-                <li class="add"><span class="dn" aria-hidden="true">5</span><span class="dm"
-                    aria-hidden="true">+</span><span>Syphon output on macOS, Spout on Windows</span></li>
-                <li class="add"><span class="dn" aria-hidden="true">6</span><span class="dm"
-                    aria-hidden="true">+</span><span>720p to 4K or a custom size, 24 to 120 fps, optional
-                    alpha</span></li>
-                <li class="add"><span class="dn" aria-hidden="true">7</span><span class="dm"
-                    aria-hidden="true">+</span><span>Your own sender name and a preview window</span></li>
-                <li class="add"><span class="dn" aria-hidden="true">8</span><span class="dm"
-                    aria-hidden="true">+</span><span>Keeps running when the window is minimized or covered</span>
-                </li>
-                <li class="add"><span class="dn" aria-hidden="true">9</span><span class="dm"
-                    aria-hidden="true">+</span><span>Drop your own images and videos into a sketch</span></li>
-                <li class="add"><span class="dn" aria-hidden="true">10</span><span class="dm"
-                    aria-hidden="true">+</span><span>Audio starts without a click</span></li>
-                <li class="add"><span class="dn" aria-hidden="true">11</span><span class="dm"
-                    aria-hidden="true">+</span><span>Start and stop the output with <span class="nowrap"><kbd>Cmd/Ctrl</kbd> +
-                      <kbd>Shift</kbd> + <kbd>O</kbd></span></span></li>
-                <li class="add"><span class="dn" aria-hidden="true">12</span><span class="dm"
-                    aria-hidden="true">+</span><span>OBS or TouchDesigner on another computer can pick it up</span>
-                </li>
-              </ul>
             </div>
-          </div>
 
-          <div class="grid output">
-            <div class="how">
-              <h3 class="h3">How it works</h3>
-              <p>The desktop app renders your set in a hidden second window and shares every frame as a GPU texture,
-                through a Syphon server on macOS or a Spout sender on Windows. No screen capture, no extra latency,
-                and it follows every run, slot change and XY pad move.</p>
+            <div class="grid output">
+              <div class="how">
+                <h3 class="h3">How it works</h3>
+                <p>The desktop app renders your set in a hidden second window and shares every frame as a GPU texture,
+                  through a Syphon server on macOS or a Spout sender on Windows. No screen capture, no extra latency,
+                  and it follows every run, slot change and XY pad move.</p>
+              </div>
+              <div class="targets">
+                <p class="visually-hidden">Works with</p>
+                <span aria-hidden="true">targets = [</span>
+                <ul>
+                  <li class="ts">"Resolume"</li>
+                  <li class="ts">"MadMapper"</li>
+                  <li class="ts">"VDMX"</li>
+                  <li class="ts">"TouchDesigner"</li>
+                  <li class="ts">"OBS"</li>
+                  <li class="ts">"Millumin"</li>
+                </ul>
+                <span aria-hidden="true">]</span> <span class="tc"><span aria-hidden="true">// </span>and anything
+                  that speaks Syphon or Spout</span>
+              </div>
+              <p class="fine">Tested at 1080p and 4K, a steady 60 fps into Resolume on an Apple Silicon Mac. Spout on
+                Windows is new, so <a href="https://github.com/dxviie/HYDRACTRL/issues">tell us</a> how it runs.</p>
+              <p class="fine">Both versions keep your scenes on your computer. Move them between the two with bank
+                export and import <span class="nowrap">(<kbd>Alt/⌥</kbd> + <kbd>X</kbd> / <kbd>I</kbd>)</span>.</p>
             </div>
-            <div class="targets">
-              <p class="visually-hidden">Works with</p>
-              <span aria-hidden="true">targets = [</span>
-              <ul>
-                <li class="ts">"Resolume"</li>
-                <li class="ts">"MadMapper"</li>
-                <li class="ts">"VDMX"</li>
-                <li class="ts">"TouchDesigner"</li>
-                <li class="ts">"OBS"</li>
-                <li class="ts">"Millumin"</li>
-              </ul>
-              <span aria-hidden="true">]</span> <span class="tc"><span aria-hidden="true">// </span>and anything
-                that speaks Syphon or Spout</span>
-            </div>
-            <p class="fine">Tested at 1080p and 4K, a steady 60 fps into Resolume on an Apple Silicon Mac. Spout on
-              Windows is new, so <a href="https://github.com/dxviie/HYDRACTRL/issues">tell us</a> how it runs.</p>
-            <p class="fine">Both versions keep your scenes on your computer. Move them between the two with bank
-              export and import <span class="nowrap">(<kbd>Alt/⌥</kbd> + <kbd>X</kbd> / <kbd>I</kbd>)</span>.</p>
           </div>
         </div>
       </div>
     </section>
 
     <section id="download" class="pane" aria-labelledby="download-title">
-      <div class="tabs" aria-hidden="true">
-        <div class="wrap"><span class="tab">download.sh</span></div>
-      </div>
       <div class="wrap">
-        <div class="col pane-body">
-          <h2 class="h2" id="download-title"><span class="ln" aria-hidden="true">1</span><span class="pfx pfx-short"
-              aria-hidden="true"># </span>HYDRACTRL Desktop</h2>
-          <p class="lede"><span class="ln" aria-hidden="true">2</span>Free, for macOS and Windows. Your settings and
-            scenes carry over when you install a newer version.</p>
-          <p class="mobile-note">You're on a phone or tablet. Open this page on your Mac or PC to install the desktop
-            app, or <a href="/app">play in the browser</a> right here.</p>
+        <div class="sheet">
+          <div class="tabs" aria-hidden="true"><span class="tab">download.sh</span></div>
+          <div class="col pane-body">
+            <h2 class="h2" id="download-title"><span class="ln" aria-hidden="true">1</span><span class="pfx pfx-short"
+                aria-hidden="true"># </span>HYDRACTRL Desktop</h2>
+            <p class="lede"><span class="ln" aria-hidden="true">2</span>Free, for macOS and Windows. Your settings and
+              scenes carry over when you install a newer version.</p>
+            <p class="mobile-note">You're on a phone or tablet. Open this page on your Mac or PC to install the desktop
+              app, or <a href="/app">play in the browser</a> right here.</p>
 
-          <p class="prompt"><span class="prompt-cmd" aria-hidden="true"><span class="ps">$ </span>download
-              --latest</span><span class="prompt-cmt"><span aria-hidden="true"># </span><span
-                id="release-info">Always the latest release from <a
-                  href="https://github.com/dxviie/HYDRACTRL/releases">GitHub</a>.</span></span></p>
+            <p class="prompt"><span class="prompt-cmd" aria-hidden="true"><span class="ps">$ </span>download
+                --latest</span><span class="prompt-cmt"><span aria-hidden="true"># </span><span
+                  id="release-info">Always the latest release from <a
+                    href="https://github.com/dxviie/HYDRACTRL/releases">GitHub</a>.</span></span></p>
 
-          <div class="dls">
-            <a class="dl" data-download="mac-arm64"
-              href="https://github.com/dxviie/HYDRACTRL/releases/latest/download/HYDRACTRL-mac-arm64.dmg"
-              data-umami-event="download" data-umami-event-platform="mac-arm64">
-              <span class="dl-os">macOS</span>
-              <span class="dl-detail">Apple Silicon (M1 and later)</span>
-              <span class="dl-flag"><span class="dl-this"><span aria-hidden="true">&lt;- </span>this
-                  computer</span></span>
-              <span class="dl-meta" data-download-meta>DMG</span>
-              <span class="dl-arrow" aria-hidden="true">↓</span>
-              <span class="dl-soon">coming soon</span>
-            </a>
-            <a class="dl" data-download="mac-x64"
-              href="https://github.com/dxviie/HYDRACTRL/releases/latest/download/HYDRACTRL-mac-x64.dmg"
-              data-umami-event="download" data-umami-event-platform="mac-x64">
-              <span class="dl-os">macOS</span>
-              <span class="dl-detail">Intel</span>
-              <span class="dl-flag"><span class="dl-this"><span aria-hidden="true">&lt;- </span>this
-                  computer</span></span>
-              <span class="dl-meta" data-download-meta>DMG</span>
-              <span class="dl-arrow" aria-hidden="true">↓</span>
-              <span class="dl-soon">coming soon</span>
-            </a>
-            <a class="dl" data-download="win-x64"
-              href="https://github.com/dxviie/HYDRACTRL/releases/latest/download/HYDRACTRL-win-x64-setup.exe"
-              data-umami-event="download" data-umami-event-platform="win-x64">
-              <span class="dl-os">Windows</span>
-              <span class="dl-detail">64-bit installer</span>
-              <span class="dl-flag"><span class="dl-this"><span aria-hidden="true">&lt;- </span>this
-                  computer</span></span>
-              <span class="dl-meta" data-download-meta>EXE</span>
-              <span class="dl-arrow" aria-hidden="true">↓</span>
-              <span class="dl-soon">coming soon</span>
-            </a>
-          </div>
-
-          <div class="grid dl-notes">
-            <p><strong>Which Mac do I have?</strong> Apple menu → About This Mac. "Chip: Apple M…" means Apple
-              Silicon, "Processor: Intel" means Intel.</p>
-            <p><strong>Linux?</strong> Syphon and Spout don't exist there, so use the <a href="/app">browser
-                version</a>, or <a href="https://github.com/dxviie/HYDRACTRL/blob/main/desktop/README.md#develop">run
-                the desktop app from source</a>.</p>
-          </div>
-
-          <details class="fold">
-            <summary><span class="fold-mark" aria-hidden="true"></span><span class="fold-dots"
-                aria-hidden="true">{…}</span><span class="lc">Opening the app for the first time</span></summary>
-            <div class="grid fold-body">
-              <div>
-                <h3>macOS</h3>
-                <ol>
-                  <li>Open the DMG and drag HYDRACTRL into Applications.</li>
-                  <li>Open it. The builds aren't notarized by Apple yet, so macOS blocks the first launch.</li>
-                  <li>Go to System Settings → Privacy &amp; Security, scroll down and click <em>Open Anyway</em>.</li>
-                  <li>Allow microphone access when asked, for audio-reactive sketches.</li>
-                </ol>
-              </div>
-              <div>
-                <h3>Windows</h3>
-                <ol>
-                  <li>Run the installer. The builds aren't code-signed yet, so SmartScreen may warn about an
-                    unrecognized app.</li>
-                  <li>Click <em>More info</em>, then <em>Run anyway</em>.</li>
-                  <li>HYDRACTRL shows up in the Start menu. The Spout sender is called <code>HYDRACTRL</code>.</li>
-                </ol>
-              </div>
+            <div class="dls">
+              <a class="dl" data-download="mac-arm64"
+                href="https://github.com/dxviie/HYDRACTRL/releases/latest/download/HYDRACTRL-mac-arm64.dmg"
+                data-umami-event="download" data-umami-event-platform="mac-arm64">
+                <span class="dl-os">macOS</span>
+                <span class="dl-detail">Apple Silicon (M1 and later)</span>
+                <span class="dl-flag"><span class="dl-this"><span aria-hidden="true">&lt;- </span>this
+                    computer</span></span>
+                <span class="dl-meta" data-download-meta>DMG</span>
+                <span class="dl-arrow" aria-hidden="true">↓</span>
+                <span class="dl-soon">coming soon</span>
+              </a>
+              <a class="dl" data-download="mac-x64"
+                href="https://github.com/dxviie/HYDRACTRL/releases/latest/download/HYDRACTRL-mac-x64.dmg"
+                data-umami-event="download" data-umami-event-platform="mac-x64">
+                <span class="dl-os">macOS</span>
+                <span class="dl-detail">Intel</span>
+                <span class="dl-flag"><span class="dl-this"><span aria-hidden="true">&lt;- </span>this
+                    computer</span></span>
+                <span class="dl-meta" data-download-meta>DMG</span>
+                <span class="dl-arrow" aria-hidden="true">↓</span>
+                <span class="dl-soon">coming soon</span>
+              </a>
+              <a class="dl" data-download="win-x64"
+                href="https://github.com/dxviie/HYDRACTRL/releases/latest/download/HYDRACTRL-win-x64-setup.exe"
+                data-umami-event="download" data-umami-event-platform="win-x64">
+                <span class="dl-os">Windows</span>
+                <span class="dl-detail">64-bit installer</span>
+                <span class="dl-flag"><span class="dl-this"><span aria-hidden="true">&lt;- </span>this
+                    computer</span></span>
+                <span class="dl-meta" data-download-meta>EXE</span>
+                <span class="dl-arrow" aria-hidden="true">↓</span>
+                <span class="dl-soon">coming soon</span>
+              </a>
             </div>
-          </details>
 
-          <p class="fine dl-more">Release notes are in the <a
-              href="https://github.com/dxviie/HYDRACTRL/blob/main/CHANGELOG.md">changelog</a>, every version is on the
-            <a href="https://github.com/dxviie/HYDRACTRL/releases">releases page</a>, and the <a
-              href="https://github.com/dxviie/HYDRACTRL/blob/main/desktop/README.md">desktop README</a> explains how to
-            build it yourself.</p>
+            <div class="grid dl-notes">
+              <p><strong>Which Mac do I have?</strong> Apple menu → About This Mac. "Chip: Apple M…" means Apple
+                Silicon, "Processor: Intel" means Intel.</p>
+              <p><strong>Linux?</strong> Syphon and Spout don't exist there, so use the <a href="/app">browser
+                  version</a>, or <a href="https://github.com/dxviie/HYDRACTRL/blob/main/desktop/README.md#develop">run
+                  the desktop app from source</a>.</p>
+            </div>
+
+            <details class="fold">
+              <summary><span class="fold-mark" aria-hidden="true"></span><span class="fold-dots"
+                  aria-hidden="true">{…}</span><span class="lc">Opening the app for the first time</span></summary>
+              <div class="grid fold-body">
+                <div>
+                  <h3>macOS</h3>
+                  <ol>
+                    <li>Open the DMG and drag HYDRACTRL into Applications.</li>
+                    <li>Open it. The builds aren't notarized by Apple yet, so macOS blocks the first launch.</li>
+                    <li>Go to System Settings → Privacy &amp; Security, scroll down and click <em>Open Anyway</em>.</li>
+                    <li>Allow microphone access when asked, for audio-reactive sketches.</li>
+                  </ol>
+                </div>
+                <div>
+                  <h3>Windows</h3>
+                  <ol>
+                    <li>Run the installer. The builds aren't code-signed yet, so SmartScreen may warn about an
+                      unrecognized app.</li>
+                    <li>Click <em>More info</em>, then <em>Run anyway</em>.</li>
+                    <li>HYDRACTRL shows up in the Start menu. The Spout sender is called <code>HYDRACTRL</code>.</li>
+                  </ol>
+                </div>
+              </div>
+            </details>
+
+            <p class="fine dl-more">Release notes are in the <a
+                href="https://github.com/dxviie/HYDRACTRL/blob/main/CHANGELOG.md">changelog</a>, every version is on the
+              <a href="https://github.com/dxviie/HYDRACTRL/releases">releases page</a>, and the <a
+                href="https://github.com/dxviie/HYDRACTRL/blob/main/desktop/README.md">desktop README</a> explains how to
+              build it yourself.</p>
+          </div>
         </div>
       </div>
     </section>
 
     <section id="shortcuts" class="pane" aria-labelledby="shortcuts-title">
-      <div class="tabs" aria-hidden="true">
-        <div class="wrap"><span class="tab">keymap.json</span></div>
-      </div>
       <div class="wrap">
-        <div class="col pane-body">
-          <h2 class="h2" id="shortcuts-title"><span class="ln" aria-hidden="true">1</span><span class="pfx"
-              aria-hidden="true">// </span>Keyboard shortcuts</h2>
-          <dl class="grid keys">
-            <div class="key">
-              <dt><kbd>Ctrl/⌘</kbd> + <kbd>Enter</kbd></dt>
-              <dd>Run the code</dd>
-            </div>
-            <div class="key">
-              <dt><kbd>Ctrl/⌘</kbd> + <kbd>S</kbd></dt>
-              <dd>Save to the active slot</dd>
-            </div>
-            <div class="key">
-              <dt><kbd>Ctrl/⌘</kbd> + <kbd>`</kbd></dt>
-              <dd>Hide or show the interface</dd>
-            </div>
-            <div class="key">
-              <dt><kbd>Esc</kbd></dt>
-              <dd>Bring back a hidden interface</dd>
-            </div>
-            <div class="key">
-              <dt><kbd>Ctrl/⌘</kbd> + <kbd>Y</kbd></dt>
-              <dd>Toggle auto-run</dd>
-            </div>
-            <div class="key">
-              <dt><kbd>Alt/⌥</kbd> + <kbd>U</kbd></dt>
-              <dd>Copy the sketch as a link</dd>
-            </div>
-            <div class="key">
-              <dt><kbd>Alt/⌥</kbd> + <kbd>0–9</kbd> / <kbd>A–F</kbd></dt>
-              <dd>Select slot 1 to 16 of the bank</dd>
-            </div>
-            <div class="key">
-              <dt><kbd>Alt/⌥</kbd> + <kbd>←</kbd> / <kbd>→</kbd></dt>
-              <dd>Previous or next bank (without MIDI)</dd>
-            </div>
-            <div class="key">
-              <dt><kbd>Alt/⌥</kbd> + <kbd>X</kbd></dt>
-              <dd>Export the banks</dd>
-            </div>
-            <div class="key">
-              <dt><kbd>Alt/⌥</kbd> + <kbd>I</kbd></dt>
-              <dd>Import banks</dd>
-            </div>
-          </dl>
+        <div class="sheet">
+          <div class="tabs" aria-hidden="true"><span class="tab">keymap.json</span></div>
+          <div class="col pane-body">
+            <h2 class="h2" id="shortcuts-title"><span class="ln" aria-hidden="true">1</span><span class="pfx"
+                aria-hidden="true">// </span>Keyboard shortcuts</h2>
+            <dl class="grid keys">
+              <div class="key">
+                <dt><kbd>Ctrl/⌘</kbd> + <kbd>Enter</kbd></dt>
+                <dd>Run the code</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Ctrl/⌘</kbd> + <kbd>S</kbd></dt>
+                <dd>Save to the active slot</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Ctrl/⌘</kbd> + <kbd>`</kbd></dt>
+                <dd>Hide or show the interface</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Esc</kbd></dt>
+                <dd>Bring back a hidden interface</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Ctrl/⌘</kbd> + <kbd>Y</kbd></dt>
+                <dd>Toggle auto-run</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Alt/⌥</kbd> + <kbd>U</kbd></dt>
+                <dd>Copy the sketch as a link</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Alt/⌥</kbd> + <kbd>0–9</kbd> / <kbd>A–F</kbd></dt>
+                <dd>Select slot 1 to 16 of the bank</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Alt/⌥</kbd> + <kbd>←</kbd> / <kbd>→</kbd></dt>
+                <dd>Previous or next bank (without MIDI)</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Alt/⌥</kbd> + <kbd>X</kbd></dt>
+                <dd>Export the banks</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Alt/⌥</kbd> + <kbd>I</kbd></dt>
+                <dd>Import banks</dd>
+              </div>
+            </dl>
+          </div>
         </div>
       </div>
     </section>
 
     <section id="resources" class="pane" aria-label="Learn hydra, and credits">
-      <div class="tabs" aria-hidden="true">
-        <div class="wrap"><span class="tab">README.md</span></div>
-      </div>
       <div class="wrap">
-        <div class="col pane-body grid readme">
-          <div>
-            <h2 class="h2"><span class="ln" aria-hidden="true">1</span><span class="pfx pfx-short" aria-hidden="true"># </span>New
-              to hydra?</h2>
-            <ul class="md-list">
-              <li><a href="https://hydra.ojack.xyz/docs/">hydra documentation</a> <span class="fine">The official
-                  guide.</span></li>
-              <li><a href="https://hydra.ojack.xyz/functions/">Function reference</a> <span class="fine">Every hydra
-                  function, with examples.</span></li>
-              <li><a href="https://hydra.ojack.xyz/garden/">hydra internet garden</a> <span class="fine">The
-                  community's projects, tutorials and code.</span></li>
-              <li><a href="https://hydra-book.glitch.me/">hydra book</a> <span class="fine">A thorough guide by <a
-                    href="https://naotohieda.com/">Naoto Hieda</a>.</span></li>
-            </ul>
-          </div>
-          <div>
-            <h2 class="h2"><span class="pfx pfx-short" aria-hidden="true"># </span>Built with</h2>
-            <ul class="md-list">
-              <li><a href="https://hydra.ojack.xyz/">hydra</a> by <a href="https://ojack.xyz/">Olivia Jack</a></li>
-              <li><a href="https://codemirror.net/">CodeMirror 6</a>, <a href="https://bun.sh/">Bun</a> and the Web
-                MIDI API</li>
-              <li><a href="https://www.electronjs.org/">Electron</a> and <a
-                  href="https://github.com/naporin0624/electron-texture-bridge">texture-bridge</a> for Syphon and Spout
-              </li>
-              <li><a href="https://github.com/tonsky/FiraCode">Fira Code</a> by Nikita Prokopov in the editor and <a
-                  href="https://www.ibm.com/plex/">IBM Plex Mono</a> in the interface</li>
-              <li>This page in <a href="https://github.com/evilmartians/mono">Martian Mono</a> by Evil Martians and
-                Fira Code</li>
-              <li>Random scene banks from sketches collected by <a href="https://fentonia.com/">Jamie Faye Fenton</a>
-              </li>
-            </ul>
+        <div class="sheet">
+          <div class="tabs" aria-hidden="true"><span class="tab">README.md</span></div>
+          <div class="col pane-body grid readme">
+            <div>
+              <h2 class="h2"><span class="ln" aria-hidden="true">1</span><span class="pfx pfx-short" aria-hidden="true"># </span>New
+                to hydra?</h2>
+              <ul class="md-list">
+                <li><a href="https://hydra.ojack.xyz/docs/">hydra documentation</a> <span class="fine">The official
+                    guide.</span></li>
+                <li><a href="https://hydra.ojack.xyz/functions/">Function reference</a> <span class="fine">Every hydra
+                    function, with examples.</span></li>
+                <li><a href="https://hydra.ojack.xyz/garden/">hydra internet garden</a> <span class="fine">The
+                    community's projects, tutorials and code.</span></li>
+                <li><a href="https://hydra-book.glitch.me/">hydra book</a> <span class="fine">A thorough guide by <a
+                      href="https://naotohieda.com/">Naoto Hieda</a>.</span></li>
+              </ul>
+            </div>
+            <div>
+              <h2 class="h2"><span class="pfx pfx-short" aria-hidden="true"># </span>Built with</h2>
+              <ul class="md-list">
+                <li><a href="https://hydra.ojack.xyz/">hydra</a> by <a href="https://ojack.xyz/">Olivia Jack</a></li>
+                <li><a href="https://codemirror.net/">CodeMirror 6</a>, <a href="https://bun.sh/">Bun</a> and the Web
+                  MIDI API</li>
+                <li><a href="https://www.electronjs.org/">Electron</a> and <a
+                    href="https://github.com/naporin0624/electron-texture-bridge">texture-bridge</a> for Syphon and Spout
+                </li>
+                <li><a href="https://github.com/tonsky/FiraCode">Fira Code</a> by Nikita Prokopov in the editor and <a
+                    href="https://www.ibm.com/plex/">IBM Plex Mono</a> in the interface</li>
+                <li>This page in <a href="https://github.com/evilmartians/mono">Martian Mono</a> by Evil Martians and
+                  Fira Code</li>
+                <li>Random scene banks from sketches collected by <a href="https://fentonia.com/">Jamie Faye Fenton</a>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
     <section id="contact" class="pane" aria-labelledby="contact-title">
-      <div class="tabs" aria-hidden="true">
-        <div class="wrap"><span class="tab">say-hi.txt</span></div>
-      </div>
       <div class="wrap">
-        <div class="col pane-body grid contact">
-          <div class="contact-intro">
-            <h2 class="h2" id="contact-title"><span class="ln" aria-hidden="true">1</span>Say hi</h2>
-            <p class="lede">Ideas, questions, a show you played with it? Get in touch.</p>
-            <p>Found a bug or missing a feature? <a href="https://github.com/dxviie/HYDRACTRL/issues">Open an issue on
-                GitHub</a>.</p>
-            <p>Made something? Copy it as a link with <span class="nowrap"><kbd>Alt/⌥</kbd> + <kbd>U</kbd></span>
-              and paste it in.</p>
-          </div>
-          <div class="contact-form">
-            <iframe
-              data-tally-src="https://tally.so/embed/3Erq04?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1&source=landing"
-              loading="lazy" width="100%" height="350" title="Contact form"></iframe>
-            <noscript><a href="https://tally.so/r/3Erq04">Open the contact form</a></noscript>
+        <div class="sheet">
+          <div class="tabs" aria-hidden="true"><span class="tab">say-hi.txt</span></div>
+          <div class="col pane-body grid contact">
+            <div class="contact-intro">
+              <h2 class="h2" id="contact-title"><span class="ln" aria-hidden="true">1</span>Say hi</h2>
+              <p class="lede">Ideas, questions, a show you played with it? Get in touch.</p>
+              <p>Found a bug or missing a feature? <a href="https://github.com/dxviie/HYDRACTRL/issues">Open an issue on
+                  GitHub</a>.</p>
+              <p>Made something? Copy it as a link with <span class="nowrap"><kbd>Alt/⌥</kbd> + <kbd>U</kbd></span>
+                and paste it in.</p>
+            </div>
+            <div class="contact-form">
+              <iframe
+                data-tally-src="https://tally.so/embed/3Erq04?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1&source=landing"
+                loading="lazy" width="100%" height="350" title="Contact form"></iframe>
+              <noscript><a href="https://tally.so/r/3Erq04">Open the contact form</a></noscript>
+            </div>
           </div>
         </div>
       </div>
@@ -2423,25 +2463,39 @@
 
   <footer class="foot">
     <div class="wrap">
-      <div class="col">
-        <p class="tildes" aria-hidden="true">~
-~
-~
-~
+      <div class="sheet foot-sheet">
+        <div class="col">
+          <p class="tildes" aria-hidden="true">~
 ~
 ~</p>
-        <p>HYDRACTRL is made by <a href="https://www.d17e.dev">D17E</a> on top of <a
-            href="https://hydra.ojack.xyz/">hydra</a> by <a href="https://ojack.xyz/">Olivia Jack</a>. <a
-            href="https://github.com/dxviie/HYDRACTRL/blob/main/LICENSE">GNU AGPL v3</a>.</p>
-        <nav aria-label="Project links">
-          <a href="/app">Open the app</a>
-          <a href="https://github.com/dxviie/HYDRACTRL">GitHub</a>
-          <a href="https://github.com/dxviie/HYDRACTRL/releases">Releases</a>
-          <a href="https://github.com/dxviie/HYDRACTRL/blob/main/CHANGELOG.md">Changelog</a>
-        </nav>
+          <p>HYDRACTRL is made by <a href="https://www.d17e.dev">D17E</a> on top of <a
+              href="https://hydra.ojack.xyz/">hydra</a> by <a href="https://ojack.xyz/">Olivia Jack</a>. <a
+              href="https://github.com/dxviie/HYDRACTRL/blob/main/LICENSE">GNU AGPL v3</a>.</p>
+          <nav aria-label="Project links">
+            <a href="/app">Open the app</a>
+            <a href="https://github.com/dxviie/HYDRACTRL">GitHub</a>
+            <a href="https://github.com/dxviie/HYDRACTRL/releases">Releases</a>
+            <a href="https://github.com/dxviie/HYDRACTRL/blob/main/CHANGELOG.md">Changelog</a>
+          </nav>
+        </div>
       </div>
     </div>
   </footer>
+
+  <div class="status" id="now-playing" hidden>
+    <div class="wrap status-inner">
+      <button type="button" class="status-mode" data-backdrop-toggle aria-pressed="false"
+        aria-label="Live, pause the background" data-state="playing"><span class="when-playing">Live</span><span
+          class="when-paused">Paused</span></button>
+      <span class="status-file"><span data-backdrop-name>tide.js</span><span data-backdrop-modified hidden>
+          [+]</span></span>
+      <span class="status-scene">scene <span data-backdrop-index>1</span>/<span
+          data-backdrop-count>4</span></span>
+      <a class="status-open" href="/app" data-backdrop-open data-umami-event="open-backdrop-sketch"
+        aria-label="Open in HYDRACTRL, the background sketch"><span class="lc">Open</span><span
+          class="status-long">&nbsp;in HYDRACTRL</span><span aria-hidden="true">&nbsp;-&gt;</span></a>
+    </div>
+  </div>
 </body>
 
 </html>

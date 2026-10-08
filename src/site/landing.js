@@ -132,7 +132,6 @@ function initBackdrop() {
   const canvas = document.getElementById("backdrop");
   const controls = document.getElementById("now-playing");
   if (!canvas || !controls) return;
-  const hero = document.querySelector("[data-hero]");
   const panelRoot = document.querySelector("[data-code]");
   const toggle = controls.querySelector("[data-backdrop-toggle]");
   const name = controls.querySelector("[data-backdrop-name]");
@@ -142,7 +141,6 @@ function initBackdrop() {
   const open = controls.querySelector("[data-backdrop-open]");
 
   let running = false;
-  let onScreen = true;
   let background = null;
 
   // The open link always carries what is in the editor, edits included
@@ -214,10 +212,10 @@ function initBackdrop() {
     return !reducedMotion.matches;
   }
 
-  /** Play when the visitor wants motion and can see the hero; rest otherwise. */
+  /** Play when the visitor wants motion; rest otherwise. */
   function sync() {
     if (!running) return;
-    if (wantsMotion() && onScreen) background.play();
+    if (wantsMotion()) background.play();
     else background.pause();
     syncToggle();
   }
@@ -231,14 +229,6 @@ function initBackdrop() {
     if (storageGet(localStorage, BACKDROP_KEY)) return;
     sync();
   });
-
-  // No GPU time for visuals nobody sees
-  if (hero && "IntersectionObserver" in window) {
-    new IntersectionObserver((entries) => {
-      onScreen = entries[entries.length - 1].isIntersecting;
-      sync();
-    }).observe(hero);
-  }
 
   const start = async () => {
     if (!(await background.start())) return;
@@ -254,7 +244,7 @@ function initBackdrop() {
 // ── Top bar ────────────────────────────────────────────────────────────────
 
 /**
- * Transparent while only the visuals are under it; solid once the hero's
+ * Transparent while only the visuals are under it; frosted glass once the hero's
  * words (marked with data-edge) have scrolled up to it.
  */
 function initTopbar() {
