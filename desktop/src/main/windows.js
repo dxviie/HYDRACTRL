@@ -41,6 +41,9 @@ export function createWindowManager({
   log,
   onMainClosed = () => {},
   onLoadFailed = () => {},
+  // The interface's page is going away (navigation, reload, crash): whatever
+  // it asked the main process for no longer applies
+  onMainPageChange = () => {},
 }) {
   let mainWindow = null;
   let settingsWindow = null;
@@ -127,6 +130,10 @@ export function createWindowManager({
     }
     mainWindow.on("close", () => persist.flush());
 
+    mainWindow.webContents.on("did-start-navigation", (details) => {
+      if (details?.isMainFrame && !details.isSameDocument) onMainPageChange();
+    });
+
     mainWindow.webContents.on("did-fail-load", (_event, code, description, url, isMainFrame) => {
       if (!isMainFrame || code === -3) return; // -3: aborted by a newer navigation
       log.warn(`interface failed to load (${code} ${description}) from ${url}`);
@@ -137,6 +144,7 @@ export function createWindowManager({
 
     mainWindow.webContents.on("render-process-gone", (_event, details) => {
       log.error(`interface renderer gone: ${details.reason} (exit code ${details.exitCode})`);
+      onMainPageChange();
       const now = Date.now();
       crashTimes = crashTimes.filter((time) => now - time < CRASH_WINDOW_MS);
       crashTimes.push(now);

@@ -12,11 +12,13 @@ import { createEventBus } from "./core/EventBus.js";
 import { createPluginHost } from "./core/PluginHost.js";
 import { createSafeStorage } from "./core/Storage.js";
 import { notify, notifyError } from "./core/notify.js";
+import { createRenderLoop } from "./core/renderLoop.js";
 import { executeSketch } from "./core/sketchRunner.js";
 import { createAudioWatchdogPlugin } from "./plugins/AudioWatchdogPlugin.js";
 import { createAutoRunPlugin } from "./plugins/AutoRunPlugin.js";
 import { createBreakoutPlugin } from "./plugins/BreakoutPlugin.js";
 import { createDesktopMediaPlugin } from "./plugins/DesktopMediaPlugin.js";
+import { createDesktopMirrorPlugin } from "./plugins/DesktopMirrorPlugin.js";
 import { createDesktopOutputPlugin } from "./plugins/DesktopOutputPlugin.js";
 import { createFeedbackPlugin } from "./plugins/FeedbackPlugin.js";
 import { createInfoPanelPlugin } from "./plugins/InfoPanelPlugin.js";
@@ -50,6 +52,11 @@ function debounce(func, wait) {
 
 // The editor's code until a scene loads: the first starter scene
 const DEFAULT_CODE = sketchSource(SKETCHES[0]);
+
+// Runs the main instance's sketches somewhere else when a plugin sets it (the
+// desktop app runs them on its Syphon/Spout output and shows that output's
+// frames); null runs them on the main instance itself
+let mainSketchRunner = null;
 
 // The XY pad's values, for sketches that use them. The pad and MIDI take
 // over on computers and tablets; on phones they stay centred instead of undefined.
@@ -260,6 +267,8 @@ async function initHydra() {
 
     return new HydraSynth({
       canvas: canvas,
+      // Driven by our own render loop, which can be stopped (see core/renderLoop.js)
+      autoLoop: false,
       detectAudio: true, // Enable audio reactivity for a.fft[]
       enableStreamCapture: false,
       numBins: 6, // Set bins for a.fft[0], a.fft[1], etc.
@@ -343,7 +352,9 @@ async function runCode(editor, hydra) {
     existingErrors.forEach((el) => el.remove());
 
     // Shared with the output page so every render head runs sketches identically
-    const result = await executeSketch(hydra, { setup: setupCode, main: mainCode });
+    const sketch = { setup: setupCode, main: mainCode };
+    const runner = hydra === window.mainHydra ? mainSketchRunner : null;
+    const result = runner ? await runner(sketch) : await executeSketch(hydra, sketch);
 
     // Check if there was an error
     if (!result.success) {
@@ -356,7 +367,7 @@ async function runCode(editor, hydra) {
     // Let plugins react to a successful run on the main instance
     // (the output-sync plugin mirrors it to external render heads)
     if (hydra === window.mainHydra) {
-      events.emit("sketch:run", { setup: setupCode, main: mainCode });
+      events.emit("sketch:run", result.runId ? { ...sketch, runId: result.runId } : sketch);
     }
     return true;
   } catch (error) {
@@ -541,6 +552,8 @@ async function init() {
 
     const editor = initEditor(); // No longer async
     const hydra = await initHydra();
+    const renderLoop = createRenderLoop((dt) => hydra.tick(dt));
+    renderLoop.start();
 
     // Apply UI visibility state from localStorage right after panels are created.
     // Only applies when explicitly hidden, so first-time users see the UI.
@@ -832,6 +845,13 @@ async function init() {
       // Run the current code on one specific hydra instance (e.g. a breakout
       // window's), without touching the main instance
       runCodeOn: (instance) => runCode(editor, instance),
+      // The main instance's animation loop: stop() and start()
+      renderLoop,
+      // Run the main instance's sketches elsewhere: runner(sketch) resolves to
+      // { success, message?, runId? }; null runs them on the main instance again
+      setSketchRunner: (runner) => {
+        mainSketchRunner = typeof runner === "function" ? runner : null;
+      },
       events,
       storage,
       notify,
@@ -854,6 +874,7 @@ async function init() {
     pluginHost.register(createBreakoutPlugin());
     pluginHost.register(createOutputSyncPlugin());
     pluginHost.register(createDesktopOutputPlugin());
+    pluginHost.register(createDesktopMirrorPlugin());
     pluginHost.register(createDesktopMediaPlugin());
     pluginHost.register(createMidiUiPlugin());
     pluginHost.register(createMobileUiPlugin());

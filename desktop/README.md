@@ -18,9 +18,19 @@ The app is an Electron shell around the regular HYDRACTRL server:
   using Electron's GPU shared-texture mode, and
   [texture-bridge](https://github.com/naporin0624/electron-texture-bridge)
   publishes every frame as a Syphon server or Spout sender.
-- The output page follows the interface live over the server's WebSocket:
-  every run, slot change and XY-pad move is mirrored, and audio reactivity
-  (`a.fft`) uses the app's own microphone input.
+- Every sketch renders once, on that output, and the interface shows the
+  output's own frames: the app forwards each frame it shares to the
+  interface window, zero-copy, where it is drawn in place of the interface's
+  own hydra canvas, letterboxed to the output's shape. What you see is what
+  your VJ software gets. The interface's hydra instance rests meanwhile.
+- Sketches run on the output itself (`/output?primary`), which answers with
+  the result over the server's WebSocket, so errors still show in the
+  editor. A sketch with an error never reaches the output: it keeps playing
+  the last sketch that worked. Slot changes and XY-pad moves follow the same
+  way, and audio reactivity (`a.fft`) uses the app's own microphone input.
+- When the output is stopped or restarting, or its frames stop coming, the
+  interface renders on its own again with the last sketch that worked, and
+  switches back once the output runs.
 
 Everything the web version does still works: MIDI, the breakout window,
 `s0.initCam()`, `s0.initScreen()`, local assets served from the same server.

@@ -617,8 +617,10 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
 
       // Delay capture to allow rendering to complete
       setTimeout(() => {
-        // Get the canvas element
-        const canvas = document.querySelector("#hydra-canvas canvas");
+        // The canvas on screen: hydra's, or the output's frames the desktop app shows instead
+        const canvas =
+          document.querySelector("#hydra-canvas canvas.desktop-mirror:not([hidden])") ||
+          document.querySelector("#hydra-canvas canvas");
         if (!canvas) return;
 
         // Force a new animation frame to make sure rendering is complete

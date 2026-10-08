@@ -9,12 +9,18 @@
  *
  * The plugin stays dormant when the page is not served by the HYDRACTRL server
  * (for example on the static demo site), detected via `/api/capabilities`.
+ *
+ * In the desktop app, while the interface shows the Syphon/Spout output's own
+ * frames (`mirror:changed`), the XY pad's moves are what you see there, so they
+ * are sent every frame instead of every other one.
  */
 import { createReconnectingSocket } from "../core/ReconnectingSocket.js";
 import { buildOutputSocketUrl, detectOutputServer } from "../core/outputProtocol.js";
 
 /** How often the XY-pad values are sampled for changes (ms). */
 export const STATE_POLL_MS = 33;
+/** The same while the desktop app shows the output's own frames (ms). */
+export const MIRROR_STATE_POLL_MS = 16;
 /** Minimum change on either axis before a new state message is sent. */
 export const STATE_EPSILON = 1e-4;
 
@@ -49,6 +55,7 @@ export function createOutputSyncPlugin(options = {}) {
       let pollTimer = null;
       let outputCount = 0;
       let lastSentState = null;
+      let pollMs = STATE_POLL_MS;
       let disposed = false;
 
       function currentSketch() {
@@ -63,7 +70,10 @@ export function createOutputSyncPlugin(options = {}) {
 
       function pushSketch(sketch) {
         if (!socket || !sketch || typeof sketch.main !== "string") return false;
-        return socket.send({ type: "sketch", setup: sketch.setup || "", main: sketch.main });
+        const message = { type: "sketch", setup: sketch.setup || "", main: sketch.main };
+        // Ran on the desktop app's own output first, which then skips it
+        if (sketch.runId) message.runId = sketch.runId;
+        return socket.send(message);
       }
 
       function pushState(force = false) {
@@ -97,6 +107,16 @@ export function createOutputSyncPlugin(options = {}) {
         pushSketch(sketch);
       });
 
+      function schedulePoll() {
+        if (pollTimer !== null) clearInterval(pollTimer);
+        pollTimer = setInterval(() => pushState(false), pollMs);
+      }
+
+      const offMirror = ctx.events.on("mirror:changed", ({ active } = {}) => {
+        pollMs = active ? MIRROR_STATE_POLL_MS : STATE_POLL_MS;
+        if (pollTimer !== null) schedulePoll();
+      });
+
       function start() {
         if (disposed) return;
         socket = socketFactory({
@@ -113,7 +133,7 @@ export function createOutputSyncPlugin(options = {}) {
           log: (line) => console.warn(`[output-sync] ${line}`),
         });
         socket.connect();
-        pollTimer = setInterval(() => pushState(false), STATE_POLL_MS);
+        schedulePoll();
       }
 
       Promise.resolve(detect())
@@ -132,6 +152,7 @@ export function createOutputSyncPlugin(options = {}) {
         dispose() {
           disposed = true;
           offRun();
+          offMirror();
           if (pollTimer !== null) clearInterval(pollTimer);
           pollTimer = null;
           if (socket) socket.dispose();

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
-import { combineSketchCode, executeSketch } from "./sketchRunner.js";
+import { checkSketchSyntax, combineSketchCode, executeSketch } from "./sketchRunner.js";
 
 function createFakeHydra(calls) {
   return {
@@ -30,6 +30,29 @@ describe("combineSketchCode", () => {
     expect(combineSketchCode("  ", " osc().out() \n")).toBe("osc().out()");
     expect(combineSketchCode(undefined, "osc().out()")).toBe("osc().out()");
     expect(combineSketchCode(null, null)).toBe("");
+  });
+});
+
+describe("checkSketchSyntax", () => {
+  test("accepts code that parses, including top-level await", () => {
+    expect(checkSketchSyntax({ main: "osc(10).out()" })).toBe(null);
+    expect(checkSketchSyntax({ setup: "const f = 2;", main: "await 1; osc(f).out()" })).toBe(null);
+    expect(checkSketchSyntax({})).toBe(null);
+  });
+
+  test("reports a syntax error without running anything", () => {
+    globalThis.syntaxCheckRan = false;
+    const message = checkSketchSyntax({ main: "globalThis.syntaxCheckRan = true; osc((.out()" });
+    expect(typeof message).toBe("string");
+    expect(message.length).toBeGreaterThan(0);
+    expect(globalThis.syntaxCheckRan).toBe(false);
+    expect(checkSketchSyntax({ main: "globalThis.syntaxCheckRan = true" })).toBe(null);
+    expect(globalThis.syntaxCheckRan).toBe(false);
+    globalThis.syntaxCheckRan = undefined;
+  });
+
+  test("checks setup code too", () => {
+    expect(checkSketchSyntax({ setup: "let = ;", main: "osc().out()" })).not.toBe(null);
   });
 });
 

@@ -8,6 +8,20 @@ version and the desktop app share one version number; see
 
 ## [Unreleased]
 
+### Changed
+
+- **The desktop app renders each sketch once.** While the Syphon or Spout
+  output runs, the interface shows the output's own frames instead of
+  rendering the sketch a second time, so what you see is exactly what
+  Resolume, MadMapper or OBS receive, letterboxed to the output's shape,
+  and the GPU renders every frame once instead of twice. The interface
+  draws on its own again whenever the output is stopped or restarting.
+  - Sketches run on the output itself, and their errors still show in the
+    editor. A sketch with an error never reaches the output: it keeps
+    playing the last sketch that worked.
+  - XY pad moves reach the output every frame instead of every other one.
+  - Slot thumbnails are taken from the output's frames.
+
 ## [1.2.0] - 2026-09-27
 
 HYDRACTRL Desktop, the standalone app with Syphon and Spout output, and a new

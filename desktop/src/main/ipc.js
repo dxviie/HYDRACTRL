@@ -2,6 +2,8 @@
  * IPC surface between the windows and the main process. Every handler checks
  * that the caller is one of our windows, catches everything, and answers
  * with a plain result object so a renderer never sees a rejected promise.
+ * Handlers get the call's arguments, and `this.sender`, the calling window's
+ * webContents, for the few that care which window asked.
  */
 import { describeError } from "./log.js";
 
@@ -21,6 +23,8 @@ export const IPC = Object.freeze({
   importMedia: "desktop:import-media",
   openMediaFolder: "desktop:open-media-folder",
   chooseMediaFolder: "desktop:choose-media-folder",
+  /** The interface asks for (true) or lets go of (false) the output's frames. */
+  setMirror: "desktop:set-mirror",
   /** Push channel: the full app state, on every change. */
   state: "desktop:state",
   /** Push channel: ask the settings window to focus a section. */
@@ -38,7 +42,7 @@ export function registerIpc({ ipcMain, isTrustedSender, handlers, log }) {
         return { ok: false, error: "untrusted sender" };
       }
       try {
-        const value = await handler(...args);
+        const value = await handler.call({ sender: event.sender }, ...args);
         return { ok: true, value };
       } catch (error) {
         log.error(`${channel} failed: ${describeError(error)}`);

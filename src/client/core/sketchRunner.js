@@ -47,23 +47,14 @@ function pauseDroppedVideos(previous, hydra) {
 }
 
 /**
- * Run a sketch on a hydra instance.
- * @param {object} hydra - A hydra-synth instance (needs `hush()` and its generator functions).
- * @param {{setup?: string, main?: string}} sketch
- * @returns {Promise<{success: true} | {success: false, message: string, error?: unknown}>}
+ * Wrap a sketch in an async function (top-level await works) that exposes the
+ * hydra instance's functions as globals, the way hydra's own editor does.
+ * Throws when the code has a syntax error; runs nothing.
  */
-export async function executeSketch(hydra, { setup = "", main = "" } = {}) {
-  const previousVideos = sourceVideos(hydra);
-  try {
-    // Reset all outputs so leftovers from the previous sketch don't linger
-    hydra.hush();
-
-    const code = combineSketchCode(setup, main);
-
-    // A syntax error in the sketch throws here, at construction time
-    const fn = new AsyncFunction(
-      "hydra",
-      `
+function buildSketchFunction(code) {
+  return new AsyncFunction(
+    "hydra",
+    `
       // Set global h variable to hydra for convenience
       globalThis.h = hydra;
       // Make hydra functions available in global scope
@@ -86,7 +77,40 @@ export async function executeSketch(hydra, { setup = "", main = "" } = {}) {
         };
       }
     `,
-    );
+  );
+}
+
+/**
+ * Check a sketch for syntax errors without running it or touching any hydra
+ * instance, so a typo can be turned down before anything is hushed.
+ * @param {{setup?: string, main?: string}} sketch
+ * @returns {string | null} The error message, or null when the code parses.
+ */
+export function checkSketchSyntax({ setup = "", main = "" } = {}) {
+  try {
+    buildSketchFunction(combineSketchCode(setup, main));
+    return null;
+  } catch (error) {
+    return (error && error.message) || "Syntax error";
+  }
+}
+
+/**
+ * Run a sketch on a hydra instance.
+ * @param {object} hydra - A hydra-synth instance (needs `hush()` and its generator functions).
+ * @param {{setup?: string, main?: string}} sketch
+ * @returns {Promise<{success: true} | {success: false, message: string, error?: unknown}>}
+ */
+export async function executeSketch(hydra, { setup = "", main = "" } = {}) {
+  const previousVideos = sourceVideos(hydra);
+  try {
+    // Reset all outputs so leftovers from the previous sketch don't linger
+    hydra.hush();
+
+    const code = combineSketchCode(setup, main);
+
+    // A syntax error in the sketch throws here, at construction time
+    const fn = buildSketchFunction(code);
 
     const result = await fn(hydra);
     if (result && result.success) return { success: true };

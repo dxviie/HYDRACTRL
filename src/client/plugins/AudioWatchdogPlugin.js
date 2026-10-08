@@ -12,6 +12,10 @@
  *    timestamped diagnostic dump so the failure is no longer silent;
  *  - emits "audio:suspended", "audio:flatline" and "audio:recovered" events
  *    that other plugins/panels can react to.
+ *
+ * It rests while the desktop app shows the Syphon/Spout output's own frames
+ * (`mirror:changed`): the main instance doesn't render then, so its a.fft
+ * stands still, and the sound that counts is the output's.
  */
 
 /** Number of consecutive silent checks before we call it a flatline. */
@@ -40,6 +44,12 @@ export function createAudioWatchdogPlugin(options = {}) {
       let flatChecks = 0;
       let everActive = false;
       let flatlineReported = false;
+      let mirrored = false;
+
+      const offMirror = ctx.events?.on?.("mirror:changed", ({ active } = {}) => {
+        mirrored = Boolean(active);
+        flatChecks = 0;
+      });
 
       function getAudio() {
         // hydra-synth (makeGlobal) exposes the audio analyser as window.a
@@ -79,6 +89,7 @@ export function createAudioWatchdogPlugin(options = {}) {
       }
 
       function check() {
+        if (mirrored) return;
         try {
           const audio = getAudio();
           if (!audio || !audio.fft) return;
@@ -133,6 +144,7 @@ export function createAudioWatchdogPlugin(options = {}) {
         api: { check },
         dispose() {
           clearInterval(timer);
+          offMirror?.();
         },
       };
     },

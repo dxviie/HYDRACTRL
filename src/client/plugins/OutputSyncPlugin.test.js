@@ -1,6 +1,12 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import { createEventBus } from "../core/EventBus.js";
-import { createOutputSyncPlugin, readXyState, stateChanged } from "./OutputSyncPlugin.js";
+import {
+  MIRROR_STATE_POLL_MS,
+  STATE_POLL_MS,
+  createOutputSyncPlugin,
+  readXyState,
+  stateChanged,
+} from "./OutputSyncPlugin.js";
 
 describe("stateChanged", () => {
   test("is true without a previous state", () => {
@@ -155,5 +161,47 @@ describe("createOutputSyncPlugin", () => {
     plugin = null;
     ctx.events.emit("sketch:run", { setup: "", main: "osc().out()" });
     expect(fake.sent).toHaveLength(sentBefore);
+  });
+
+  test("passes on the id of a run the desktop app's output already ran", async () => {
+    const fake = createFakeSocket();
+    const { ctx } = createCtx();
+    plugin = createOutputSyncPlugin({
+      url: "ws://test/ws/output",
+      detect: async () => true,
+      socketFactory: fake.factory,
+    }).setup(ctx);
+    await flush();
+    fake.open();
+
+    ctx.events.emit("sketch:run", { setup: "", main: "shape(4).out()", runId: "ab-3" });
+    expect(fake.sent.at(-1)).toEqual({
+      type: "sketch",
+      setup: "",
+      main: "shape(4).out()",
+      runId: "ab-3",
+    });
+  });
+
+  test("samples the XY pad every frame while the output's frames are shown", async () => {
+    const intervals = spyOn(globalThis, "setInterval");
+    try {
+      const fake = createFakeSocket();
+      const { ctx } = createCtx();
+      plugin = createOutputSyncPlugin({
+        url: "ws://test/ws/output",
+        detect: async () => true,
+        socketFactory: fake.factory,
+      }).setup(ctx);
+      await flush();
+      expect(intervals.mock.calls.at(-1)[1]).toBe(STATE_POLL_MS);
+
+      ctx.events.emit("mirror:changed", { active: true });
+      expect(intervals.mock.calls.at(-1)[1]).toBe(MIRROR_STATE_POLL_MS);
+      ctx.events.emit("mirror:changed", { active: false });
+      expect(intervals.mock.calls.at(-1)[1]).toBe(STATE_POLL_MS);
+    } finally {
+      intervals.mockRestore();
+    }
   });
 });

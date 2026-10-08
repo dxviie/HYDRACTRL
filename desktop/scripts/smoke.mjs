@@ -234,12 +234,26 @@ async function main() {
       "BrowserWindow.getAllWindows().filter((w) => !w.webContents.isOffscreen()).sort((a, b) => a.id - b.id)[0]";
     const SETTINGS_WINDOW =
       'BrowserWindow.getAllWindows().find((w) => w.getTitle() === "Output Settings")';
+    const OUTPUT_WINDOW = "BrowserWindow.getAllWindows().find((w) => w.webContents.isOffscreen())";
     const inWindow = (finder, name, code) =>
       inMain(
         `const w = ${finder}; if (!w) throw new Error("no ${name} window"); return w.webContents.executeJavaScript(${JSON.stringify(code)});`,
       );
     const inMainWindow = (code) => inWindow(MAIN_WINDOW, "main", code);
     const inSettings = (code) => inWindow(SETTINGS_WINDOW, "settings", code);
+    const inOutput = (code) => inWindow(OUTPUT_WINDOW, "output", code);
+    const mirrorStatus = () =>
+      inMainWindow('window.hydractrl.plugins.getApi("desktop-mirror")?.getStatus() ?? null');
+    /** Put a sketch in the editor and press Run, the way a person would. */
+    const runInEditor = (code) =>
+      inMainWindow(`(() => {
+        const editor = window._editorProxy;
+        editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: ${JSON.stringify(code)} } });
+        document.getElementById("run-btn").click();
+        return true;
+      })()`);
+    const outputSketch = () =>
+      inOutput("(window.hydractrlOutput && window.hydractrlOutput.lastSketch()?.main) || null");
     const getState = () => inMainWindow("window.hydractrlDesktop.getState()");
     /** Drop files at a point of a window, the way the OS does, through the DevTools protocol. */
     const dropFiles = (finder, files, point) =>
@@ -342,6 +356,14 @@ async function main() {
         '(document.querySelector(".desktop-output") || {}).innerText || ""',
       );
       check("OUTPUT block in the stats panel", /OUTPUT/.test(block), block.replace(/\n/g, " | "));
+      const mirrorSetup = await inMainWindow(
+        '({ receiver: typeof window.hydractrlDesktop.mirror?.start === "function", status: window.hydractrl.plugins.getApi("desktop-mirror")?.getStatus() ?? null })',
+      );
+      check(
+        "the interface can receive the output's frames",
+        mirrorSetup.receiver && mirrorSetup.status !== null,
+        JSON.stringify(mirrorSetup),
+      );
     }
 
     const outputMenu = await inMain(
@@ -366,16 +388,64 @@ async function main() {
         await sleep(250);
       }
       const optional = flag("--optional-output");
+      const framesFlow = started && running.state === "running" && running.fps > 0;
       check(
         "output starts and reports fps",
-        started && running.state === "running" && running.fps > 0,
+        framesFlow,
         JSON.stringify({ state: running.state, fps: running.fps, error: running.error }),
         { optional },
       );
+
+      // The interface shows the output's own frames instead of rendering
+      // again, and runs sketches there
+      let mirrored = null;
+      if (framesFlow && !noGpu) {
+        for (let i = 0; i < 60; i++) {
+          mirrored = await mirrorStatus();
+          if (mirrored?.active) break;
+          await sleep(250);
+        }
+        check(
+          "the interface shows the output's own frames",
+          Boolean(mirrored?.active) && (await getState()).output.mirror === true,
+          JSON.stringify(mirrored),
+          { optional },
+        );
+      }
+      if (mirrored?.active) {
+        await runInEditor("osc(7, 0.1, 1.2).out()");
+        let ran = null;
+        for (let i = 0; i < 40 && ran !== "osc(7, 0.1, 1.2).out()"; i++) {
+          await sleep(250);
+          ran = await outputSketch();
+        }
+        check("a run plays on the output", ran === "osc(7, 0.1, 1.2).out()", String(ran));
+        await runInEditor("osc(7, 0.1, 1.2).out(");
+        await sleep(1500);
+        const error = await inMainWindow(
+          '(document.querySelector(".error-notification") || {}).innerText || ""',
+        );
+        check(
+          "a broken sketch shows its error and leaves the output playing",
+          error.length > 0 && (await outputSketch()) === "osc(7, 0.1, 1.2).out()",
+          error.split("\n")[0],
+        );
+      }
       await inMainWindow("window.hydractrlDesktop.stopOutput()");
       await sleep(500);
       const stopped = (await getState()).output;
       check("output stops", stopped.state === "stopped", stopped.state, { optional });
+      if (mirrored?.active) {
+        const after = await mirrorStatus();
+        const visible = await inMainWindow(
+          '(document.querySelector("#hydra-canvas canvas:not([hidden])") || {}).className || "hydra"',
+        );
+        check(
+          "the interface renders on its own again once the output stops",
+          after?.active === false && visible !== "desktop-mirror",
+          `${JSON.stringify(after)} ${visible}`,
+        );
+      }
     } else {
       const started = await inMainWindow("window.hydractrlDesktop.startOutput()");
       const after = (await getState()).output;
@@ -587,6 +657,11 @@ async function main() {
       "log records startup and shutdown",
       /starting \(/.test(log) && /shutting down/.test(log),
       logPath,
+    );
+    check(
+      "the main process took the interface's request for frames",
+      !noGpu ? !/desktop:set-mirror failed/.test(log) : true,
+      (log.match(/desktop:set-mirror failed.*/) || [""])[0],
     );
     ws.close();
   } catch (error) {

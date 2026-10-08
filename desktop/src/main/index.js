@@ -95,6 +95,9 @@ function main() {
   let shutdownDone = false;
   let autoStartArmed = true;
   let lastLoadFailure = null;
+  // The interface asked for the output's frames (DesktopMirrorPlugin). Reset
+  // whenever its page goes away, until the new page asks again.
+  let mirrorRequested = false;
 
   const security = createSecurityPolicy({
     getServerUrl: () => serverManager?.getState().url ?? null,
@@ -220,6 +223,13 @@ function main() {
     }
     await updateSettings({ media: { folder } });
     return folder;
+  }
+
+  /** Forward the output's frames to the interface window while it asks for them. */
+  function syncMirror() {
+    const main = windows?.getMainWindow();
+    const live = main && !main.isDestroyed() && !main.webContents.isDestroyed();
+    outputManager?.setMirrorTarget(mirrorRequested && live ? main.webContents : null);
   }
 
   function openExternal(url) {
@@ -419,6 +429,10 @@ function main() {
           lastLoadFailure = failure;
           broadcast();
         },
+        onMainPageChange: () => {
+          mirrorRequested = false;
+          syncMirror();
+        },
       });
       windows.createMainWindow();
       windows.showLoading();
@@ -446,6 +460,16 @@ function main() {
           importMedia,
           openMediaFolder,
           chooseMediaFolder,
+          setMirror(enabled) {
+            // Only the interface window draws the frames
+            const main = windows.getMainWindow();
+            if (!main || main.isDestroyed() || this.sender.id !== main.webContents.id) {
+              throw new Error("Only the interface window shows the output");
+            }
+            mirrorRequested = enabled === true;
+            syncMirror();
+            return mirrorRequested;
+          },
         },
       });
 
@@ -467,6 +491,7 @@ function main() {
         powerSaveBlocker,
       });
       if (!availability.available) log.warn(`output unavailable: ${availability.reason}`);
+      syncMirror();
 
       const settings = settingsStore.get();
       serverManager = createServerManager({
