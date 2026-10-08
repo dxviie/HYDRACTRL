@@ -1,8 +1,8 @@
 /**
  * Landing page (public/index.html) behaviour. The page works without it:
- * this only adds the hydra backdrop, highlights the download for the
- * visitor's computer, fills in the latest release, and lazy-loads the
- * feature videos and the contact form.
+ * this adds the hydra backdrop and the editable code panel over it,
+ * highlights the download for the visitor's computer, fills in the latest
+ * release, and lazy-loads the feature videos and the contact form.
  */
 import { encodeSketch } from "../client/plugins/UrlSharePlugin.js";
 import { RELEASES_URL } from "../project.js";
@@ -16,6 +16,7 @@ import {
   recommendedDownload,
   summarizeRelease,
 } from "./downloads.js";
+import { createCodePanel, fileName } from "./editor.js";
 import { detectArchitecture, detectPlatform } from "./platform.js";
 
 const BACKDROP_KEY = "hydractrl-site-backdrop";
@@ -107,7 +108,9 @@ async function initDownloads() {
   const name = PLATFORM_NAMES[platform.os];
   if (name) {
     for (const cta of document.querySelectorAll("[data-platform-cta]")) {
-      cta.textContent = `Download for ${name}`;
+      // The label sits in its own span when the link also holds an arrow
+      const label = cta.querySelector("[data-platform-label]") || cta;
+      label.textContent = `Download for ${name}`;
     }
   }
   document.documentElement.dataset.platform = platform.os;
@@ -120,38 +123,87 @@ async function initDownloads() {
   }
 }
 
-// ── Hydra backdrop ─────────────────────────────────────────────────────────
+// ── Hydra backdrop and the code panel ──────────────────────────────────────
+
+const CODE_LABEL = "hydra code for the background; press Ctrl or Command and Enter to run it";
+const NO_WEBGL = "// the visuals need WebGL, which this browser doesn't offer";
 
 function initBackdrop() {
   const canvas = document.getElementById("backdrop");
   const controls = document.getElementById("now-playing");
   if (!canvas || !controls) return;
+  const hero = document.querySelector("[data-hero]");
+  const panelRoot = document.querySelector("[data-code]");
   const toggle = controls.querySelector("[data-backdrop-toggle]");
   const name = controls.querySelector("[data-backdrop-name]");
+  const position = controls.querySelector("[data-backdrop-index]");
+  const total = controls.querySelector("[data-backdrop-count]");
+  const modified = controls.querySelector("[data-backdrop-modified]");
   const open = controls.querySelector("[data-backdrop-open]");
 
-  const background = createBackground({
+  let running = false;
+  let onScreen = true;
+  let background = null;
+
+  // The open link always carries what is in the editor, edits included
+  const openWith = (code) => {
+    open.href = `/app#sketch=${encodeSketch(`${code}\n`)}`;
+  };
+
+  const first = SKETCHES[0];
+  const panel = panelRoot
+    ? createCodePanel({
+        root: panelRoot,
+        code: sketchSource(first).trimEnd(),
+        name: fileName(first),
+        label: CODE_LABEL,
+        motion: () => !reducedMotion.matches,
+        onHold: () => background.hold(),
+        onRelease: () => background.resume(),
+        onRun: (code) => background.perform(code),
+        onReset: () => background.resume(),
+        onChange({ code, playing }) {
+          openWith(code);
+          if (modified) modified.hidden = !playing;
+        },
+      })
+    : null;
+
+  background = createBackground({
     canvas,
     sketches: SKETCHES,
     loadHydra: () => import("hydra-synth").then((module) => module.default || module),
-    onSketch(sketch) {
-      name.textContent = sketch.name;
-      open.href = `/app#sketch=${encodeSketch(sketchSource(sketch))}`;
+    onSketch(sketch, index, count) {
+      const code = sketchSource(sketch).trimEnd();
+      name.textContent = fileName(sketch);
+      if (position) position.textContent = String(index + 1);
+      if (total) total.textContent = String(count);
+      panel?.load(code, fileName(sketch));
+      openWith(panel ? panel.code : code);
     },
     onReady() {
       canvas.classList.add("is-ready");
+      panel?.enable();
     },
     onError(error) {
       console.warn("[landing] backdrop unavailable:", error);
       canvas.classList.remove("is-ready");
       controls.hidden = true;
+      panel?.disable(NO_WEBGL);
+    },
+    onCodeError(error) {
+      panel?.fail(error);
     },
   });
 
   function syncToggle() {
     const playing = background.isPlaying();
     toggle.setAttribute("aria-pressed", String(!playing));
-    toggle.setAttribute("aria-label", playing ? "Pause the background" : "Play the background");
+    // The visible mode (LIVE or PAUSED) starts the name, for voice control
+    toggle.setAttribute(
+      "aria-label",
+      playing ? "Live, pause the background" : "Paused, play the background",
+    );
     toggle.dataset.state = playing ? "playing" : "paused";
   }
 
@@ -162,33 +214,71 @@ function initBackdrop() {
     return !reducedMotion.matches;
   }
 
-  toggle.addEventListener("click", () => {
-    if (background.isPlaying()) {
-      background.pause();
-      storageSet(localStorage, BACKDROP_KEY, "paused");
-    } else {
-      background.play();
-      storageSet(localStorage, BACKDROP_KEY, "playing");
-    }
+  /** Play when the visitor wants motion and can see the hero; rest otherwise. */
+  function sync() {
+    if (!running) return;
+    if (wantsMotion() && onScreen) background.play();
+    else background.pause();
     syncToggle();
+  }
+
+  toggle.addEventListener("click", () => {
+    storageSet(localStorage, BACKDROP_KEY, background.isPlaying() ? "paused" : "playing");
+    sync();
   });
 
   reducedMotion.addEventListener?.("change", () => {
     if (storageGet(localStorage, BACKDROP_KEY)) return;
-    if (reducedMotion.matches) background.pause();
-    else background.play();
-    syncToggle();
+    sync();
   });
+
+  // No GPU time for visuals nobody sees
+  if (hero && "IntersectionObserver" in window) {
+    new IntersectionObserver((entries) => {
+      onScreen = entries[entries.length - 1].isIntersecting;
+      sync();
+    }).observe(hero);
+  }
 
   const start = async () => {
     if (!(await background.start())) return;
+    running = true;
     controls.hidden = false;
-    if (wantsMotion()) background.play();
-    syncToggle();
+    sync();
   };
   // Let the page render and settle before spinning up WebGL
   if ("requestIdleCallback" in window) window.requestIdleCallback(start, { timeout: 1200 });
   else setTimeout(start, 200);
+}
+
+// ── Top bar ────────────────────────────────────────────────────────────────
+
+/**
+ * Transparent while only the visuals are under it; solid once the hero's
+ * words (marked with data-edge) have scrolled up to it.
+ */
+function initTopbar() {
+  const bar = document.querySelector("[data-top]");
+  if (!bar) return;
+  const edges = document.querySelectorAll("[data-edge]");
+  if (edges.length === 0 || !("IntersectionObserver" in window)) {
+    bar.classList.add("is-solid");
+    return;
+  }
+  const height = bar.offsetHeight;
+  const passed = new Set();
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        const above = !entry.isIntersecting && entry.boundingClientRect.top < height;
+        if (above) passed.add(entry.target);
+        else passed.delete(entry.target);
+      }
+      bar.classList.toggle("is-solid", passed.size > 0);
+    },
+    { rootMargin: `-${height}px 0px 0px 0px` },
+  );
+  for (const edge of edges) observer.observe(edge);
 }
 
 // ── Feature videos and the contact form ────────────────────────────────────
@@ -249,6 +339,7 @@ function initContactForm() {
 }
 
 initDownloads();
+initTopbar();
 initBackdrop();
 initVideos();
 initContactForm();

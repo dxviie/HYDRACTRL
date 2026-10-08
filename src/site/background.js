@@ -1,6 +1,9 @@
 /**
  * The landing page backdrop: hydra sketches rendered at reduced resolution
- * behind the page, crossfading from one to the next.
+ * behind the hero, crossfading from one to the next. The hero's code panel
+ * can take over: `hold()` stops the rotation on the current sketch,
+ * `perform(code)` runs the visitor's own program, and `resume()` puts the
+ * rotation back the way it was.
  *
  * Kept deliberately cheap: at most ~960 px on the long side (the canvas is
  * stretched by CSS), 30 fps, and no rendering at all while paused or while
@@ -47,6 +50,7 @@ export function createRotation({ count, holdMs = DEFAULTS.holdMs, fadeMs = DEFAU
   let index = 0;
   let next = null;
   let elapsed = 0;
+  let held = false;
 
   return {
     get index() {
@@ -55,24 +59,32 @@ export function createRotation({ count, holdMs = DEFAULTS.holdMs, fadeMs = DEFAU
     get next() {
       return next;
     },
+    get held() {
+      return held;
+    },
     /** Crossfade amount, 0 (all current) to 1 (all next). */
     get mix() {
       return next === null ? 0 : easeInOut(elapsed / fadeMs);
     },
     advance(dt) {
       const events = [];
-      elapsed += dt;
       if (next === null) {
+        // Held: the current sketch stays, however long
+        if (held) return events;
+        elapsed += dt;
         if (count > 1 && elapsed >= holdMs) {
           next = (index + 1) % count;
           elapsed = 0;
           events.push({ type: "fade", from: index, to: next });
         }
-      } else if (elapsed >= fadeMs) {
-        index = next;
-        next = null;
-        elapsed = 0;
-        events.push({ type: "show", index });
+      } else {
+        elapsed += dt;
+        if (elapsed >= fadeMs) {
+          index = next;
+          next = null;
+          elapsed = 0;
+          events.push({ type: "show", index });
+        }
       }
       return events;
     },
@@ -81,7 +93,34 @@ export function createRotation({ count, holdMs = DEFAULTS.holdMs, fadeMs = DEFAU
       next = null;
       elapsed = 0;
     },
+    /** Jump to the end of a running crossfade. Returns whether there was one. */
+    finish() {
+      if (next === null) return false;
+      index = next;
+      next = null;
+      elapsed = 0;
+      return true;
+    },
+    /** Start no new crossfades; one already running still completes. */
+    hold() {
+      held = true;
+    },
+    /** Rotate again, after a full hold on the current sketch. */
+    release() {
+      held = false;
+      elapsed = 0;
+    },
   };
+}
+
+/** Stop a camera, screen or video source the visitor's code started. */
+function stopMedia(media) {
+  try {
+    for (const track of media?.srcObject?.getTracks?.() || []) track.stop();
+    if (typeof media?.pause === "function") media.pause();
+  } catch (_error) {
+    // Already gone
+  }
 }
 
 /**
@@ -97,6 +136,7 @@ export function createBackground({
   onSketch = () => {},
   onReady = () => {},
   onError = () => {},
+  onCodeError = () => {},
 }) {
   const settings = { ...DEFAULTS, ...options };
   const frameInterval = 1000 / settings.fps;
@@ -109,6 +149,12 @@ export function createBackground({
   let pending = 0;
   let resizeTimer = null;
   let dead = false;
+  /** hydra's user settings as the backdrop set them, restored by resume() */
+  let globals = null;
+  /** hydra's sources as they were when the rotation was held */
+  let sources = [];
+  /** The visitor's program while it runs (it has drawn a frame), else null */
+  let program = null;
 
   function run(code) {
     hydra.eval(code);
@@ -120,16 +166,59 @@ export function createBackground({
     win.nanoY = y;
   }
 
+  /** Draw one frame. Throws when a shader fails to compile. */
+  function render(dt) {
+    movePad();
+    hydra.tick(dt);
+  }
+
+  /**
+   * Draw a frame of the visitor's program. hydra catches an error thrown by
+   * a uniform's function, osc(() => oops), and only warns "ERROR" with it,
+   * every frame; here that warning fails the frame like a shader would.
+   */
+  function renderChecked(dt) {
+    const log = win.console;
+    if (!log) {
+      render(dt);
+      return;
+    }
+    const warn = log.warn;
+    let caught = null;
+    log.warn = (...args) => {
+      if (args[0] === "ERROR" && caught === null) caught = args[1];
+      else warn.apply(log, args);
+    };
+    try {
+      render(dt);
+    } finally {
+      log.warn = warn;
+    }
+    if (caught !== null) throw caught instanceof Error ? caught : new Error(String(caught));
+  }
+
+  /** The frame the loop draws: checked while the visitor's program plays. */
+  function draw(dt) {
+    if (program === null) render(dt);
+    else renderChecked(dt);
+  }
+
   /** Render a sketch straight to the screen; `announce` tells the page it changed. */
   function show(index, announce = true) {
     run(`${usable[index].code}\n.out(o0)`);
-    if (announce) onSketch(usable[index], index);
+    if (announce) onSketch(usable[index], index, usable.length);
   }
 
   function clearSpareOutputs() {
     // Idle outputs still render every frame; keep them trivial
     const { synth } = hydra;
     for (const output of [synth.o1, synth.o2, synth.o3]) synth.solid(0, 0, 0, 0).out(output);
+  }
+
+  /** Show o0 alone again, with nothing left running on the other outputs. */
+  function resetOutputs() {
+    hydra.synth.render(hydra.synth.o0);
+    clearSpareOutputs();
   }
 
   function startFade(from, to) {
@@ -140,7 +229,7 @@ export function createBackground({
       .src(synth.o1)
       .blend(synth.src(synth.o2), () => rotation.mix)
       .out(synth.o0);
-    onSketch(usable[to], to);
+    onSketch(usable[to], to, usable.length);
   }
 
   function apply(events) {
@@ -161,6 +250,47 @@ export function createBackground({
     }
   }
 
+  /** Put the rotation's current sketch back on screen. False if even that fails. */
+  function restoreSketch() {
+    try {
+      resetOutputs();
+      show(rotation.index, false);
+      render(1);
+      return true;
+    } catch (error) {
+      fail(error);
+      return false;
+    }
+  }
+
+  /** Back to the last program that drew: the visitor's previous one, or the sketch. */
+  function revert() {
+    if (program !== null) {
+      try {
+        resetOutputs();
+        run(program);
+        render(1);
+        return;
+      } catch (_error) {
+        program = null;
+      }
+    }
+    restoreSketch();
+  }
+
+  /**
+   * A frame failed to draw. The visitor's program gives way to the sketch
+   * and the page hears why; a sketch of our own that fails stops the backdrop.
+   */
+  function recover(error) {
+    if (program === null) {
+      fail(error);
+      return;
+    }
+    program = null;
+    if (restoreSketch()) onCodeError(error);
+  }
+
   function tick(now) {
     frame = win.requestAnimationFrame(tick);
     if (!last) {
@@ -174,23 +304,21 @@ export function createBackground({
     const dt = pending;
     pending = 0;
     apply(rotation.advance(dt));
-    movePad();
     try {
-      hydra.tick(dt);
+      draw(dt);
     } catch (error) {
-      // A shader that only fails at draw time: stop rather than throw every frame
-      fail(error);
+      // A shader that only fails at draw time: never throw every frame
+      recover(error);
     }
   }
 
   /** Render a single frame, for a paused or reduced-motion backdrop. */
   function still() {
     if (!hydra || dead) return;
-    movePad();
     try {
-      hydra.tick(1);
+      draw(1);
     } catch (error) {
-      fail(error);
+      recover(error);
     }
   }
 
@@ -208,14 +336,19 @@ export function createBackground({
     win.cancelAnimationFrame(frame);
   }
 
+  /** Match the canvas to the window. Returns whether its size changed. */
+  function fit() {
+    const [width, height] = backdropResolution(win.innerWidth, win.innerHeight, settings.maxSize);
+    if (width === canvas.width && height === canvas.height) return false;
+    hydra.setResolution(width, height);
+    return true;
+  }
+
   function onResize() {
     win.clearTimeout(resizeTimer);
     resizeTimer = win.setTimeout(() => {
       if (!hydra || dead) return;
-      const [width, height] = backdropResolution(win.innerWidth, win.innerHeight, settings.maxSize);
-      if (width === canvas.width && height === canvas.height) return;
-      hydra.setResolution(width, height);
-      if (!playing) still();
+      if (fit() && !playing) still();
     }, 200);
   }
 
@@ -223,6 +356,72 @@ export function createBackground({
     dead = true;
     pause();
     onError(error);
+  }
+
+  /** Stop rotating: the current sketch stays until resume(). */
+  function hold() {
+    if (!rotation || dead || rotation.held) return;
+    rotation.hold();
+    sources = (hydra.s || []).map((source) => ({
+      source,
+      src: source.src,
+      tex: source.tex,
+      dynamic: source.dynamic,
+    }));
+  }
+
+  /**
+   * Run the visitor's program: a full hydra sketch ending in `.out()`. It
+   * holds the rotation and has to draw a frame before it counts; until it
+   * does, the previous visuals stay. Returns `{ ok }` or `{ ok: false, error }`.
+   */
+  function perform(code) {
+    if (!hydra || dead || !rotation) {
+      return { ok: false, error: new Error("The backdrop is not running") };
+    }
+    hold();
+    // Mid-crossfade, land on the incoming sketch first: its code is the one on show
+    if (rotation.finish()) {
+      show(rotation.index, false);
+      clearSpareOutputs();
+    }
+    try {
+      run(code);
+    } catch (error) {
+      // Lines before the error did run; make sure what they left still draws
+      try {
+        renderChecked(1);
+      } catch (_drawError) {
+        revert();
+      }
+      return { ok: false, error };
+    }
+    try {
+      renderChecked(1);
+    } catch (error) {
+      revert();
+      return { ok: false, error };
+    }
+    program = code;
+    return { ok: true };
+  }
+
+  /** Back to the rotation, undoing what the visitor's code changed in hydra. */
+  function resume() {
+    if (!rotation || dead || !rotation.held) return;
+    program = null;
+    Object.assign(win, globals, { speed: settings.speed });
+    for (const { source, src, tex, dynamic } of sources) {
+      if (source.src === src) continue;
+      stopMedia(source.src);
+      Object.assign(source, { src, tex, dynamic });
+    }
+    sources = [];
+    fit();
+    // A crossfade still running lands on its sketch, the one the panel shows
+    rotation.finish();
+    rotation.release();
+    restoreSketch();
   }
 
   /** Drop sketches that do not compile, by rendering each once into o3. */
@@ -255,6 +454,7 @@ export function createBackground({
       });
       // With makeGlobal, hydra reads user settings back from window every tick
       win.speed = settings.speed;
+      globals = { fps: win.fps, bpm: win.bpm, update: win.update };
       // Start somewhere into the sketches, so a still frame is not frame zero
       hydra.synth.time = settings.startTime ?? 6 + Math.random() * 30;
       movePad();
@@ -278,6 +478,8 @@ export function createBackground({
       canvas.addEventListener("webglcontextlost", () => fail(new Error("WebGL context lost")));
       win.addEventListener("resize", onResize);
       still();
+      // The first frame can still fail (a shader the GPU rejects)
+      if (dead) return false;
       onReady();
       return true;
     } catch (error) {
@@ -291,7 +493,11 @@ export function createBackground({
     play,
     pause,
     still,
+    hold,
+    perform,
+    resume,
     isPlaying: () => playing,
+    isHeld: () => Boolean(rotation?.held),
     current: () => (rotation ? usable[rotation.next ?? rotation.index] : null),
   };
 }
