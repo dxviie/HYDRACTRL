@@ -41,9 +41,11 @@ publish: null
 
 mac:
   category: public.app-category.video
+  # The DMG is the download (landing page, release notes). A ZIP of the app
+  # would only be needed for auto-updates (Squirrel.Mac), which the app
+  # doesn't do, and would double every macOS artifact.
   target:
     - dmg
-    - zip
   icon: resources/icon.png
   darkModeSupport: true
   minimumSystemVersion: "11.0"

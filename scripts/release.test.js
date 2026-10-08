@@ -179,12 +179,7 @@ describe("unwrapMarkdown", () => {
 
 describe("missingDownloads", () => {
   test("names the landing page downloads a build did not produce", () => {
-    const built = [
-      "HYDRACTRL-mac-arm64.dmg",
-      "HYDRACTRL-mac-arm64.zip",
-      "HYDRACTRL-win-x64-setup.exe",
-      "SHA256SUMS.txt",
-    ];
+    const built = ["HYDRACTRL-mac-arm64.dmg", "HYDRACTRL-win-x64-setup.exe", "SHA256SUMS.txt"];
     expect(missingDownloads(built)).toEqual(["HYDRACTRL-mac-x64.dmg"]);
     expect(missingDownloads([...built, "HYDRACTRL-mac-x64.dmg"])).toEqual([]);
   });

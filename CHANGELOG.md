@@ -21,6 +21,9 @@ version and the desktop app share one version number; see
     playing the last sketch that worked.
   - XY pad moves reach the output every frame instead of every other one.
   - Slot thumbnails are taken from the output's frames.
+- The macOS builds are a DMG alone. A ZIP of the same app was built next to
+  each one, which nothing offered or used, and doubled the size of every
+  macOS build.
 
 ## [1.2.0] - 2026-09-27
 

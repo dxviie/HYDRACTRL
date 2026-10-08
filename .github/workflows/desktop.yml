@@ -128,7 +128,6 @@ jobs:
           name: hydractrl-desktop-${{ matrix.platform }}-${{ runner.arch }}
           path: |
             desktop/dist/*.dmg
-            desktop/dist/*.zip
             desktop/dist/*.exe
           if-no-files-found: error
 

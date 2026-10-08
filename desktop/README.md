@@ -185,7 +185,7 @@ desktop/
 
 ```bash
 cd desktop
-bun run dist:mac     # on macOS: DMG + ZIP for the current architecture
+bun run dist:mac     # on macOS: a DMG for the current architecture
 bun run dist:win     # on Windows: NSIS installer
 bun run pack         # unpacked directory build for a quick check
 ```
@@ -217,7 +217,7 @@ server, library validation for the ad-hoc case, and microphone and camera
 access.
 
 The `Desktop app` GitHub Actions workflow builds all three targets for pull
-requests that touch the app and on demand, and uploads the DMG, ZIP and
+requests that touch the app and on demand, and uploads the DMGs and the
 installer as artifacts. The `Release` workflow runs it for version tags and
 publishes the result as a GitHub release; see [RELEASING.md](../RELEASING.md).
 
