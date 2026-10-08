@@ -213,6 +213,7 @@ function initEditor() {
       }
     },
     focus: () => editor.focus(),
+    flash: () => editor.flash(),
     // Add the raw editor object for direct access if needed
     _editor: editor,
   };
@@ -576,6 +577,7 @@ async function init() {
     document.getElementById("run-btn").addEventListener("click", async () => {
       const success = await runCodeOnAllInstances(editor, hydra);
       if (success) {
+        editor.flash(); // The code lights up to show it ran
         refocusEditor(editor); // Return focus to editor after successful run
       }
     });
@@ -609,6 +611,7 @@ async function init() {
         e.preventDefault();
         runCodeOnAllInstances(editor, hydra).then((success) => {
           if (success) {
+            editor.flash(); // The code lights up to show it ran
             editor.focus();
           }
         });

@@ -124,6 +124,9 @@
   --panel-opacity: 0.9;
   /* Default panel opacity */
 
+  /* Behind the code for a moment when it runs: the logo's violet */
+  --color-flash: rgba(144, 0, 255, 0.85);
+
   /* UI Elements */
   --color-button-bg: #2d2d2d;
   --color-button-hover: #3d3d3d;
@@ -173,6 +176,7 @@
   --color-panel-blur: 8px;
   --color-accent: #6d28d9;
   --color-on-accent: #ffffff;
+  --color-flash: rgba(109, 40, 217, 0.3);
   --color-stat-value: #1c1a24;
   --color-contrast-rgb: 28, 26, 36;
   --color-midi-active: #15803d;
@@ -205,6 +209,7 @@
   --color-text-primary: #ffffff;
   --color-text-secondary: #cccccc;
   --color-text-editor: #ffffff;
+  --color-flash: rgba(0, 255, 83, 0.35);
 
   /* UI Elements */
   --color-button-bg: #1e1e1e;
@@ -240,6 +245,7 @@
   --color-text-primary: #ff00ff;
   --color-text-secondary: #00ffff;
   --color-text-editor: #ffffff;
+  --color-flash: rgba(255, 0, 255, 0.5);
 
   /* UI Elements */
   --color-button-bg: #6600cc;
@@ -285,6 +291,7 @@
   --color-panel-blur: 5px;
   --color-accent: #ff3d9a;
   --color-on-accent: #1a1423;
+  --color-flash: rgba(255, 61, 154, 0.45);
   --color-stat-value: #1a1423;
   --color-contrast-rgb: 26, 20, 35;
   --color-midi-active: #007c80;
@@ -467,6 +474,12 @@ textarea {
 .editor-content .cm-editor.cm-file-drop-target {
   outline: 2px dashed var(--color-accent, var(--color-perf-good));
   outline-offset: -4px;
+}
+
+/* The run flash (src/utils/runFlash.js): the theme's flash colour behind
+   the code that just ran */
+.cm-editor .cm-run-flash {
+  background-color: var(--color-flash);
 }
 
 .cm-tooltip {

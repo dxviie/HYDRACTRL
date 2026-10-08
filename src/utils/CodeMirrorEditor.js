@@ -14,6 +14,7 @@ import { solarizedDark } from "@uiw/codemirror-theme-solarized";
 import hydraData from "../data/hydra-functions.json" assert { type: "json" };
 import { insertLines } from "./editorInsert.js";
 import { lightEditorTheme, popEditorTheme } from "./editorThemes.js";
+import { flashCode, runFlash } from "./runFlash.js";
 
 // Language compartment for JavaScript with Hydra extensions
 const languageCompartment = new Compartment();
@@ -321,6 +322,7 @@ export function createCodeMirrorEditor(container, initialCode = "") {
       themeCompartment.of(getCurrentTheme()), // Theme-specific syntax coloring
       EditorView.lineWrapping,
       EditorState.tabSize.of(2),
+      runFlash(), // The code lights up for a moment when it runs
       preventCtrlEnterHandler, // Add our custom handler
       // Add autocompletion with custom Hydra completions
       autocompletion({
@@ -367,6 +369,11 @@ export function createCodeMirrorEditor(container, initialCode = "") {
       });
     },
     focus: () => view.focus(),
+    // Light the code up for a moment, to show it ran (not with reduced motion)
+    flash: () => {
+      if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+      flashCode(view);
+    },
     element: view.dom,
     // Take files dropped on the editor instead of pasting them (the desktop
     // app's media drops). Returns a function that stops it.

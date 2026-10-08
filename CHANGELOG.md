@@ -8,6 +8,13 @@ version and the desktop app share one version number; see
 
 ## [Unreleased]
 
+### Added
+
+- When you run a sketch with Ctrl/⌘ + Enter or the Run button, its code
+  flashes for a moment in the interface theme's own colour, the way hydra's
+  editor does. Auto-run leaves it alone, and so does a system set to reduce
+  motion.
+
 ### Changed
 
 - **The desktop app renders each sketch once.** While the Syphon or Spout
