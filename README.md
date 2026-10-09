@@ -172,7 +172,8 @@ Anything that can render a web page can be an output:
 
 - **HYDRACTRL Desktop** — the standalone app: the full interface
   plus a **Syphon** (macOS) or **Spout** (Windows) output of your visuals with
-  zero GPU copies, controlled from the Output menu. See
+  zero GPU copies, controlled from the Output menu. Each sketch renders once,
+  on that output, and the interface shows the very frames it shares. See
   [desktop/README.md](./desktop/README.md).
 - **OBS** — a Browser Source pointing at `/output`, then NDI, Spout or Syphon
   output plugins. Launch OBS with `--enable-media-stream` for microphone access.
