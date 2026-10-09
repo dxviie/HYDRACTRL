@@ -938,39 +938,58 @@
       margin-top: var(--section-gap);
     }
 
-    .sheet {
+    .sheet,
+    .tab,
+    .pane-body {
       border: 1px solid var(--violet-line);
       background: var(--pane);
       -webkit-backdrop-filter: blur(18px);
       backdrop-filter: blur(18px);
     }
 
-    /* The tab bar: the open file, then the bar's darker rest */
+    /* A sheet under a tab bar is its tab and its body: the bar shows only
+       the open file, a notch in from the left, with the sketch either side */
+    .sheet:has(> .tabs) {
+      border: 0;
+      background: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    /* The tab bar: the notch, the open file, then the sheet's edge runs on */
     .tabs {
       display: flex;
       height: 40px;
     }
 
+    .tabs::before,
     .tabs::after {
       content: "";
+      border-bottom: 1px solid var(--violet-line);
+    }
+
+    .tabs::before {
+      width: var(--sheet-pad);
+    }
+
+    .tabs::after {
       flex: 1;
-      border-bottom: 1px solid var(--rule);
-      border-left: 1px solid var(--rule);
-      background: rgba(0, 0, 0, 0.45);
     }
 
     .tab {
       display: inline-flex;
       align-items: center;
       gap: 12px;
-      padding: 0 16px 0 max(16px, var(--gutter) - 24px);
+      padding: 0 16px;
       border-top: 2px solid var(--select);
+      border-bottom: 0;
       color: var(--text);
       font: 400 var(--fs-small) / 1 var(--code);
     }
 
     .pane-body {
       padding-block: 72px 88px;
+      border-top: 0;
     }
 
     .sheet .pane-body {
