@@ -82,7 +82,8 @@ jobs:
         shell: bash
         working-directory: desktop
         env:
-          # Never pick up a random identity from the runner's keychain
+          # Never pick up a random identity from the runner's keychain; turned
+          # on below when there is a certificate
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
           # macOS: a Developer ID Application certificate (.p12, base64) and
           # credentials for notarization: an App Store Connect API key (the
@@ -104,6 +105,13 @@ jobs:
           # certificate path, so drop the ones without a secret behind them
           if [ -z "$CSC_LINK" ]; then unset CSC_LINK CSC_KEY_PASSWORD; fi
           if [ -z "$WIN_CSC_LINK" ]; then unset WIN_CSC_LINK WIN_CSC_KEY_PASSWORD; fi
+          if [ -n "$CSC_LINK" ]; then
+            # electron-builder imports the certificate into a keychain of its
+            # own and only looks for the identity there while discovery is
+            # on; with it off, it skips signing. The search stays inside that
+            # keychain, so the runner's own identities are still left alone.
+            export CSC_IDENTITY_AUTO_DISCOVERY=true
+          fi
           if [ -n "$APPLE_API_KEY_P8" ]; then
             # notarytool reads the API key from a file
             printf '%s\n' "$APPLE_API_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
