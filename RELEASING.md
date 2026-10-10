@@ -134,7 +134,13 @@ well.
    A signed build has to pass Gatekeeper as notarized with its ticket
    stapled, or the macOS jobs fail. So a certificate without notarization
    credentials fails the build: macOS blocks a signed app that isn't
-   notarized just like an unsigned one.
+   notarized just like an unsigned one. Apple can take hours over a new
+   team's first submissions (five, for HYDRACTRL's); later ones take minutes.
+   The Package step logs the submission ID and, every ten minutes, that Apple
+   is still at it, and `xcrun notarytool history` (with the API key) lists
+   the submissions and their status. Network drops while the job waits on
+   Apple are retried; only ten minutes of failed status checks in a row fail
+   the job, and Apple still finishes that submission.
 
 The app is signed with the hardened runtime and the entitlements in
 `desktop/resources/`.

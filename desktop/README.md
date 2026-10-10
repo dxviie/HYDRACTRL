@@ -177,7 +177,7 @@ desktop/
     log.js           rotating file logger
   src/preload/     the window.hydractrlDesktop bridge (sandboxed)
   src/renderer/    loading screen and settings window
-  scripts/         server compile + electron-builder hook
+  scripts/         server compile + electron-builder hooks
   resources/       icon and macOS entitlements
 ```
 
@@ -211,7 +211,10 @@ hoc with `bunx electron-builder --mac -c.mac.identity=- -c.mac.timestamp=none`:
 a build with no signature at all won't open on Apple Silicon once it has been
 downloaded. An `afterPack` hook (`scripts/after-pack.cjs`) restores the
 symlinks of the Syphon framework that npm flattens, which codesign insists
-on. The
+on. The `afterSign` hook (`scripts/notarize.cjs`) does the notarizing in
+place of electron-builder's own: it uploads the signed app, checks on it every
+30 seconds, retrying when the network drops, and staples Apple's ticket to the
+app before the DMG is built. The
 entitlements in `resources/` already allow JIT for Electron and the Bun
 server, library validation for the ad-hoc case, and microphone and camera
 access.

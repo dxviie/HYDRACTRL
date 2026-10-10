@@ -122,8 +122,9 @@ jobs:
           if [ "${{ matrix.platform }}" = "mac" ] && [ -z "$CSC_LINK" ]; then
             # Without a certificate, sign ad hoc (Apple Silicon Macs refuse to
             # open a downloaded app with no signature at all) and don't try
-            # to notarize. With one, electron-builder signs, and notarizes
-            # when the Apple credentials are set.
+            # to notarize. With one, electron-builder signs, and its afterSign
+            # hook (scripts/notarize.cjs) notarizes when the Apple credentials
+            # are set.
             args="$args -c.mac.identity=- -c.mac.timestamp=none"
             unset APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
             unset APPLE_API_KEY APPLE_API_KEY_ID APPLE_API_ISSUER

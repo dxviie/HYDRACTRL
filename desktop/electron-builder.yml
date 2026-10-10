@@ -33,6 +33,10 @@ beforePack: scripts/before-pack.cjs
 # Restores the symlinks of the Syphon framework that npm flattens, so macOS
 # signing accepts it
 afterPack: scripts/after-pack.cjs
+# Notarizes the signed macOS app and staples the ticket before the DMG is
+# built, retrying through the network drops that electron-builder's own
+# notarization gives up on (mac.notarize is off)
+afterSign: scripts/notarize.cjs
 
 npmRebuild: false
 nodeGypRebuild: false
@@ -55,10 +59,11 @@ mac:
   entitlementsInherit: resources/entitlements.mac.inherit.plist
   # Signing needs a Developer ID certificate (CSC_LINK / CSC_KEY_PASSWORD);
   # without one, pass -c.mac.identity=- -c.mac.timestamp=none for an ad-hoc
-  # signature (those can't be timestamped). Notarization runs whenever Apple
-  # credentials are in the environment (APPLE_API_KEY, APPLE_API_KEY_ID and
-  # APPLE_API_ISSUER, or APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD and
-  # APPLE_TEAM_ID); see RELEASING.md.
+  # signature (those can't be timestamped). Notarization (the afterSign hook)
+  # runs whenever Apple credentials are in the environment (APPLE_API_KEY,
+  # APPLE_API_KEY_ID and APPLE_API_ISSUER, or APPLE_ID,
+  # APPLE_APP_SPECIFIC_PASSWORD and APPLE_TEAM_ID); see RELEASING.md.
+  notarize: false
   extendInfo:
     NSMicrophoneUsageDescription: HYDRACTRL listens to the microphone for audio-reactive sketches (a.fft).
     NSCameraUsageDescription: HYDRACTRL uses the camera when a sketch calls s0.initCam().
