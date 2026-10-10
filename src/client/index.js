@@ -3,6 +3,7 @@ import { createMidiManager } from "../MidiManager.js";
 import { createSlotsPanel } from "../SlotsPanel.js";
 // Import utilities
 import { createStatsPanel } from "../StatsPanel.js";
+import { VERSION } from "../project.js";
 import { SKETCHES, sketchSource } from "../sketches.js";
 import { createCodeMirrorEditor } from "../utils/CodeMirrorEditor.js";
 import { isPhone, isTablet, isTouchFirst } from "../utils/DeviceDetection.js";
@@ -675,13 +676,23 @@ async function init() {
           }
         }
 
-        // Atl/Opt+X to export scene bank
-        if (e.key === "x" && window.slotsPanel && window.slotsPanel.exportAllSlots) {
+        // Alt/Opt+X to export scene bank. On a Mac, Option turns the key into
+        // another character (≈), so the physical key counts too.
+        const letter = e.key.toLowerCase();
+        if (
+          (letter === "x" || keyCode === "KeyX") &&
+          window.slotsPanel &&
+          window.slotsPanel.exportAllSlots
+        ) {
           e.preventDefault();
           window.slotsPanel.exportAllSlots();
         }
-        // Atl/Opt+I to import scene bank
-        if (e.key === "i" && window.slotsPanel && window.slotsPanel.importSlots) {
+        // Alt/Opt+I to import scene bank (Option+I is a dead key on a Mac)
+        if (
+          (letter === "i" || keyCode === "KeyI") &&
+          window.slotsPanel &&
+          window.slotsPanel.importSlots
+        ) {
           e.preventDefault();
           window.slotsPanel.importSlots();
         }
@@ -886,7 +897,7 @@ async function init() {
     // Public extension point: external code (console, userscripts, future
     // built-ins) can register plugins via window.hydractrl.
     window.hydractrl = {
-      version: "0.0.1",
+      version: VERSION,
       events,
       storage,
       plugins: pluginHost,
