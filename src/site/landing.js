@@ -2,7 +2,8 @@
  * Landing page (public/index.html) behaviour. The page works without it:
  * this adds the hydra backdrop and the editable code panel over it,
  * highlights the download for the visitor's computer, fills in the latest
- * release, and lazy-loads the feature videos and the contact form.
+ * release, and lazy-loads the feature videos and the two forms (release news
+ * and contact).
  */
 import { encodeSketch } from "../client/plugins/UrlSharePlugin.js";
 import { RELEASES_URL } from "../project.js";
@@ -271,7 +272,7 @@ function initTopbar() {
   for (const edge of edges) observer.observe(edge);
 }
 
-// ── Feature videos and the contact form ────────────────────────────────────
+// ── Feature videos and the forms ───────────────────────────────────────────
 
 function whenNear(element, callback, rootMargin = "600px 0px") {
   if (!("IntersectionObserver" in window)) {
@@ -312,24 +313,33 @@ function initVideos() {
   for (const video of videos) observer.observe(video);
 }
 
-function initContactForm() {
-  const form = document.querySelector("iframe[data-tally-src]");
-  if (!form) return;
-  whenNear(form, () => {
+/** The Tally forms (release news and contact) load once the first one is close. */
+function initForms() {
+  const forms = [...document.querySelectorAll("iframe[data-tally-src]")];
+  if (forms.length === 0) return;
+  let loading = false;
+  const load = () => {
+    if (loading) return;
+    loading = true;
     const show = () => {
       if (window.Tally) window.Tally.loadEmbeds();
-      else if (!form.src) form.src = form.dataset.tallySrc;
+      else {
+        for (const form of forms) {
+          if (!form.src) form.src = form.dataset.tallySrc;
+        }
+      }
     };
     const script = document.createElement("script");
     script.src = "https://tally.so/widgets/embed.js";
     script.onload = show;
     script.onerror = show;
     document.body.appendChild(script);
-  });
+  };
+  for (const form of forms) whenNear(form, load);
 }
 
 initDownloads();
 initTopbar();
 initBackdrop();
 initVideos();
-initContactForm();
+initForms();

@@ -1657,6 +1657,95 @@
       display: block;
     }
 
+    /* ── Tally forms ────────────────────────────────────────── */
+
+    .form-box {
+      padding: 24px;
+      border: 1px solid var(--violet-line);
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .form-box iframe {
+      display: block;
+      width: 100%;
+      border: 0;
+      /* With color-scheme dark on the page, Chrome paints an opaque white
+         box behind the transparent form */
+      color-scheme: normal;
+    }
+
+    /* ── TODO.md ────────────────────────────────────────────── */
+
+    .roadmap {
+      row-gap: 56px;
+      align-items: start;
+    }
+
+    .roadmap-plans {
+      grid-column: 1 / span 7;
+    }
+
+    .roadmap-news {
+      grid-column: 9 / span 4;
+    }
+
+    /* A markdown task list, every box still open */
+    .todo {
+      max-width: 60ch;
+      margin: 40px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .todo li {
+      position: relative;
+      padding-left: 6ch;
+    }
+
+    .todo li + li {
+      margin-top: 20px;
+    }
+
+    .todo li::before {
+      content: "- [ ]";
+      content: "- [ ]" / "";
+      position: absolute;
+      left: 0;
+      color: var(--violet-mute);
+      font-family: var(--code);
+      white-space: pre;
+    }
+
+    .todo .todo-yours::before {
+      color: var(--run);
+    }
+
+    .todo strong {
+      font-weight: 600;
+    }
+
+    .todo .fine {
+      display: block;
+    }
+
+    .roadmap-news p {
+      max-width: 46ch;
+      margin: 12px 0 0;
+    }
+
+    .roadmap-news .form-box {
+      margin-top: 24px;
+    }
+
+    .roadmap-news .fine {
+      margin-top: 16px;
+    }
+
+    .roadmap-news em {
+      color: var(--text);
+      font-style: normal;
+    }
+
     /* ── say-hi.txt ─────────────────────────────────────────── */
 
     .contact {
@@ -1679,19 +1768,10 @@
 
     .contact-form {
       grid-column: 7 / span 6;
-      padding: 24px;
-      border: 1px solid var(--violet-line);
-      background: rgba(0, 0, 0, 0.4);
     }
 
     .contact-form iframe {
-      display: block;
-      width: 100%;
       min-height: 350px;
-      border: 0;
-      /* With color-scheme dark on the page, Chrome paints an opaque white
-         box behind the transparent form */
-      color-scheme: normal;
     }
 
     /* ── Footer ─────────────────────────────────────────────── */
@@ -1756,6 +1836,10 @@
       .output .fine + .fine {
         grid-column: 7 / span 6;
       }
+
+      .roadmap-news {
+        grid-column: 8 / span 5;
+      }
     }
 
     @media (max-width: 899px) {
@@ -1808,6 +1892,8 @@
       .targets,
       .output .fine,
       .output .fine + .fine,
+      .roadmap-plans,
+      .roadmap-news,
       .contact-intro,
       .contact-form {
         grid-column: 1 / -1;
@@ -1909,7 +1995,7 @@
         gap: 4px;
       }
 
-      .contact-form {
+      .form-box {
         padding: 16px;
       }
 
@@ -2334,16 +2420,17 @@
                   <h3>macOS</h3>
                   <ol>
                     <li>Open the DMG and drag HYDRACTRL into Applications.</li>
-                    <li>Open it. The builds aren't notarized by Apple yet, so macOS blocks the first launch.</li>
-                    <li>Go to System Settings → Privacy &amp; Security, scroll down and click <em>Open Anyway</em>.</li>
+                    <li>Open it. The app is signed and notarized by Apple, so macOS only checks once that you
+                      meant to open an app from the internet. Click <em>Open</em>.</li>
                     <li>Allow microphone access when asked, for audio-reactive sketches.</li>
+                    <li>The Syphon server is called <code>HYDRACTRL</code>.</li>
                   </ol>
                 </div>
                 <div>
                   <h3>Windows</h3>
                   <ol>
-                    <li>Run the installer. The builds aren't code-signed yet, so SmartScreen may warn about an
-                      unrecognized app.</li>
+                    <li>Run the installer. The Windows build isn't code-signed yet, so SmartScreen may warn about
+                      an unrecognized app.</li>
                     <li>Click <em>More info</em>, then <em>Run anyway</em>.</li>
                     <li>HYDRACTRL shows up in the Start menu. The Spout sender is called <code>HYDRACTRL</code>.</li>
                   </ol>
@@ -2456,6 +2543,50 @@
       </div>
     </section>
 
+    <section id="roadmap" class="pane" aria-labelledby="roadmap-title">
+      <div class="wrap">
+        <div class="sheet">
+          <div class="tabs" aria-hidden="true"><span class="tab">TODO.md</span></div>
+          <div class="col pane-body grid roadmap">
+            <div class="roadmap-plans">
+              <h2 class="h2" id="roadmap-title"><span class="ln" aria-hidden="true">1</span><span class="pfx pfx-short"
+                  aria-hidden="true"># </span>Roadmap</h2>
+              <p class="lede"><span class="ln" aria-hidden="true">2</span>What I'd like to add next, in no particular
+                order.</p>
+              <ul class="todo">
+                <li><strong>Better MIDI support</strong> <span class="fine">More controllers than the Korg
+                    nanoPAD2.</span></li>
+                <li><strong>HY5 integration</strong> <span class="fine">p5 and hydra in one sketch.</span></li>
+                <li><strong>OSC support</strong> <span class="fine">Control HYDRACTRL from other apps.</span></li>
+                <li><strong>Improved auto-complete</strong> <span class="fine">Better suggestions while you
+                    code.</span></li>
+                <li><strong>Hydra extensions browser</strong> <span class="fine">Find hydra extensions and add them to a
+                    sketch.</span></li>
+                <li><strong>Community page</strong> <span class="fine">Share what you make and play what others
+                    made.</span></li>
+                <li class="todo-yours"><strong>Your idea?</strong> <span class="fine"><a
+                      href="https://github.com/dxviie/HYDRACTRL/issues/new">Request a feature on GitHub</a>, or give
+                    an <a href="https://github.com/dxviie/HYDRACTRL/issues">open issue</a> a thumbs-up.</span></li>
+              </ul>
+            </div>
+            <div class="roadmap-news">
+              <h3 class="h3">Release news</h3>
+              <p>Leave your email and I'll write when a new version is out. Only release news, nothing else. Reply to
+                any of them to get off the list.</p>
+              <div class="form-box">
+                <iframe
+                  data-tally-src="https://tally.so/embed/ODpzzR?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1&source=landing"
+                  loading="lazy" width="100%" height="140" title="Sign up for release news"></iframe>
+                <noscript><a href="https://tally.so/r/ODpzzR">Sign up for release news</a></noscript>
+              </div>
+              <p class="fine">On GitHub? <a href="https://github.com/dxviie/HYDRACTRL">Watch the repository</a> and pick
+                <em>Custom → Releases</em>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section id="contact" class="pane" aria-labelledby="contact-title">
       <div class="wrap">
         <div class="sheet">
@@ -2463,13 +2594,19 @@
           <div class="col pane-body grid contact">
             <div class="contact-intro">
               <h2 class="h2" id="contact-title"><span class="ln" aria-hidden="true">1</span>Say hi</h2>
-              <p class="lede">Ideas, questions, a show you played with it? Get in touch.</p>
-              <p>Found a bug or missing a feature? <a href="https://github.com/dxviie/HYDRACTRL/issues">Open an issue on
-                  GitHub</a>.</p>
-              <p>Made something? Copy it as a link with <span class="nowrap"><kbd>Alt/⌥</kbd> + <kbd>U</kbd></span>
-                and paste it in.</p>
+              <p class="lede">Hi, I'm <a href="https://www.d17e.dev">David</a>, a developer and VJ. HYDRACTRL is a
+                one-person project that I build out of love for hydra.</p>
+              <p>I wanted to play hydra in my own live sets, with scenes to recall, a nanoPAD2 to switch them and an
+                editor that knows hydra. Nothing did all of that, so I built it. <a
+                  href="https://d17e.dev/blog/how-i-ended-up-building-hydractrl/">How I ended up building
+                  HYDRACTRL</a> has the long version.</p>
+              <p>Ideas, questions, a show you played with it? Write me here. I read every message.</p>
+              <p>Found a bug? <a href="https://github.com/dxviie/HYDRACTRL/issues">Open an issue on GitHub</a>. Made
+                something? Copy it as a link with <span class="nowrap"><kbd>Alt/⌥</kbd> + <kbd>U</kbd></span> and
+                paste it in.</p>
+              <p class="cmt sig"><span aria-hidden="true">// </span>David, <a href="https://www.d17e.dev">D17E</a></p>
             </div>
-            <div class="contact-form">
+            <div class="contact-form form-box">
               <iframe
                 data-tally-src="https://tally.so/embed/3Erq04?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1&source=landing"
                 loading="lazy" width="100%" height="350" title="Contact form"></iframe>

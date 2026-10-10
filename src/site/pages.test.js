@@ -29,6 +29,18 @@ describe("site layout", () => {
     expect(read("index.html")).toContain(`https://tally.so/embed/${FEEDBACK_FORM_ID}?`);
   });
 
+  test("every form links to itself for visitors without JavaScript", () => {
+    const html = read("index.html");
+    const ids = [...html.matchAll(/data-tally-src="https:\/\/tally\.so\/embed\/(\w+)\?/g)].map(
+      (match) => match[1],
+    );
+    // Release news and contact
+    expect(ids.length).toBe(2);
+    for (const id of ids) {
+      expect(html).toContain(`<noscript><a href="https://tally.so/r/${id}">`);
+    }
+  });
+
   test("_redirects never rewrites to an .html file", () => {
     // Pages answers /page.html with a redirect to /page, so a 200 rule that
     // targets it loops forever (that is how /output broke once)
