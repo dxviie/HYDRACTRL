@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "hydractrl",
@@ -8,11 +9,11 @@
         "@codemirror/autocomplete": "^6.12.0",
         "@codemirror/commands": "^6.3.0",
         "@codemirror/lang-javascript": "^6.2.1",
+        "@codemirror/language": "^6.11.0",
         "@codemirror/state": "^6.3.3",
         "@codemirror/theme-one-dark": "^6.1.2",
         "@codemirror/view": "^6.22.3",
-        "@uiw/codemirror-theme-dracula": "^4.21.21",
-        "@uiw/codemirror-theme-eclipse": "4.23.12",
+        "@lezer/highlight": "^1.2.1",
         "@uiw/codemirror-theme-monokai": "4.23.12",
         "@uiw/codemirror-theme-solarized": "4.23.12",
         "codemirror": "^6.0.1",
@@ -26,6 +27,7 @@
         "@types/web": "^0.0.137",
         "bun-types": "latest",
         "p5": "^1.9.0",
+        "playwright-core": "^1.56.1",
       },
     },
   },
@@ -97,10 +99,6 @@
     "@types/resolve": ["@types/resolve@1.20.2", "", {}, "sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q=="],
 
     "@types/web": ["@types/web@0.0.137", "", {}, "sha512-FbyVU2tdQle7uKSekc6nUc9zK/5A8Xz+Otj8sNVhgzDgPRXmmxyG1H2u0FOKF2jIBEZjmExEaLfBhiL9c266Qg=="],
-
-    "@uiw/codemirror-theme-dracula": ["@uiw/codemirror-theme-dracula@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-ZTNKHvXCOdvXF62mLOkrumu5UeegK/Iip7lCwzW3ZdV4HgljDbnWshyLY6M8iLrjTI1QbYjVGJzt7J5lg5xgOA=="],
-
-    "@uiw/codemirror-theme-eclipse": ["@uiw/codemirror-theme-eclipse@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-SVyvHPtrmS47IAnREuqG3YcAFJziLoFNtXg4dXX1IGjJzrT1ONGAn9vfMx0KNWOdGHpFUUFjiH8G3igI0VhZZA=="],
 
     "@uiw/codemirror-theme-monokai": ["@uiw/codemirror-theme-monokai@4.23.12", "", { "dependencies": { "@uiw/codemirror-themes": "4.23.12" } }, "sha512-axDkBX+txR4NKZLrEkFd+m50UQS579UEqneHz1cTQ8r0z7OYjAZo+7CwdXF5BliJOgaRTC617fyUqEr4X6UCkQ=="],
 
@@ -179,6 +177,8 @@
     "performance-now": ["performance-now@2.1.0", "", {}, "sha512-7EAHlyLHI56VEIdK57uwHdHKIaAGbnXPiw0yWbarQZOKaKpvUIgW0jWRVLiatnM+XXlSwsanIBH/hzGMJulMow=="],
 
     "picomatch": ["picomatch@4.0.2", "", {}, "sha512-M7BAV6Rlcy5u+m6oPhAPFgJTzAioX/6B0DxyvDlo9l8+T3nLKbrczg2WLUyzd45L8RqfUMyGPzekbMvX2Ldkwg=="],
+
+    "playwright-core": ["playwright-core@1.63.0", "", { "bin": { "playwright-core": "cli.js" } }, "sha512-rYCsBF/M5HjUch52bbtVONEFjv6Xu8sm8h72dNlR5bzIE1fvC/bxgspzkjSfU+MweEMmPM8KJebG6nnyxo5mCg=="],
 
     "raf": ["raf@3.4.1", "", { "dependencies": { "performance-now": "^2.1.0" } }, "sha512-Sq4CW4QhwOHE8ucn6J34MqtZCeWFP2aQSmrlroYgqAV1PjStIhJXxYuTgUIfkEk7zTLjmIjLmU5q+fbD1NnOJA=="],
 

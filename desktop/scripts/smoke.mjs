@@ -3,19 +3,34 @@
  * End-to-end smoke test of the desktop app, driven through the main process's
  * own inspector, so no browser-automation dependency is needed. It launches
  * the app, waits for the server and the interface, exercises the output
- * controls, the settings window, settings persistence and menu sync, then
- * quits and verifies the server was stopped.
+ * controls, media files dropped on the editor, the settings window, settings
+ * persistence and menu sync, then quits and verifies the server was stopped.
  *
  * Usage:
  *   node scripts/smoke.mjs                     packaged directory build (dist/<platform>-unpacked)
  *   node scripts/smoke.mjs --dev               development mode (electron .)
  *   node scripts/smoke.mjs --executable <app>  a specific executable
- *   --software-gl   use SwiftShader (headless Linux CI without a GPU)
+ *   --software-gl      use SwiftShader (headless Linux CI without a GPU)
+ *   --no-gpu           start without the GPU, for machines where not even
+ *                      SwiftShader runs (the Intel macOS runners): check
+ *                      everything but the interface's own start, which needs
+ *                      WebGL
+ *   --optional-output  report a Syphon or Spout output that doesn't start as a
+ *                      warning, not a failure (hosted CI runners have no GPU)
  *
  * On Linux without a display, run under `xvfb-run -a`. Exits 1 on any failure.
  */
 import { spawn } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,12 +44,21 @@ const option = (name) => {
 };
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+// A 1×1 PNG, for the media checks
+const PIXEL_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64",
+);
 const results = [];
 let failures = 0;
-function check(name, ok, detail = "") {
-  results.push(`${ok ? "PASS" : "FAIL"} ${name}${detail ? ` (${detail})` : ""}`);
+let warnings = 0;
+function check(name, ok, detail = "", { optional = false } = {}) {
+  const verdict = ok ? "PASS" : optional ? "WARN" : "FAIL";
+  results.push(`${verdict} ${name}${detail ? ` (${detail})` : ""}`);
   console.log(results.at(-1));
-  if (!ok) failures += 1;
+  if (ok) return;
+  if (optional) warnings += 1;
+  else failures += 1;
 }
 
 function findPackagedExecutable() {
@@ -71,6 +95,10 @@ function resolveLaunch() {
 }
 
 async function main() {
+  if (typeof WebSocket === "undefined") {
+    console.error("smoke: needs Node.js 22 or later (for its built-in WebSocket)");
+    process.exit(1);
+  }
   const launch = resolveLaunch();
   if (!launch.executable || !existsSync(launch.executable)) {
     console.error(
@@ -79,8 +107,12 @@ async function main() {
     process.exit(1);
   }
   const userData = mkdtempSync(join(tmpdir(), "hydractrl-smoke-"));
+  // Files to drop, and a second media folder, outside the app's data folder
+  const mediaFiles = mkdtempSync(join(tmpdir(), "hydractrl-smoke-files-"));
   const chromiumFlags = ["--no-sandbox", `--user-data-dir=${userData}`, "--inspect=0"];
-  if (flag("--software-gl")) {
+  const noGpu = flag("--no-gpu");
+  if (noGpu) chromiumFlags.push("--disable-gpu");
+  else if (flag("--software-gl")) {
     chromiumFlags.push(
       "--use-gl=angle",
       "--use-angle=swiftshader",
@@ -116,8 +148,18 @@ async function main() {
     }),
   );
 
+  const printOutputTail = () => {
+    if (output)
+      console.log(`--- app output (tail) ---\n${output.split("\n").slice(-30).join("\n")}`);
+    const logFile = join(userData, "logs", "hydractrl-desktop.log");
+    if (existsSync(logFile)) {
+      const log = readFileSync(logFile, "utf8").trim().split("\n").slice(-20).join("\n");
+      console.log(`--- app log (tail) ---\n${log}`);
+    }
+  };
   const deadline = setTimeout(() => {
     check("finished within 4 minutes", false);
+    printOutputTail();
     finish();
   }, 240000);
 
@@ -129,12 +171,15 @@ async function main() {
       if (!exited) child.kill("SIGKILL");
     }
     rmSync(userData, { recursive: true, force: true });
-    console.log(`\nsmoke: ${results.length - failures}/${results.length} checks passed`);
+    rmSync(mediaFiles, { recursive: true, force: true });
+    const passed = results.length - failures - warnings;
+    const warned = warnings > 0 ? `, ${warnings} optional check(s) failed` : "";
+    console.log(`\nsmoke: ${passed}/${results.length} checks passed${warned}`);
     process.exit(failures > 0 ? 1 : 0);
   }
 
   try {
-    for (let i = 0; i < 150 && !wsUrl; i++) await sleep(200);
+    for (let i = 0; i < 150 && !wsUrl && !exited; i++) await sleep(200);
     check("main process inspector reachable", Boolean(wsUrl));
     if (!wsUrl) throw new Error(`no inspector url in output:\n${output.slice(-800)}`);
 
@@ -182,20 +227,67 @@ async function main() {
     };
     const windowTitles = () =>
       inMain("return BrowserWindow.getAllWindows().map((w) => w.getTitle());");
-    const inWindow = (title, code) =>
+    // The interface's window is the first one the app opens. On macOS and
+    // Windows the output renders in an offscreen window of its own, which
+    // can come first in getAllWindows().
+    const MAIN_WINDOW =
+      "BrowserWindow.getAllWindows().filter((w) => !w.webContents.isOffscreen()).sort((a, b) => a.id - b.id)[0]";
+    const SETTINGS_WINDOW =
+      'BrowserWindow.getAllWindows().find((w) => w.getTitle() === "Output Settings")';
+    const OUTPUT_WINDOW = "BrowserWindow.getAllWindows().find((w) => w.webContents.isOffscreen())";
+    const inWindow = (finder, name, code) =>
       inMain(
-        `const w = BrowserWindow.getAllWindows().find((w) => w.getTitle() === ${JSON.stringify(title)}); if (!w) throw new Error("no window titled ${title}"); return w.webContents.executeJavaScript(${JSON.stringify(code)});`,
+        `const w = ${finder}; if (!w) throw new Error("no ${name} window"); return w.webContents.executeJavaScript(${JSON.stringify(code)});`,
       );
-    const inMainWindow = (code) => inWindow("HYDRACTRL", code);
-    const inSettings = (code) => inWindow("Output Settings", code);
+    const inMainWindow = (code) => inWindow(MAIN_WINDOW, "main", code);
+    const inSettings = (code) => inWindow(SETTINGS_WINDOW, "settings", code);
+    const inOutput = (code) => inWindow(OUTPUT_WINDOW, "output", code);
+    const mirrorStatus = () =>
+      inMainWindow('window.hydractrl.plugins.getApi("desktop-mirror")?.getStatus() ?? null');
+    /** Put a sketch in the editor and press Run, the way a person would. */
+    const runInEditor = (code) =>
+      inMainWindow(`(() => {
+        const editor = window._editorProxy;
+        editor.dispatch({ changes: { from: 0, to: editor.state.doc.length, insert: ${JSON.stringify(code)} } });
+        document.getElementById("run-btn").click();
+        return true;
+      })()`);
+    const outputSketch = () =>
+      inOutput("(window.hydractrlOutput && window.hydractrlOutput.lastSketch()?.main) || null");
     const getState = () => inMainWindow("window.hydractrlDesktop.getState()");
+    /** Drop files at a point of a window, the way the OS does, through the DevTools protocol. */
+    const dropFiles = (finder, files, point) =>
+      inMain(`
+        const w = ${finder};
+        const debug = w.webContents.debugger;
+        if (!debug.isAttached()) debug.attach("1.3");
+        const data = { items: [], files: ${JSON.stringify(files)}, dragOperationsMask: 1 };
+        try {
+          for (const type of ["dragEnter", "dragOver", "drop"]) {
+            await debug.sendCommand("Input.dispatchDragEvent", { type, x: ${point.x}, y: ${point.y}, data });
+          }
+        } finally {
+          debug.detach();
+        }
+        return true;`);
+    /** Status and body of a file the server serves. */
+    const fetchMedia = async (path, headers = {}) => {
+      const response = await fetch(`${(await getState()).server.url}${path}`, { headers });
+      return {
+        status: response.status,
+        type: response.headers.get("content-type"),
+        bytes: Buffer.from(await response.arrayBuffer()),
+      };
+    };
 
-    // Startup: loading screen, then the interface from the local server
+    // Startup: loading screen, then the interface from the local server. The
+    // inspector answers while Node is still starting, before require exists,
+    // so the first polls may fail.
     let firstUrl = "";
-    for (let i = 0; i < 80 && !firstUrl; i++) {
+    for (let i = 0; i < 80 && !firstUrl && !exited; i++) {
       firstUrl = await inMain(
-        'const w = BrowserWindow.getAllWindows()[0]; return w ? w.webContents.getURL() : "";',
-      );
+        `const w = ${MAIN_WINDOW}; return w ? w.webContents.getURL() : "";`,
+      ).catch(() => "");
       if (!firstUrl) await sleep(250);
     }
     check(
@@ -203,14 +295,25 @@ async function main() {
       /loading\.html|127\.0\.0\.1/.test(String(firstUrl)),
       String(firstUrl),
     );
+    // Without a GPU the interface can't start hydra, so only wait for the page
+    // and the desktop bridge
+    const readyProbe = noGpu
+      ? 'typeof window.hydractrlDesktop === "object"'
+      : "Boolean(window.hydractrl && window.hydractrl.plugins)";
     let ready = false;
-    for (let i = 0; i < 360 && !ready; i++) {
+    for (let i = 0; i < 360 && !ready && !exited; i++) {
       ready = await inMain(
-        'const w = BrowserWindow.getAllWindows()[0]; if (!w || !w.webContents.getURL().startsWith("http://127.0.0.1:")) return false; return w.webContents.executeJavaScript("Boolean(window.hydractrl && window.hydractrl.plugins)").catch(() => false);',
-      );
+        `const w = ${MAIN_WINDOW}; if (!w || !w.webContents.getURL().startsWith("http://127.0.0.1:")) return false; return w.webContents.executeJavaScript(${JSON.stringify(readyProbe)}).catch(() => false);`,
+      ).catch(() => false);
       if (!ready) await sleep(250);
     }
-    check("interface loaded from the local server", ready);
+    check(
+      noGpu
+        ? "interface page loaded from the local server"
+        : "interface loaded from the local server",
+      ready,
+      exited ? "the app exited" : "",
+    );
     if (!ready) throw new Error("interface did not load");
     await sleep(1000);
 
@@ -236,19 +339,32 @@ async function main() {
       state.settings.output.name === "HYDRACTRL" && state.settings.output.width === 1920,
     );
 
-    const plugins = await inMainWindow("window.hydractrl.plugins.list()");
-    check(
-      "all interface plugins active",
-      plugins.every((p) => p.status === "active") && plugins.some((p) => p.id === "desktop-output"),
-      plugins
-        .filter((p) => p.status !== "active")
-        .map((p) => p.id)
-        .join(",") || `${plugins.length} plugins`,
-    );
-    const block = await inMainWindow(
-      '(document.querySelector(".desktop-output") || {}).innerText || ""',
-    );
-    check("OUTPUT block in the stats panel", /OUTPUT/.test(block), block.replace(/\n/g, " | "));
+    if (noGpu) {
+      console.log("SKIP interface plugins and the OUTPUT block (they need WebGL)");
+    } else {
+      const plugins = await inMainWindow("window.hydractrl.plugins.list()");
+      check(
+        "all interface plugins active",
+        plugins.every((p) => p.status === "active") &&
+          plugins.some((p) => p.id === "desktop-output"),
+        plugins
+          .filter((p) => p.status !== "active")
+          .map((p) => p.id)
+          .join(",") || `${plugins.length} plugins`,
+      );
+      const block = await inMainWindow(
+        '(document.querySelector(".desktop-output") || {}).innerText || ""',
+      );
+      check("OUTPUT block in the stats panel", /OUTPUT/.test(block), block.replace(/\n/g, " | "));
+      const mirrorSetup = await inMainWindow(
+        '({ receiver: typeof window.hydractrlDesktop.mirror?.start === "function", status: window.hydractrl.plugins.getApi("desktop-mirror")?.getStatus() ?? null })',
+      );
+      check(
+        "the interface can receive the output's frames",
+        mirrorSetup.receiver && mirrorSetup.status !== null,
+        JSON.stringify(mirrorSetup),
+      );
+    }
 
     const outputMenu = await inMain(
       'const menu = Menu.getApplicationMenu().items.find((i) => i.label === "Output"); return menu ? menu.submenu.items.map((i) => ({ label: i.label, enabled: i.enabled })) : null;',
@@ -271,14 +387,65 @@ async function main() {
         if (running.state === "running" && running.fps !== null) break;
         await sleep(250);
       }
+      const optional = flag("--optional-output");
+      const framesFlow = started && running.state === "running" && running.fps > 0;
       check(
         "output starts and reports fps",
-        started && running.state === "running" && running.fps > 0,
+        framesFlow,
         JSON.stringify({ state: running.state, fps: running.fps, error: running.error }),
+        { optional },
       );
+
+      // The interface shows the output's own frames instead of rendering
+      // again, and runs sketches there
+      let mirrored = null;
+      if (framesFlow && !noGpu) {
+        for (let i = 0; i < 60; i++) {
+          mirrored = await mirrorStatus();
+          if (mirrored?.active) break;
+          await sleep(250);
+        }
+        check(
+          "the interface shows the output's own frames",
+          Boolean(mirrored?.active) && (await getState()).output.mirror === true,
+          JSON.stringify(mirrored),
+          { optional },
+        );
+      }
+      if (mirrored?.active) {
+        await runInEditor("osc(7, 0.1, 1.2).out()");
+        let ran = null;
+        for (let i = 0; i < 40 && ran !== "osc(7, 0.1, 1.2).out()"; i++) {
+          await sleep(250);
+          ran = await outputSketch();
+        }
+        check("a run plays on the output", ran === "osc(7, 0.1, 1.2).out()", String(ran));
+        await runInEditor("osc(7, 0.1, 1.2).out(");
+        await sleep(1500);
+        const error = await inMainWindow(
+          '(document.querySelector(".error-notification") || {}).innerText || ""',
+        );
+        check(
+          "a broken sketch shows its error and leaves the output playing",
+          error.length > 0 && (await outputSketch()) === "osc(7, 0.1, 1.2).out()",
+          error.split("\n")[0],
+        );
+      }
       await inMainWindow("window.hydractrlDesktop.stopOutput()");
       await sleep(500);
-      check("output stops", (await getState()).output.state === "stopped");
+      const stopped = (await getState()).output;
+      check("output stops", stopped.state === "stopped", stopped.state, { optional });
+      if (mirrored?.active) {
+        const after = await mirrorStatus();
+        const visible = await inMainWindow(
+          '(document.querySelector("#hydra-canvas canvas:not([hidden])") || {}).className || "hydra"',
+        );
+        check(
+          "the interface renders on its own again once the output stops",
+          after?.active === false && visible !== "desktop-mirror",
+          `${JSON.stringify(after)} ${visible}`,
+        );
+      }
     } else {
       const started = await inMainWindow("window.hydractrlDesktop.startOutput()");
       const after = (await getState()).output;
@@ -288,6 +455,95 @@ async function main() {
         after.error,
       );
     }
+
+    // Media: images and videos dropped on the editor go to the media folder,
+    // which the server serves at /media/
+    const mediaState = (await getState()).media;
+    const mediaDir = join(dirname(dirname(state.app.logPath)), "media");
+    check(
+      "media folder defaults to the app's data folder",
+      mediaState?.folder === mediaDir && mediaState.isDefault && mediaState.available,
+      JSON.stringify(mediaState),
+    );
+    const pixel = join(mediaFiles, "smoke pixel.png");
+    writeFileSync(pixel, PIXEL_PNG);
+    if (noGpu) {
+      // No interface to drop on: put the file in the folder by hand
+      console.log("SKIP dropping a file on the editor (the interface needs WebGL)");
+      mkdirSync(mediaDir, { recursive: true });
+      copyFileSync(pixel, join(mediaDir, "smoke pixel.png"));
+    } else {
+      // The About panel covers the editor on a first start
+      const point = await inMainWindow(`(() => {
+        const info = document.getElementById("info-panel");
+        if (info) info.style.display = "none";
+        const box = document.querySelector("#editor-content .cm-content").getBoundingClientRect();
+        const point = { x: Math.round(box.left + 60), y: Math.round(box.top + 8) };
+        return { ...point, onEditor: Boolean(document.elementFromPoint(point.x, point.y)?.closest(".cm-editor")) };
+      })()`);
+      await dropFiles(MAIN_WINDOW, [pixel], point);
+      const line = 's0.initImage("/media/smoke pixel.png");';
+      let code = "";
+      for (let i = 0; i < 40 && !code.includes(line); i++) {
+        await sleep(250);
+        code = await inMainWindow("window._editorProxy._editor.getCode()");
+      }
+      check(
+        "a file dropped on the editor adds a line that loads it",
+        point.onEditor && code.includes(line),
+        code.split("\n").slice(0, 2).join(" | "),
+      );
+      check(
+        "the dropped file is copied into the media folder",
+        existsSync(join(mediaDir, "smoke pixel.png")) && existsSync(pixel),
+      );
+      const loaded = await inMainWindow(`new Promise((resolve) => {
+        const image = new Image();
+        image.crossOrigin = "anonymous";
+        image.onload = () => resolve(image.width);
+        image.onerror = () => resolve(-1);
+        image.src = "/media/smoke pixel.png";
+      })`);
+      check("the interface loads it the way hydra does", loaded === 1, `width ${loaded}`);
+    }
+    const served = await fetchMedia("/media/smoke%20pixel.png");
+    check(
+      "the server serves the media folder at /media/",
+      served.status === 200 && served.type === "image/png" && served.bytes.equals(PIXEL_PNG),
+      `${served.status} ${served.type}`,
+    );
+    const ranged = await fetchMedia("/media/smoke%20pixel.png", { Range: "bytes=0-7" });
+    check("media answers byte ranges", ranged.status === 206 && ranged.bytes.length === 8);
+
+    const otherFolder = join(mediaFiles, "other media");
+    mkdirSync(otherFolder, { recursive: true });
+    writeFileSync(join(otherFolder, "other.png"), PIXEL_PNG);
+    const pidBeforeSwitch = (await getState()).server.pid;
+    await inMainWindow(
+      `window.hydractrlDesktop.updateSettings({ media: { folder: ${JSON.stringify(otherFolder)} } }).then(() => true)`,
+    );
+    let switched = null;
+    for (let i = 0; i < 20 && switched?.status !== 200; i++) {
+      await sleep(150);
+      switched = await fetchMedia("/media/other.png");
+    }
+    const oldFile = await fetchMedia("/media/smoke%20pixel.png");
+    check(
+      "the server follows a new media folder without restarting",
+      switched?.status === 200 &&
+        oldFile.status === 404 &&
+        (await getState()).server.pid === pidBeforeSwitch,
+      `new ${switched?.status}, old ${oldFile.status}`,
+    );
+    await inMainWindow(
+      'window.hydractrlDesktop.updateSettings({ media: { folder: "" } }).then(() => true)',
+    );
+    let restored = null;
+    for (let i = 0; i < 20 && restored?.status !== 200; i++) {
+      await sleep(150);
+      restored = await fetchMedia("/media/smoke%20pixel.png");
+    }
+    check("Use Default goes back to the app's media folder", restored?.status === 200);
 
     // Settings window
     await inMainWindow('window.hydractrlDesktop.openSettings("resolution")');
@@ -347,6 +603,14 @@ async function main() {
       clamped.output.width === 16 && clamped.output.name === "SmokeTest",
       JSON.stringify(clamped.output),
     );
+    const mediaRow = await inSettings(
+      'JSON.stringify({ text: document.getElementById("media-folder").textContent, title: document.getElementById("media-folder").title })',
+    );
+    check(
+      "settings window shows the media folder",
+      JSON.parse(mediaRow).title === mediaDir && JSON.parse(mediaRow).text.endsWith("media"),
+      mediaRow,
+    );
     await sleep(2000);
     check(
       "settings window still open after updates",
@@ -394,11 +658,15 @@ async function main() {
       /starting \(/.test(log) && /shutting down/.test(log),
       logPath,
     );
+    check(
+      "the main process took the interface's request for frames",
+      !noGpu ? !/desktop:set-mirror failed/.test(log) : true,
+      (log.match(/desktop:set-mirror failed.*/) || [""])[0],
+    );
     ws.close();
   } catch (error) {
     check("smoke test completed", false, String(error.message || error).slice(0, 300));
-    if (output)
-      console.log(`--- app output (tail) ---\n${output.split("\n").slice(-15).join("\n")}`);
+    printOutputTail();
   }
   await finish();
 }

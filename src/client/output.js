@@ -9,9 +9,15 @@
  *
  * A `#sketch=` fragment (the Alt/Opt+U share-link format) runs immediately on
  * load, so the page also works standalone or on a static host.
+ *
+ * Loaded with `?primary`, it is the desktop app's own output, which the
+ * interface shows instead of rendering every sketch a second time: it runs
+ * the interface's sketches itself and answers with the result, and keeps the
+ * last sketch that worked on screen when one fails (see core/primaryRunner.js).
  */
 import { createReconnectingSocket } from "./core/ReconnectingSocket.js";
 import { buildOutputSocketUrl, detectOutputServer } from "./core/outputProtocol.js";
+import { createPrimaryRunner } from "./core/primaryRunner.js";
 import { executeSketch } from "./core/sketchRunner.js";
 import { readSketchFromHash } from "./plugins/UrlSharePlugin.js";
 
@@ -84,18 +90,43 @@ async function init() {
 
     let socket = null;
     let hasRunSketch = false;
+    const primary = new URLSearchParams(window.location.search).has("primary");
+    const primaryRunner = primary ? createPrimaryRunner({ hydra }) : null;
 
-    async function run(sketch) {
-      const result = await executeSketch(hydra, sketch);
+    function showRunning() {
+      hasRunSketch = true;
+      clearStatus();
+      console.log("[output] sketch running");
+    }
+
+    /** A sketch sent to every output; `runId` names the interface's run it came from. */
+    async function run(sketch, runId) {
+      const result = primaryRunner
+        ? await primaryRunner.runSketch(sketch, { runId })
+        : await executeSketch(hydra, sketch);
+      if (result.skipped) return result;
       if (result.success) {
-        hasRunSketch = true;
-        clearStatus();
-        console.log("[output] sketch running");
+        showRunning();
       } else {
         console.error("[output] sketch failed:", result.message);
         if (socket) socket.send({ type: "error", message: result.message });
       }
       return result;
+    }
+
+    /** A run for this output alone (primary only): the interface waits for its result. */
+    async function runForInterface(message) {
+      let result;
+      try {
+        result = await primaryRunner.run(message.id, { setup: message.setup, main: message.main });
+      } catch (error) {
+        result = { success: false, message: error?.message || String(error) };
+      }
+      if (result.success) showRunning();
+      else console.error("[output] sketch failed:", result.message);
+      const reply = { type: "result", id: message.id, success: result.success };
+      if (!result.success) reply.message = result.message;
+      socket?.send(reply);
     }
 
     const urlSketch = readSketchFromHash(window.location.hash);
@@ -106,12 +137,16 @@ async function init() {
     socket = createReconnectingSocket({
       url: buildOutputSocketUrl(window.location),
       onOpen: (link) => {
-        link.send({ type: "hello", role: "output" });
+        link.send(
+          primary ? { type: "hello", role: "output", primary } : { type: "hello", role: "output" },
+        );
         if (!hasRunSketch) setStatus("connected, waiting for a sketch");
       },
       onMessage: (message) => {
         if (message.type === "sketch") {
-          run({ setup: message.setup, main: message.main });
+          run({ setup: message.setup, main: message.main }, message.runId);
+        } else if (message.type === "run" && primaryRunner) {
+          runForInterface(message);
         } else if (message.type === "state") {
           if (typeof message.nanoX === "number") window.nanoX = message.nanoX;
           if (typeof message.nanoY === "number") window.nanoY = message.nanoY;
@@ -123,7 +158,13 @@ async function init() {
       log: (line) => console.warn(`[output] ${line}`),
     });
 
-    window.hydractrlOutput = { hydra, socket, run };
+    window.hydractrlOutput = {
+      hydra,
+      socket,
+      run,
+      primary,
+      lastSketch: () => primaryRunner?.getLastGood() ?? null,
+    };
 
     if (await detectOutputServer()) {
       if (!hasRunSketch) setStatus("waiting for HYDRACTRL");

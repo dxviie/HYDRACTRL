@@ -6,9 +6,10 @@
 import { FRAME_RATES, RESOLUTION_PRESETS, presetLabel } from "./settings.js";
 
 export const LINKS = Object.freeze({
-  website: "https://dxviie.github.io/HYDRACTRL/",
+  website: "https://hydractrl.d17e.dev/",
   hydraDocs: "https://hydra.ojack.xyz/docs/",
   issues: "https://github.com/dxviie/HYDRACTRL/issues",
+  releases: "https://github.com/dxviie/HYDRACTRL/releases",
   desktopReadme: "https://github.com/dxviie/HYDRACTRL/blob/main/desktop/README.md",
 });
 
@@ -119,6 +120,8 @@ export function buildMenuTemplate({ platform, appName, state, actions }) {
         click: () => actions.copyServerUrl(),
       },
       { type: "separator" },
+      { label: "Show Media Folder", click: () => actions.openMediaFolder() },
+      { type: "separator" },
       isMac ? { role: "close" } : { role: "quit" },
     ],
   };
@@ -172,6 +175,7 @@ export function buildMenuTemplate({ platform, appName, state, actions }) {
       { label: "Desktop App Guide", click: () => actions.openExternal(LINKS.desktopReadme) },
       { label: "Hydra Documentation", click: () => actions.openExternal(LINKS.hydraDocs) },
       { label: "HYDRACTRL Website", click: () => actions.openExternal(LINKS.website) },
+      { label: "Release Notes and Downloads", click: () => actions.openExternal(LINKS.releases) },
       { label: "Report an Issue", click: () => actions.openExternal(LINKS.issues) },
       { type: "separator" },
       { label: "Show Logs", click: () => actions.openLogs() },

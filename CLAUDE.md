@@ -5,19 +5,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 HYDRACTRL is a tool built around hydra-synth/hydra designed for live performances. It uses Bun for optimal performance and distribution, CodeMirror for code editing, and Elysia for serving the web application.
 
-The server also serves a chrome-less render head at `/output` that mirrors the UI over a WebSocket (`/ws/output`, hub in `src/server/outputHub.ts`, client entry `src/client/output.js`). The server honours `PORT` and `HOST` environment variables.
+The interface page is `public/app.html`. The server (the executable, the desktop app, `bun dev`) serves it at `/` and `/app`, plus a chrome-less render head at `/output` that mirrors the UI over a WebSocket (`/ws/output`, hub in `src/server/outputHub.ts`, client entry `src/client/output.js`). The server honours `PORT` and `HOST` environment variables. Phones get a playback-only mobile UI (`isPhone()` in `src/utils/DeviceDetection.js`, `MobileUiPlugin`); tablets such as the iPad (`isTablet()`) get the full interface without MIDI and the breakout window, and use it by touch, so drags and resizes go through `trackPointerDrag` in `src/utils/Draggable.js` (pointer events), never mouse events.
 
-`desktop/` is the standalone Electron app (own `package.json` and lockfile): it spawns the bundled server binary (or attaches to a running `bun dev`), shows the interface, and renders `/output` offscreen as a Syphon/Spout source via `@napolab/texture-bridge`. Main-process modules live in `desktop/src/main` with injected dependencies so `bun test` at the root covers them; `bun run lint` includes `desktop/src` and `desktop/scripts`. Packaging is `electron-builder` with a `beforePack` hook that compiles the server with `bun build --compile` (see `desktop/README.md`).
+The hosted site (hydractrl.d17e.dev, Cloudflare Pages, output dir `public/`, built with `bun run build:production`) serves `public/index.html` as the landing page at `/` and the interface at `/app`. Landing page scripts live in `src/site/` (bundled to `public/site/` by `build:site`), its media in `public/site/` (all 16:9, checked by `src/site/pages.test.js`); `scripts/copy-public.js` keeps those out of the executable and desktop bundles. The starter scenes in `src/sketches.js` play behind the landing page and are the interface's starter bank (`public/assets/banks/hydractrl-init-basic.json`); `src/sketches.test.js` keeps the two in step. `bun run media` re-shoots the landing page media from the real interface and `bun run media starter-bank` rebuilds the bank (see `scripts/media/README.md`; needs ffmpeg and Playwright's Chromium). The landing page embeds two Tally forms, release news and contact; the contact form (`FEEDBACK_FORM_ID` in `src/project.js`) is also the interface's feedback panel. Never add a `_redirects` rule that rewrites to an `.html` file (Pages redirects `/x.html` to `/x`, so it loops).
+
+`desktop/` is the standalone Electron app (own `package.json` and lockfile): it spawns the bundled server binary (or attaches to a running `bun dev`), shows the interface, and renders `/output?primary` offscreen as a Syphon/Spout source via `@napolab/texture-bridge`. Each sketch renders only there: the app forwards every shared frame to the interface window (`sharedTexture` receiver in the preload), where `DesktopMirrorPlugin` draws it in place of the main hydra canvas, stops the main instance's render loop (`ctx.renderLoop`) and runs sketches on that primary output (`ctx.setSketchRunner`, `run`/`result` in the hub, `src/client/core/primaryRunner.js`), falling back to local rendering whenever the output isn't running. Main-process modules live in `desktop/src/main` with injected dependencies so `bun test` at the root covers them; `bun run lint` includes `desktop/src` and `desktop/scripts`. Images and videos dropped on the editor (`DesktopMediaPlugin`) are copied into the media folder, a desktop setting (`desktop/src/main/media.js`), which the server serves at `/media/` only when started with `HYDRACTRL_MEDIA_DIR` (`src/server/mediaFolder.ts`); the app switches folders with a JSON control line on the server's stdin, and `src/server/mediaFolder.test.ts` keeps the two media type lists equal. Packaging is `electron-builder` with a `beforePack` hook that compiles the server with `bun build --compile` and an `afterSign` hook (`desktop/scripts/notarize.cjs`) that notarizes the signed macOS app (see `desktop/README.md`).
+
+## Versions and Releases
+One semantic version for the web app and the desktop app, in `package.json` and `desktop/package.json` (kept equal by a test), with notes in `CHANGELOG.md` (Keep a Changelog). `bun run release:prepare <version>` bumps both and dates the `[Unreleased]` notes; pushing a `v<version>` tag (or running it from the Actions tab on `main` with the version, which tags the commit when it publishes) runs `.github/workflows/release.yml`, which builds the desktop app via `desktop.yml` and publishes a GitHub release. Desktop artifact names carry no version so the landing page can link to `releases/latest/download/<file>` (`src/site/downloads.js`, checked against `desktop/electron-builder.yml`). Add user-facing changes to `[Unreleased]` in `CHANGELOG.md`. See `RELEASING.md`.
 
 ## Build Commands
 - Setup: `bun install`
-- Start dev: `bun dev` (watches for changes)
-- Build: `bun run build` (outputs to dist/)
+- Start dev: `bun dev` (builds the bundles once, restarts the server on server changes; run `bun run build` after client changes)
+- Build: `bun run build` (interface bundles to public/assets, landing page bundle to public/site)
 - Create executable: `bun run build:exe` (creates standalone binary)
-- Lint: `bun run lint` (uses Biome)
-- Format: `bun run format` (uses Biome)
+- Lint: `bun run lint` (uses Biome; covers src, scripts and desktop)
+- Format: `bun run format` (uses Biome; same paths as lint)
 - Test all: `bun test`
-- Test single: `bun test src/path/to/file.test.ts` or `bun test --test-name="test description"`
+- Test single: `bun test src/path/to/file.test.ts` or `bun test -t "test description"`
+- Landing page media: `bun run media [shot…]` (re-shoots `public/site`; see `scripts/media/README.md`)
 
 ## Code Style Guidelines
 - **Runtime**: Use Bun-specific APIs when beneficial for performance

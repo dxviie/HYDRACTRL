@@ -22,7 +22,6 @@ const ALLOWED_PERMISSIONS = new Set([
 const EXTERNAL_HOSTS = new Set([
   "github.com",
   "hydra.ojack.xyz",
-  "dxviie.github.io",
   "hydractrl.d17e.dev",
   "d17e.dev",
   "www.d17e.dev",

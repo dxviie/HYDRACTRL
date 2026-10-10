@@ -1,3 +1,52 @@
+/* Fonts (see /assets/fonts/LICENSE.txt): Fira Code for code, with its
+   ligatures, and IBM Plex Mono for the rest of the interface */
+@font-face {
+  font-family: "Fira Code";
+  src: url("/assets/fonts/fira-code-latin-wght.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Fira Code";
+  src: url("/assets/fonts/fira-code-latin-ext-wght.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
+    U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/assets/fonts/ibm-plex-mono-latin-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/assets/fonts/ibm-plex-mono-latin-500.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("/assets/fonts/ibm-plex-mono-latin-600.woff2") format("woff2");
+  font-weight: 600 700;
+  font-display: swap;
+}
+
+/* Theme-independent tokens */
+:root {
+  --font-ui: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-code: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --panel-radius: 6px;
+}
+
 /* Global scrollbar styling */
 ::-webkit-scrollbar {
   width: 12px;
@@ -75,6 +124,9 @@
   --panel-opacity: 0.9;
   /* Default panel opacity */
 
+  /* Behind the code for a moment when it runs: the logo's violet */
+  --color-flash: rgba(144, 0, 255, 0.85);
+
   /* UI Elements */
   --color-button-bg: #2d2d2d;
   --color-button-hover: #3d3d3d;
@@ -91,40 +143,53 @@
   --color-perf-medium: rgb(255, 200, 0);
   --color-perf-poor: rgb(255, 100, 100);
 
+  /* Optional, for light themes (the dark ones leave them unset and keep
+     the fallbacks where they are used):
+     --color-accent / --color-on-accent: checked boxes and slider fills
+     --color-stat-value: the system panel's numbers (white)
+     --color-contrast-rgb: bank dots, icons and pads drawn in white
+     --color-midi-active / --color-midi-idle: the MIDI status line */
 }
 
-/* Light Theme */
+/* Light Theme: ink on white, with the violet of the logo as its accent */
 .theme-light {
   /* Base colors */
-  --color-bg-primary: #f5f5f5;
-  --color-bg-secondary: rgba(220, 220, 220, 0.9);
-  --color-bg-secondary-rgb: 220, 220, 220;
+  --color-bg-primary: #f3f2f7;
+  --color-bg-secondary: rgba(250, 249, 252, 0.94);
+  --color-bg-secondary-rgb: 250, 249, 252;
   /* RGB values for opacity control */
-  --color-bg-tertiary: rgba(200, 200, 200, 0.8);
-  --color-bg-tertiary-rgb: 200, 200, 200;
+  --color-bg-tertiary: rgba(236, 234, 242, 0.96);
+  --color-bg-tertiary-rgb: 236, 234, 242;
   /* RGB values for opacity control */
-  --color-bg-editor: rgba(240, 240, 240, 0.8);
-  --color-bg-editor-rgb: 240, 240, 240;
+  --color-bg-editor: rgba(255, 255, 255, 0.7);
+  --color-bg-editor-rgb: 255, 255, 255;
   /* RGB values for opacity control */
-  --color-text-primary: #333333;
-  --color-text-secondary: #666666;
-  --color-text-editor: #222222;
+  --color-text-primary: #1c1a24;
+  --color-text-secondary: #6a6679;
+  --color-text-editor: #1c1a24;
 
   /* UI Elements */
-  --color-button-bg: #dddddd;
-  --color-button-hover: #cccccc;
-  --color-button-active: #bbbbbb;
-  --color-panel-shadow: rgba(0, 0, 0, 0.1);
-  --color-panel-blur: 5px;
+  --color-button-bg: #dcd8e7;
+  --color-button-hover: #d0cbdf;
+  --color-button-active: #c3bdd5;
+  --color-panel-shadow: rgba(28, 20, 60, 0.2);
+  --color-panel-blur: 8px;
+  --color-accent: #6d28d9;
+  --color-on-accent: #ffffff;
+  --color-flash: rgba(109, 40, 217, 0.3);
+  --color-stat-value: #1c1a24;
+  --color-contrast-rgb: 28, 26, 36;
+  --color-midi-active: #15803d;
+  --color-midi-idle: #6a6679;
 
   /* Notifications */
-  --color-success: rgba(40, 167, 69, 0.9);
-  --color-error: rgba(220, 53, 69, 0.9);
+  --color-success: rgba(21, 128, 61, 0.95);
+  --color-error: rgba(220, 38, 38, 0.95);
 
   /* Performance indicators */
-  --color-perf-good: rgb(40, 167, 69);
-  --color-perf-medium: rgb(255, 193, 7);
-  --color-perf-poor: rgb(220, 53, 69);
+  --color-perf-good: #15803d;
+  --color-perf-medium: #b45309;
+  --color-perf-poor: #dc2626;
 
 }
 
@@ -144,6 +209,7 @@
   --color-text-primary: #ffffff;
   --color-text-secondary: #cccccc;
   --color-text-editor: #ffffff;
+  --color-flash: rgba(0, 255, 83, 0.35);
 
   /* UI Elements */
   --color-button-bg: #1e1e1e;
@@ -179,6 +245,7 @@
   --color-text-primary: #ff00ff;
   --color-text-secondary: #00ffff;
   --color-text-editor: #ffffff;
+  --color-flash: rgba(255, 0, 255, 0.5);
 
   /* UI Elements */
   --color-button-bg: #6600cc;
@@ -198,47 +265,47 @@
 
 }
 
-/* Nineties Pop Theme */
+/* Nineties Pop Theme: Memphis style, cream panels with black outlines and
+   hard shadows, sunny title bars, hot pink and teal (more at the end) */
 .theme-nineties-pop {
   /* Base colors */
-  --color-bg-primary: #ffc0cb;
-  /* Pink */
-  --color-bg-secondary: rgba(162, 130, 255, 0.9);
-  /* Purple */
-  --color-bg-secondary-rgb: 162, 130, 255;
+  --color-bg-primary: #fff3d6;
+  --color-bg-secondary: rgba(255, 248, 231, 0.95);
+  --color-bg-secondary-rgb: 255, 248, 231;
   /* RGB values for opacity control */
-  --color-bg-tertiary: rgba(255, 215, 0, 0.7);
-  /* Gold */
-  --color-bg-tertiary-rgb: 255, 215, 0;
+  --color-bg-tertiary: rgba(255, 214, 10, 0.96);
+  --color-bg-tertiary-rgb: 255, 214, 10;
   /* RGB values for opacity control */
-  --color-bg-editor: rgba(255, 182, 193, 0.8);
-  /* Light Pink */
-  --color-bg-editor-rgb: 255, 182, 193;
+  --color-bg-editor: rgba(255, 255, 255, 0.6);
+  --color-bg-editor-rgb: 255, 255, 255;
   /* RGB values for opacity control */
-  --color-text-primary: #333333;
-  --color-text-secondary: #222222;
-  --color-text-editor: #000000;
+  --color-text-primary: #1a1423;
+  --color-text-secondary: #5a3d70;
+  --color-text-editor: #1a1423;
 
   /* UI Elements */
-  --color-button-bg: #87cefa;
-  /* Light Sky Blue */
-  --color-button-hover: #00bfff;
-  /* Deep Sky Blue */
-  --color-button-active: #1e90ff;
-  /* Dodger Blue */
-  --color-panel-shadow: rgba(0, 0, 0, 0.2);
+  --color-button-bg: #00c2b8;
+  --color-button-hover: #2edad0;
+  --color-button-active: #00a39a;
+  --color-panel-shadow: rgba(26, 20, 35, 0.35);
   --color-panel-blur: 5px;
+  --color-accent: #ff3d9a;
+  --color-on-accent: #1a1423;
+  --color-flash: rgba(255, 61, 154, 0.45);
+  --color-stat-value: #1a1423;
+  --color-contrast-rgb: 26, 20, 35;
+  --color-midi-active: #007c80;
+  --color-midi-idle: #5a3d70;
+  --pop-ink: #1a1423;
 
   /* Notifications */
-  --color-success: rgba(50, 205, 50, 0.8);
-  /* Lime Green */
-  --color-error: rgba(255, 0, 0, 0.8);
-  /* Red */
+  --color-success: rgba(0, 150, 140, 0.96);
+  --color-error: rgba(230, 20, 100, 0.96);
 
   /* Performance indicators */
-  --color-perf-good: rgb(50, 205, 50);
-  --color-perf-medium: rgb(255, 165, 0);
-  --color-perf-poor: rgb(255, 0, 0);
+  --color-perf-good: #008f7a;
+  --color-perf-medium: #c77700;
+  --color-perf-poor: #e0115f;
 
 }
 
@@ -249,12 +316,21 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: var(--font-ui);
+  font-size: 12px;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+}
+
+/* Form controls don't inherit the page font by default */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
 .app-container {
@@ -265,9 +341,8 @@ body {
 
 .shortcut {
   color: var(--color-text-secondary);
-  font-size: small;
-  font-family: monospace;
-  font-weight: bold;
+  font-size: 10px;
+  font-weight: 400;
 }
 
 /* Fullscreen Hydra canvas */
@@ -286,23 +361,41 @@ body {
   position: absolute;
   top: 20px;
   left: 20px;
-  width: 680px;
+  /* Narrower on narrow screens (an iPad in portrait), clear of the system panel */
+  width: min(680px, calc(100vw - 260px));
   height: 500px;
   background-color: rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important;
-  border-radius: 8px;
+  border-radius: var(--panel-radius);
   z-index: 100;
   box-shadow: 0 4px 15px var(--color-panel-shadow);
   /* backdrop-filter: blur(var(--color-panel-blur)); */
   display: flex;
   flex-direction: column;
-  min-width: 500px;
-  min-height: 250px;
+  min-width: 400px;
+  min-height: 200px;
   resize: both;
 }
 
 .editor-content {
   overflow: auto;
   flex-grow: 1;
+}
+
+/* Resize grip in a panel's bottom-right corner. The doc panel resizes by it;
+   the editor has CSS resize, and shows its grip only on touch screens (below),
+   which draw no handle for CSS resize. */
+.resize-grip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nwse-resize;
+  z-index: 5;
+}
+
+.editor-resize-grip {
+  display: none;
 }
 
 /* Hydra Editor Styles */
@@ -312,7 +405,7 @@ body {
   flex: 1;
   background-color: var(--color-bg-editor);
   color: var(--color-text-editor);
-  font-family: monospace;
+  font-family: var(--font-code);
   font-size: 14px;
   padding: 8px;
   border: none;
@@ -340,7 +433,7 @@ body {
   height: 100%;
   background-color: var(--color-bg-editor);
   color: var(--color-text-editor);
-  font-family: monospace;
+  font-family: var(--font-code);
   font-size: 14px;
   padding: 8px;
   white-space: pre-wrap;
@@ -377,56 +470,70 @@ body {
   height: 100%;
 }
 
+/* Desktop app: images and videos dragged over the editor (DesktopMediaPlugin) */
+.editor-content .cm-editor.cm-file-drop-target {
+  outline: 2px dashed var(--color-accent, var(--color-perf-good));
+  outline-offset: -4px;
+}
+
+/* The run flash (src/utils/runFlash.js): the theme's flash colour behind
+   the code that just ran */
+.cm-editor .cm-run-flash {
+  background-color: var(--color-flash);
+}
+
 .cm-tooltip {
   z-index: 1001 !important;
   /* Ensure it's on top of other UI elements */
 }
 
-/* Editor handle for drag indicator */
+/* Title bar: the name, the Sketch and Setup tabs, and the hide button */
 .editor-handle {
-  height: 30px;
+  height: 24px;
   background-color: rgba(var(--color-bg-tertiary-rgb), var(--panel-opacity));
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 10px;
+  align-items: stretch;
+  gap: 8px;
+  padding: 0 3px 0 8px;
   cursor: move;
   flex-shrink: 0;
 }
 
 .editor-tabs {
   display: flex;
-  background-color: rgba(var(--color-bg-tertiary-rgb), var(--panel-opacity));
-  border-bottom: 1px solid rgba(var(--color-text-secondary), 0.2);
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .editor-tab {
-  padding: 8px 16px;
-  font-size: 12px;
+  padding: 2px 8px 0;
+  font-size: 11px;
   background-color: transparent;
   border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
   color: var(--color-text-secondary);
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s ease;
-  font-family: inherit;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
-.editor-tab:hover {
-  background-color: rgba(var(--color-bg-secondary-rgb), 0.5);
+.editor-tab:hover,
+.editor-tab:active {
+  background-color: transparent;
   color: var(--color-text-primary);
+  transform: none;
 }
 
 .editor-tab.active {
   color: var(--color-text-primary);
   border-bottom-color: var(--color-text-primary);
-  background-color: rgba(var(--color-bg-secondary-rgb), 0.3);
 }
 
 .editor-handle-title {
-  font-size: 14px;
-  font-weight: bold;
+  align-self: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
 }
 
 .editor-handle-controls {
@@ -436,8 +543,8 @@ body {
 
 .editor-handle-controls button {
   background-color: transparent;
-  padding: 3px 6px;
-  font-size: 12px;
+  padding: 1px 5px;
+  font-size: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -455,11 +562,6 @@ body {
   border-color: var(--color-text-primary);
 }
 
-.editor-handle-controls .shortcut {
-  font-size: 10px;
-  font-family: monospace;
-}
-
 /* Editable div for input */
 .hydra-editor-editable {
   position: absolute;
@@ -469,7 +571,7 @@ body {
   height: 100%;
   background-color: transparent;
   color: transparent;
-  font-family: monospace;
+  font-family: var(--font-code);
   font-size: 14px;
   padding: 8px;
   margin: 0;
@@ -494,10 +596,10 @@ button {
   background-color: var(--color-button-bg);
   color: var(--color-text-primary);
   border: none;
-  padding: 8px 16px;
+  padding: 4px 10px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   transition: all 0.2s;
 }
 
@@ -511,6 +613,39 @@ button:active {
   transform: translateY(1px);
 }
 
+/* Dropdowns (the breakout window size), with a chevron in the text color */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 2px 20px 2px 6px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--color-button-bg);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-text-secondary) 50%),
+    linear-gradient(135deg, var(--color-text-secondary) 50%, transparent 50%);
+  background-position: calc(100% - 10px) 55%, calc(100% - 6px) 55%;
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+  color: var(--color-text-primary);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+select:hover {
+  background-color: var(--color-button-hover);
+}
+
+select:focus-visible {
+  outline: 1px solid var(--color-text-secondary);
+  outline-offset: 1px;
+}
+
+select option {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
 /* Saved notification */
 .saved-notification {
   position: fixed;
@@ -518,9 +653,9 @@ button:active {
   right: 20px;
   background-color: var(--color-success);
   color: white;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: var(--panel-radius);
+  font-size: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   transition: opacity 0.5s;
@@ -537,10 +672,9 @@ button:active {
   right: 20px;
   background-color: var(--color-error);
   color: white;
-  padding: 10px 16px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-family: monospace;
+  padding: 8px 12px;
+  border-radius: var(--panel-radius);
+  font-size: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   z-index: 1000;
   max-width: 500px;
@@ -555,12 +689,12 @@ button:active {
 }
 
 .error-notification .error-title {
-  font-weight: bold;
-  margin-bottom: 5px;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
 .error-notification .error-message {
-  font-size: 13px;
+  font-size: 12px;
   opacity: 0.9;
   max-height: 150px;
   overflow-y: auto;
@@ -581,17 +715,28 @@ button:active {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* Slots Panel */
-.slots-panel {
-  min-width: 360px;
-}
-
+/* Slots Panel: its width sets the size of the (square) slots, and it
+   resizes by the grip in its corner */
 .slots-grid {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  gap: 4px;
-  padding: 4px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.slots-resize-grip {
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg,
+      transparent 52%,
+      var(--color-text-secondary) 52% 60%,
+      transparent 60% 72%,
+      var(--color-text-secondary) 72% 80%,
+      transparent 80%);
+  opacity: 0.7;
+}
+
+.slots-resize-grip:hover {
+  opacity: 1;
 }
 
 .slot {
@@ -608,16 +753,15 @@ button:active {
 /* Documentation Panel Styles */
 .doc-panel {
   background-color: rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important;
-  border-radius: 8px;
+  border-radius: var(--panel-radius);
   box-shadow: 0 4px 15px var(--color-panel-shadow);
   backdrop-filter: blur(var(--color-panel-blur));
   z-index: 100;
-  font-family: sans-serif;
 }
 
 
 .doc-panel code {
-  font-family: monospace;
+  font-family: var(--font-code);
   background-color: rgba(0, 0, 0, 0.2);
   padding: 2px 4px;
   border-radius: 3px;
@@ -631,11 +775,12 @@ button:active {
 
 /* Editor footer with buttons */
 .editor-footer {
-  height: 40px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 10px;
+  gap: 8px;
+  padding: 0 3px 0 8px;
   background-color: rgba(var(--color-bg-tertiary-rgb), var(--panel-opacity));
   flex-shrink: 0;
 }
@@ -648,13 +793,13 @@ button:active {
 .editor-footer-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 3px;
 }
 
 .editor-footer button {
-  padding: 6px 12px;
-  font-size: 12px;
-  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: 4px;
 }
 
 .checkbox-container {
@@ -662,11 +807,7 @@ button:active {
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  font-size: 12px;
-}
-
-.checkbox-container input[type="checkbox"] {
-  margin-right: 2px;
+  font-size: 11px;
 }
 
 .checkbox-container span {
@@ -677,7 +818,6 @@ button:active {
   color: white;
   mix-blend-mode: difference;
   vertical-align: middle;
-  font-family: monospace;
 }
 
 /* Custom form elements styling */
@@ -685,8 +825,10 @@ button:active {
 input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  flex: none;
   background-color: var(--color-bg-tertiary);
   border: 1px solid var(--color-text-secondary);
   border-radius: 3px;
@@ -698,15 +840,15 @@ input[type="checkbox"] {
 }
 
 input[type="checkbox"]:checked {
-  background-color: var(--color-perf-good);
-  border-color: var(--color-perf-good);
+  background-color: var(--color-accent, var(--color-perf-good));
+  border-color: var(--color-accent, var(--color-perf-good));
 }
 
 input[type="checkbox"]:checked::after {
   content: "✓";
-  color: var(--color-bg-primary);
-  font-size: 12px;
-  font-weight: bold;
+  color: var(--color-on-accent, var(--color-bg-primary));
+  font-size: 10px;
+  font-weight: 600;
 }
 
 input[type="checkbox"]:focus {
@@ -719,47 +861,47 @@ input[type="range"] {
   appearance: none;
   -webkit-appearance: none;
   width: 100%;
-  height: 18px;
+  height: 16px;
   background-color: transparent;
   border-radius: 4px;
   outline: none;
   overflow: hidden;
-  margin: 8px 0;
+  margin: 4px 0;
 }
 
 /* Filled part of the slider track */
 input[type="range"]::-webkit-slider-runnable-track {
-  height: 8px;
-  border-radius: 4px;
+  height: 6px;
+  border-radius: 3px;
   background: linear-gradient(to right,
-      var(--color-text-secondary) var(--range-progress, 0%),
+      var(--color-accent, var(--color-text-secondary)) var(--range-progress, 0%),
       var(--color-bg-tertiary) var(--range-progress, 0%));
 }
 
 input[type="range"]::-moz-range-track {
-  height: 8px;
-  border-radius: 4px;
+  height: 6px;
+  border-radius: 3px;
   background: var(--color-bg-tertiary);
 }
 
 input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
   background-color: var(--color-text-primary);
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
-  margin-top: -5px;
+  margin-top: -4px;
   /* Centers the thumb on the track */
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
 }
 
 input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
   background-color: var(--color-text-primary);
   border: none;
   border-radius: 50%;
@@ -773,13 +915,13 @@ input[type="range"]:focus {
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
-  background-color: var(--color-perf-good);
+  background-color: var(--color-accent, var(--color-perf-good));
   transform: scale(1.1);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 input[type="range"]::-moz-range-thumb:hover {
-  background-color: var(--color-perf-good);
+  background-color: var(--color-accent, var(--color-perf-good));
   transform: scale(1.1);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
@@ -802,12 +944,56 @@ input[type="range"]:active::-moz-range-thumb {
   background-color: var(--color-text-primary);
 }
 
-.theme-nineties-pop input[type="range"]::-webkit-slider-thumb {
-  background: linear-gradient(45deg, #ff66cc, #6666ff);
+/* Light: a hairline around each panel, which bright visuals would swallow */
+.theme-light .editor-container,
+.theme-light .stats-panel,
+.theme-light .slots-panel,
+.theme-light .xy-pad-panel,
+.theme-light .doc-panel,
+.theme-light .info-panel {
+  outline: 1px solid rgba(28, 20, 60, 0.12);
 }
 
-.theme-nineties-pop input[type="checkbox"]:checked {
-  background: linear-gradient(45deg, #ff66cc, #6666ff);
+/* Pop 90s: black outlines, hard shadows and outlined title bars */
+.theme-nineties-pop .editor-container,
+.theme-nineties-pop .stats-panel,
+.theme-nineties-pop .slots-panel,
+.theme-nineties-pop .xy-pad-panel,
+.theme-nineties-pop .doc-panel,
+.theme-nineties-pop .info-panel {
+  outline: 2px solid var(--pop-ink);
+  box-shadow: 6px 6px 0 var(--pop-ink) !important;
+}
+
+.theme-nineties-pop .editor-handle,
+.theme-nineties-pop .stats-handle,
+.theme-nineties-pop .xy-pad-handle,
+.theme-nineties-pop .doc-handle,
+.theme-nineties-pop .info-panel-header {
+  box-shadow: inset 0 -2px 0 var(--pop-ink);
+}
+
+.theme-nineties-pop .slots-handle {
+  box-shadow: inset 0 0 0 2px var(--pop-ink);
+}
+
+.theme-nineties-pop .editor-footer {
+  box-shadow: inset 0 2px 0 var(--pop-ink);
+}
+
+.theme-nineties-pop .editor-tab.active {
+  background-color: var(--color-accent);
+  border-bottom-color: transparent;
+  box-shadow: inset 2px 0 0 var(--pop-ink), inset -2px 0 0 var(--pop-ink);
+}
+
+.theme-nineties-pop input[type="checkbox"] {
+  border: 2px solid var(--pop-ink);
+}
+
+.theme-nineties-pop input[type="range"]::-webkit-slider-thumb {
+  background-color: #fff8e7;
+  box-shadow: inset 0 0 0 2px var(--pop-ink);
 }
 
 /* Visual Code Overlay for Mobile */
@@ -819,7 +1005,7 @@ input[type="range"]:active::-moz-range-thumb {
   height: 100vh;
   pointer-events: none;
   z-index: 2;
-  font-family: monospace;
+  font-family: var(--font-code);
   color: white;
   mix-blend-mode: difference;
   overflow: hidden;
@@ -873,5 +1059,62 @@ input[type="range"]:active::-moz-range-thumb {
 @media screen and (min-width: 1025px) {
   .code-overlay {
     font-size: clamp(14px, 1.2vw, 18px);
+  }
+}
+
+/* Touch screens: iPads and other tablets get the full interface */
+html {
+  /* Tapping buttons in quick succession doesn't zoom the page */
+  touch-action: manipulation;
+}
+
+.preview-container {
+  /* Touching the visuals neither scrolls nor zooms the page */
+  touch-action: none;
+}
+
+/* Safari only knows the prefixed user-select, which the panels don't set */
+.editor-handle,
+.stats-handle,
+.slots-handle,
+.xy-pad-handle,
+.doc-handle,
+.info-panel-header {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+@media (any-pointer: coarse) {
+  /* Grips big enough for a finger, and visible */
+  .resize-grip {
+    display: block;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg,
+        transparent 55%,
+        var(--color-text-secondary) 55% 61%,
+        transparent 61% 71%,
+        var(--color-text-secondary) 71% 77%,
+        transparent 77%);
+    opacity: 0.8;
+  }
+
+  /* The slots panel's grip covers less of the last slot */
+  .resize-grip.slots-resize-grip {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Keeps the Save button clear of the editor's grip */
+  .editor-footer {
+    padding-right: 34px;
+  }
+
+  /* A bigger target around the XY pad's puck */
+  .xy-pad-indicator::after {
+    content: "";
+    position: absolute;
+    inset: -14px;
+    border-radius: 50%;
   }
 }

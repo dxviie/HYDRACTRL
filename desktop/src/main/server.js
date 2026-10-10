@@ -8,6 +8,9 @@
  * the app can take over when it goes away. Startup failures are reported, not
  * retried blindly, so the loading screen can offer a Retry.
  *
+ * A spawned server also takes control lines on its stdin (send()), which is
+ * how the media folder follows the settings without a restart.
+ *
  * Everything platform-specific (spawn, fetch, timers, clock) is injected.
  */
 import { describeError } from "./log.js";
@@ -64,6 +67,8 @@ export function createServerManager({
   findFreePort,
   log,
   onState = () => {},
+  /** Extra environment for each spawn, read when the server starts. */
+  getEnv = () => ({}),
   baseEnv = process.env,
   timers = defaultTimers,
   now = () => Date.now(),
@@ -249,6 +254,7 @@ export function createServerManager({
     const env = {
       ...baseEnv,
       ...(command.env || {}),
+      ...getEnv(),
       PORT: String(p),
       HOST: allowNetwork ? "0.0.0.0" : "127.0.0.1",
     };
@@ -260,13 +266,15 @@ export function createServerManager({
     const proc = spawn(command.file, command.args, {
       cwd: command.cwd,
       env,
-      stdio: ["ignore", "pipe", "pipe"],
+      stdio: ["pipe", "pipe", "pipe"],
       windowsHide: true,
     });
     child = proc;
     set({ pid: proc.pid ?? null });
     pipeOutput(proc.stdout, "info");
     pipeOutput(proc.stderr, "warn");
+    // A write after the server died fails here, not as an uncaught error
+    proc.stdin?.on?.("error", (error) => log.warn(`server stdin: ${describeError(error)}`));
     const exited = waitForExit(proc);
     exited.then((result) => onChildExit(proc, result));
 
@@ -332,6 +340,23 @@ export function createServerManager({
     return start();
   }
 
+  /**
+   * Send a control line to the server we spawned (see
+   * src/server/mediaFolder.ts). False when there is none to send it to: an
+   * attached server, or none running.
+   */
+  function send(message) {
+    const stdin = child?.stdin;
+    if (!stdin || stdin.destroyed || stdin.writableEnded) return false;
+    try {
+      stdin.write(`${JSON.stringify(message)}\n`);
+      return true;
+    } catch (error) {
+      log.warn(`could not reach the server: ${describeError(error)}`);
+      return false;
+    }
+  }
+
   async function stop() {
     stopping = true;
     clearRestartTimer();
@@ -342,5 +367,5 @@ export function createServerManager({
     set({ status: SERVER_STATUS.stopped, pid: null, mode: null, url: null });
   }
 
-  return { start, retry, stop, getState };
+  return { start, retry, stop, send, getState };
 }

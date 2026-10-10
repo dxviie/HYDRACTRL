@@ -1,0 +1,8 @@
+/* CSS transitions and animations run on real time, not the capture clock:
+   switch them off so every frame shows a settled interface */
+*,
+*::before,
+*::after {
+  transition: none !important;
+  animation: none !important;
+}

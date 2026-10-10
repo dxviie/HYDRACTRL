@@ -1,15 +1,24 @@
 /**
  * BreakoutPlugin - full-size output in a separate window.
  *
- * Wires the size selection + "Breakout View" button in the stats panel,
- * opens a popup with its own hydra-synth instance and mirrors the sketch
- * into it. The core run path keeps mirroring code into the breakout via the
+ * Wires the size dropdown + Open/Close button in the stats panel, opens a
+ * popup with its own hydra-synth instance and mirrors the sketch into it.
+ * The core run path keeps mirroring code into the breakout via the
  * `window.breakoutHydra` / `window.breakoutWindow` globals this plugin sets.
  */
+
+const SIZE_KEY = "hydractrl-breakout-size";
 
 /** Pure helper: window.open feature string for a breakout window. */
 export function buildWindowFeatures(width = 1280, height = 720) {
   return `width=${width},height=${height},menubar=no,toolbar=no,location=no,status=no,resizable=yes`;
+}
+
+/** Pure helper: the width and height in a size value such as "1280x720". */
+export function parseSize(value) {
+  const match = /^(\d+)x(\d+)$/.exec(String(value ?? ""));
+  if (!match) return null;
+  return { width: Number(match[1]), height: Number(match[2]) };
 }
 
 const BREAKOUT_HTML = `
@@ -52,7 +61,21 @@ export function createBreakoutPlugin() {
 
     setup(ctx) {
       const display = ctx.getPanels().stats?.display;
-      if (ctx.isMobile || !display || !display.sizeButtons) return;
+      if (ctx.isMobile || !display || !display.sizeSelect) return;
+      const select = display.sizeSelect;
+
+      // Offer the size used last time
+      const savedSize = ctx.storage.get(SIZE_KEY);
+      if ([...select.options].some((option) => option.value === savedSize)) {
+        select.value = savedSize;
+      }
+
+      function selectedSize() {
+        const size = parseSize(select.value);
+        if (!size) return null;
+        const label = select.selectedOptions[0]?.textContent || `${size.width}×${size.height}`;
+        return { ...size, label };
+      }
 
       function openBreakoutWindow(width, height) {
         const breakoutWindow = window.open("", "HydraBreakout", buildWindowFeatures(width, height));
@@ -116,24 +139,18 @@ export function createBreakoutPlugin() {
           breakoutWindow.hydraText = window.hydraText;
         }
 
-        // Adjust canvas size when the window is resized
+        // Adjust canvas size (and the size in the title) when the window is resized
         breakoutWindow.addEventListener("resize", () => {
           canvas.width = breakoutWindow.innerWidth;
           canvas.height = breakoutWindow.innerHeight;
-        });
-
-        // Update UI when the breakout window is closed
-        breakoutWindow.addEventListener("beforeunload", () => {
-          display.sizeSelectionContainer.style.display = "none";
-          window.breakoutHydra = null;
-          window.breakoutWindow = null;
+          breakoutWindow.document.title = `HYDRACTRL Breakout - ${canvas.width}×${canvas.height}`;
         });
 
         return breakoutHydra;
       }
 
       function resetButton() {
-        display.breakoutButton.textContent = "Breakout View";
+        display.breakoutButton.textContent = "Open";
         display.breakoutButton.style.backgroundColor = "";
       }
 
@@ -163,7 +180,7 @@ export function createBreakoutPlugin() {
           // Run the current code in the breakout window
           await ctx.runCodeOn(window.breakoutHydra);
 
-          display.breakoutButton.textContent = "Close Breakout";
+          display.breakoutButton.textContent = "Close";
           display.breakoutButton.style.backgroundColor = "rgba(255, 120, 120, 0.3)";
 
           breakoutWindow.addEventListener("beforeunload", () => {
@@ -190,33 +207,23 @@ export function createBreakoutPlugin() {
         }
       }
 
-      // Size selection buttons: pick a resolution and arm the breakout button
-      const sizeHandlers = new Map();
-      display.sizeButtons.forEach((button) => {
-        const onSizeClick = () => {
-          const width = Number.parseInt(button.dataset.width);
-          const height = Number.parseInt(button.dataset.height);
-          const label = button.dataset.label;
-
-          if (Number.isNaN(width) || Number.isNaN(height)) {
-            return;
-          }
-
-          display.selectedSize = { width, height, label };
-          display.selectedSizeIndicator.textContent = `Selected: ${label}`;
-
-          display.breakoutButton.disabled = false;
-          display.breakoutButton.style.opacity = "1";
-          display.breakoutButton.title = `Open breakout window at ${width}×${height}`;
-
-          // Highlight the selected button and unhighlight others
-          display.sizeButtons.forEach((btn) => {
-            btn.style.backgroundColor = btn === button ? "rgba(80, 250, 123, 0.3)" : "";
-          });
-        };
-        sizeHandlers.set(button, onSizeClick);
-        button.addEventListener("click", onSizeClick);
-      });
+      // Picking a size remembers it, and resizes a breakout window that is open
+      const onSizeChange = () => {
+        ctx.storage.set(SIZE_KEY, select.value);
+        const breakoutWindow = window.breakoutWindow;
+        const size = selectedSize();
+        if (!breakoutWindow || breakoutWindow.closed || !size) return;
+        try {
+          // resizeTo takes the outer size; the dropdown gives the inner (canvas) size
+          breakoutWindow.resizeTo(
+            size.width + breakoutWindow.outerWidth - breakoutWindow.innerWidth,
+            size.height + breakoutWindow.outerHeight - breakoutWindow.innerHeight,
+          );
+        } catch (error) {
+          console.warn("Could not resize the breakout window:", error);
+        }
+      };
+      select.addEventListener("change", onSizeChange);
 
       const onBreakoutClick = async () => {
         // If a window is already open, close it
@@ -225,13 +232,13 @@ export function createBreakoutPlugin() {
           return;
         }
 
-        if (!display.selectedSize) {
+        const size = selectedSize();
+        if (!size) {
           ctx.notify("Please select a window size first", { type: "error" });
           return;
         }
 
-        const { width, height, label } = display.selectedSize;
-        await open(width, height, label);
+        await open(size.width, size.height, size.label);
       };
       display.breakoutButton.addEventListener("click", onBreakoutClick);
 
@@ -239,9 +246,7 @@ export function createBreakoutPlugin() {
         api: { open, close },
         dispose() {
           display.breakoutButton.removeEventListener("click", onBreakoutClick);
-          for (const [button, handler] of sizeHandlers) {
-            button.removeEventListener("click", handler);
-          }
+          select.removeEventListener("change", onSizeChange);
           close();
         },
       };

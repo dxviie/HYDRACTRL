@@ -1,0 +1,156 @@
+name: Release
+
+# Publishes a GitHub release when a version tag (v1.2.3) is pushed, or when
+# it is run from the Actions tab on main with a version, which needs no git
+# and works from a phone: that run tags the commit it built when it
+# publishes. It checks the tag against package.json, desktop/package.json and
+# CHANGELOG.md, builds the desktop app for every platform, and attaches the
+# installers, their checksums and the changelog notes. The landing page's
+# download buttons point at releases/latest/download/<file>, so they pick the
+# new release up the moment it is published. See RELEASING.md.
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, as in package.json and CHANGELOG.md (1.2.3)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.version || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check version and notes
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Through a variable: a failing check inside echo's arguments would not
+      # fail the step
+      - name: Check the tag against both package.json files and CHANGELOG.md
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+              echo "::error::Run the release from main, not $GITHUB_REF_NAME"
+              exit 1
+            fi
+            tag="v${INPUT_VERSION#v}"
+            # The tag can only exist already on this very commit (a re-run)
+            if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+              git fetch --quiet origin "refs/tags/$tag:refs/tags/$tag"
+              if [ "$(git rev-parse "$tag^{commit}")" != "$GITHUB_SHA" ]; then
+                echo "::error::$tag already exists on another commit"
+                exit 1
+              fi
+            fi
+          else
+            tag="$GITHUB_REF_NAME"
+          fi
+          version=$(bun scripts/release.js check "$tag")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Test
+        run: bun test
+
+  desktop:
+    name: Desktop app
+    needs: check
+    uses: ./.github/workflows/desktop.yml
+    with:
+      sign: true
+    secrets: inherit
+
+  publish:
+    name: Publish the release
+    needs: [check, desktop]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: hydractrl-desktop-*
+          path: dist
+          merge-multiple: true
+
+      - name: Check that every landing page download was built
+        run: bun scripts/release.js assets dist
+
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      - name: Release notes
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
+          MAC_SIGNED: ${{ secrets.MAC_CERTIFICATE_P12_BASE64 != '' && (secrets.APPLE_API_KEY_P8 != '' || secrets.APPLE_ID != '') }}
+          WINDOWS_SIGNED: ${{ secrets.WINDOWS_CERTIFICATE_P12_BASE64 != '' }}
+        run: |
+          flags=""
+          if [ "$MAC_SIGNED" = "true" ]; then flags="$flags --mac-signed"; fi
+          if [ "$WINDOWS_SIGNED" = "true" ]; then flags="$flags --windows-signed"; fi
+          bun scripts/release.js notes "$VERSION" $flags > notes.md
+          cat notes.md
+
+      # A pushed tag already exists. A run from the Actions tab creates it
+      # here, on the commit it built ($GITHUB_SHA); a tag made with the
+      # workflow's token doesn't start this workflow again.
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.check.outputs.version }}
+          TAG: ${{ needs.check.outputs.tag }}
+        run: |
+          prerelease=""
+          case "$VERSION" in *-*) prerelease="--prerelease" ;; esac
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            # A release made on GitHub for this tag, or a draft that a failed
+            # upload left behind: attach the files and the notes, and publish
+            gh release upload "$TAG" dist/* --clobber
+            gh release edit "$TAG" \
+              --target "$GITHUB_SHA" \
+              --title "HYDRACTRL $VERSION" \
+              --notes-file notes.md \
+              --draft=false \
+              $prerelease
+          else
+            gh release create "$TAG" dist/* \
+              --target "$GITHUB_SHA" \
+              --title "HYDRACTRL $VERSION" \
+              --notes-file notes.md \
+              $prerelease
+          fi

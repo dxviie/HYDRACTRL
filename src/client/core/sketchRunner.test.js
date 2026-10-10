@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
-import { combineSketchCode, executeSketch } from "./sketchRunner.js";
+import { checkSketchSyntax, combineSketchCode, executeSketch } from "./sketchRunner.js";
 
 function createFakeHydra(calls) {
   return {
@@ -30,6 +30,29 @@ describe("combineSketchCode", () => {
     expect(combineSketchCode("  ", " osc().out() \n")).toBe("osc().out()");
     expect(combineSketchCode(undefined, "osc().out()")).toBe("osc().out()");
     expect(combineSketchCode(null, null)).toBe("");
+  });
+});
+
+describe("checkSketchSyntax", () => {
+  test("accepts code that parses, including top-level await", () => {
+    expect(checkSketchSyntax({ main: "osc(10).out()" })).toBe(null);
+    expect(checkSketchSyntax({ setup: "const f = 2;", main: "await 1; osc(f).out()" })).toBe(null);
+    expect(checkSketchSyntax({})).toBe(null);
+  });
+
+  test("reports a syntax error without running anything", () => {
+    globalThis.syntaxCheckRan = false;
+    const message = checkSketchSyntax({ main: "globalThis.syntaxCheckRan = true; osc((.out()" });
+    expect(typeof message).toBe("string");
+    expect(message.length).toBeGreaterThan(0);
+    expect(globalThis.syntaxCheckRan).toBe(false);
+    expect(checkSketchSyntax({ main: "globalThis.syntaxCheckRan = true" })).toBe(null);
+    expect(globalThis.syntaxCheckRan).toBe(false);
+    globalThis.syntaxCheckRan = undefined;
+  });
+
+  test("checks setup code too", () => {
+    expect(checkSketchSyntax({ setup: "let = ;", main: "osc().out()" })).not.toBe(null);
   });
 });
 
@@ -97,5 +120,52 @@ describe("executeSketch", () => {
 
     expect(result.success).toBe(false);
     expect(result.message).toBe("no outputs yet");
+  });
+});
+
+describe("videos of earlier runs", () => {
+  function fakeVideo() {
+    return {
+      paused: false,
+      pause() {
+        this.paused = true;
+      },
+    };
+  }
+
+  // hydra's sources: hush() drops them, init() shows a new one straight away
+  function hydraWithSources(sources) {
+    return {
+      s: sources.map((src) => ({
+        src,
+        init(options) {
+          this.src = options.src;
+        },
+      })),
+      hush() {
+        for (const source of this.s) source.src = null;
+      },
+    };
+  }
+
+  test("pauses the videos the new run no longer shows", async () => {
+    const old = fakeVideo();
+    const kept = fakeVideo();
+    const image = { width: 1, height: 1 };
+    const hydra = hydraWithSources([old, kept, image, null]);
+    globalThis.keptVideo = kept;
+    const result = await executeSketch(hydra, { main: "h.s[1].init({ src: keptVideo })" });
+    expect(result.success).toBe(true);
+    expect(old.paused).toBe(true);
+    expect(kept.paused).toBe(false);
+    globalThis.keptVideo = undefined;
+  });
+
+  test("also after a sketch that fails", async () => {
+    const old = fakeVideo();
+    const hydra = hydraWithSources([old]);
+    const result = await executeSketch(hydra, { main: "osc(" });
+    expect(result.success).toBe(false);
+    expect(old.paused).toBe(true);
   });
 });

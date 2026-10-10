@@ -58,6 +58,19 @@ describe("validateSettings", () => {
     );
   });
 
+  test("takes an absolute media folder, and an empty one for the default", () => {
+    const custom = validateSettings({ media: { folder: "  /Volumes/VJ/clips\n" } });
+    expect(custom.media.folder).toBe("/Volumes/VJ/clips");
+    expect(validateSettings({ media: { folder: "" } }, custom).media.folder).toBe("");
+    expect(validateSettings({ media: {} }, custom).media.folder).toBe("/Volumes/VJ/clips");
+    for (const folder of ["clips", "./clips", 42, null, `/${"x".repeat(LIMITS.maxPathLength)}`]) {
+      expect(validateSettings({ media: { folder } }, custom).media.folder).toBe(
+        "/Volumes/VJ/clips",
+      );
+    }
+    expect(changedKeys(validateSettings({}), custom)).toEqual(["media.folder"]);
+  });
+
   test("drops unknown keys", () => {
     const next = validateSettings({ output: { evil: true }, extra: 1 });
     expect(next.output.evil).toBeUndefined();

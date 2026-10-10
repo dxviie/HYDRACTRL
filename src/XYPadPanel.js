@@ -2,6 +2,7 @@
  * XY Pad Panel
  * A visual representation of the Korg nanoPAD's XY pad
  */
+import { trackPointerDrag } from "./utils/Draggable.js";
 import { savePanelPosition, setupPanelPersistence } from "./utils/PanelStorage.js";
 import { XYPhysics } from "./utils/XYPhysics.js";
 
@@ -11,7 +12,7 @@ export function createXYPadPanel() {
   panel.className = "xy-pad-panel";
   panel.style.position = "absolute";
   panel.style.backgroundColor = "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity))";
-  panel.style.borderRadius = "4px";
+  panel.style.borderRadius = "var(--panel-radius)";
   panel.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.3)";
   panel.style.zIndex = "9";
   panel.style.visibility = "hidden";
@@ -37,21 +38,22 @@ export function createXYPadPanel() {
   handle.style.display = "flex";
   handle.style.justifyContent = "space-between";
   handle.style.alignItems = "center";
-  handle.style.padding = "0 8px";
+  handle.style.padding = "0 3px 0 8px";
   handle.style.cursor = "move";
   handle.style.userSelect = "none";
-  handle.style.borderRadius = "4px 4px 0 0";
+  handle.style.borderRadius = "var(--panel-radius) var(--panel-radius) 0 0";
 
   // Create the title
   const title = document.createElement("div");
   title.className = "xy-pad-title";
-  title.style.fontSize = "12px";
-  title.style.fontWeight = "bold";
+  title.style.fontSize = "11px";
+  title.style.fontWeight = "600";
+  title.style.letterSpacing = "0.08em";
   title.style.textTransform = "uppercase";
   title.style.display = "flex";
   title.style.color = "var(--color-text-secondary)";
   title.innerHTML =
-    "XY PAD <div style='display: flex; gap: .15rem; align-items: baseline; text-transform: none; margin-left: .7rem;'>(use <pre style='font-family: monospace'>nanoX</pre> & <pre style='font-family: monospace'>nanoY</pre>)</div>";
+    "XY PAD <div style='display: flex; gap: .3rem; align-items: baseline; text-transform: none; letter-spacing: normal; font-weight: 400; margin-left: .6rem;'>use <code style='font-family: var(--font-code)'>nanoX</code> & <code style='font-family: var(--font-code)'>nanoY</code></div>";
 
   // Create the close button
   const closeButton = document.createElement("button");
@@ -61,7 +63,7 @@ export function createXYPadPanel() {
   closeButton.style.fontSize = "16px";
   closeButton.style.color = "var(--color-text-primary)";
   closeButton.style.cursor = "pointer";
-  closeButton.style.padding = "0 4px";
+  closeButton.style.padding = "0 5px";
   closeButton.style.lineHeight = "1";
   closeButton.title = "Close XY Pad";
 
@@ -83,8 +85,8 @@ export function createXYPadPanel() {
   padArea.className = "xy-pad-area";
   padArea.style.width = "240px"; // 4:3 ratio
   padArea.style.height = "180px";
-  padArea.style.margin = "8px";
-  padArea.style.backgroundColor = "rgba(255, 255, 255, .1)";
+  padArea.style.margin = "6px";
+  padArea.style.backgroundColor = "rgba(var(--color-contrast-rgb, 255, 255, 255), .1)";
   padArea.style.position = "relative";
   padArea.style.borderRadius = "0 0 4px 4px";
   padArea.style.overflow = "hidden";
@@ -124,26 +126,26 @@ export function createXYPadPanel() {
 
   // Create physics controls section
   const controlsSection = document.createElement("div");
-  controlsSection.style.padding = "0 8px 8px";
+  controlsSection.style.padding = "0 6px 6px";
   controlsSection.style.display = "flex";
   controlsSection.style.flexDirection = "column";
-  controlsSection.style.gap = "8px";
+  controlsSection.style.gap = "4px";
 
   // Physics parameters section (initially hidden)
   const paramsSection = document.createElement("div");
   paramsSection.style.display = "flex";
   paramsSection.style.flexDirection = "column";
-  paramsSection.style.gap = "4px";
+  paramsSection.style.gap = "2px";
 
   // Create parameter sliders
   const createParamSlider = (label_text, initial, min, max, step = 0.01) => {
     const container = document.createElement("div");
     container.style.display = "flex";
     container.style.flexDirection = "column";
-    container.style.gap = "4px";
+    container.style.gap = "0";
 
     const label = document.createElement("div");
-    label.style.fontSize = "12px";
+    label.style.fontSize = "11px";
     label.style.color = "var(--color-text-secondary)";
     label.style.display = "flex";
     label.style.justifyContent = "space-between";
@@ -155,7 +157,6 @@ export function createXYPadPanel() {
 
     const value_display = document.createElement("span");
     value_display.textContent = initial;
-    value_display.style.fontFamily = "monospace";
     value_display.style.color = "transparent";
     label.appendChild(value_display);
 
@@ -199,7 +200,7 @@ export function createXYPadPanel() {
       top: 20,
     },
     {
-      width: 256, // 240px pad + 16px margins
+      width: 252, // 240px pad + 12px margins
       height: "fit-content",
       skipSizeRestore: true, // Don't restore size from localStorage
     },
@@ -241,8 +242,8 @@ export function createXYPadPanel() {
     isCoiling = false;
     coilLineSVG.style.display = "none";
 
-    document.removeEventListener("mousemove", handleCoilMove);
-    document.removeEventListener("mouseup", handleCoilRelease);
+    // The system took over the touch (a gesture, a call): don't launch
+    if (e.type === "pointercancel") return;
 
     const rect = padArea.getBoundingClientRect();
     let releaseX = e.clientX - rect.left;
@@ -273,9 +274,9 @@ export function createXYPadPanel() {
     }
   };
 
-  indicator.addEventListener("mousedown", (e) => {
+  const handleCoilStart = (e) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent padArea's mousedown if any were added later
+    e.stopPropagation(); // Prevent padArea's pointerdown if any were added later
 
     isCoiling = true;
     isPadActive = false; // Disable normal pad dragging/interaction
@@ -300,9 +301,12 @@ export function createXYPadPanel() {
     coilLine.setAttribute("x2", indicatorPixelX); // Initially, coil end is at indicator
     coilLine.setAttribute("y2", indicatorPixelY);
     coilLineSVG.style.display = "block";
+  };
 
-    document.addEventListener("mousemove", handleCoilMove);
-    document.addEventListener("mouseup", handleCoilRelease);
+  trackPointerDrag(indicator, {
+    start: handleCoilStart,
+    move: handleCoilMove,
+    end: handleCoilRelease,
   });
 
   // Function to update X coordinate from MIDI
@@ -447,8 +451,8 @@ function makeDraggable(element, handle, panelId) {
     }
   }, 100);
 
-  // Mouse down handler
-  function onMouseDown(e) {
+  // Pointer down handler (mouse, finger or pen)
+  function onPointerDown(e) {
     e.preventDefault();
     e.stopPropagation();
 
@@ -457,7 +461,7 @@ function makeDraggable(element, handle, panelId) {
       element.style.right = "";
     }
 
-    // Calculate initial mouse position
+    // Calculate initial pointer position
     initialX = e.clientX;
     initialY = e.clientY;
 
@@ -469,18 +473,11 @@ function makeDraggable(element, handle, panelId) {
     // Start dragging
     isDragging = true;
     element.classList.add("dragging");
-
-    // Add listeners
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
   }
 
-  // Mouse move handler
-  function onMouseMove(e) {
+  // Pointer move handler
+  function onPointerMove(e) {
     if (!isDragging) return;
-
-    e.preventDefault();
-    e.stopPropagation();
 
     // Calculate offset
     offsetX = e.clientX - initialX;
@@ -498,8 +495,8 @@ function makeDraggable(element, handle, panelId) {
     element.style.top = newY + "px";
   }
 
-  // Mouse up handler
-  function onMouseUp(e) {
+  // Pointer up handler
+  function onPointerUp() {
     if (!isDragging) return;
 
     // Update current position with final offsets
@@ -519,12 +516,7 @@ function makeDraggable(element, handle, panelId) {
     // End dragging
     isDragging = false;
     element.classList.remove("dragging");
-
-    // Remove listeners
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", onMouseUp);
   }
 
-  // Add listener to handle
-  handle.addEventListener("mousedown", onMouseDown);
+  trackPointerDrag(handle, { start: onPointerDown, move: onPointerMove, end: onPointerUp });
 }

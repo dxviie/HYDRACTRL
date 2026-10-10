@@ -1,7 +1,7 @@
 {
   "name": "hydractrl-desktop",
   "productName": "HYDRACTRL",
-  "version": "0.1.0",
+  "version": "1.2.0",
   "description": "HYDRACTRL desktop: the hydra live-coding performance tool with Syphon and Spout output",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
     "name": "D17E",
     "url": "https://www.d17e.dev"
   },
-  "homepage": "https://dxviie.github.io/HYDRACTRL/",
+  "homepage": "https://hydractrl.d17e.dev/",
   "license": "AGPL-3.0-only",
   "scripts": {
     "start": "electron .",

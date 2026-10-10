@@ -1,10 +1,31 @@
-![HYDRACTRL screenshot](./docs/assets/hydractrl-preview.jpg)
+![HYDRACTRL screenshot](./public/site/hydractrl-preview.jpg)
 
 # HYDRACTRL
 
-A performance wrapper around [hydra](https://hydra.ojack.xyz/) designed for live visual performances — for the moments where you don't necessarily want to be coding.
+[![CI](https://github.com/dxviie/HYDRACTRL/actions/workflows/ci.yml/badge.svg)](https://github.com/dxviie/HYDRACTRL/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/dxviie/HYDRACTRL?label=desktop%20app)](https://github.com/dxviie/HYDRACTRL/releases/latest)
+[![License: AGPL v3](https://img.shields.io/badge/license-AGPL%20v3-blue)](./LICENSE)
 
-**[Project page](https://dxviie.github.io/HYDRACTRL/)** · **[Play around](https://hydractrl.d17e.dev)** · **[Plugin docs](./docs/PLUGINS.md)**
+A performance wrapper around [hydra](https://hydra.ojack.xyz/) for live visuals — for the moments where you don't necessarily want to be coding.
+
+**[Open it in your browser](https://hydractrl.d17e.dev/app)** · **[Download the desktop app](https://hydractrl.d17e.dev/#download)** · [Website](https://hydractrl.d17e.dev/) · [Roadmap](https://hydractrl.d17e.dev/#roadmap) · [Changelog](./CHANGELOG.md) · [Plugin docs](./docs/PLUGINS.md)
+
+## Browser or desktop
+
+HYDRACTRL comes in two flavours with the same interface, scenes and shortcuts:
+
+| | Browser | Desktop app |
+| --- | --- | --- |
+| Where | [hydractrl.d17e.dev/app](https://hydractrl.d17e.dev/app), nothing to install | macOS 11+ (Apple Silicon or Intel) and Windows 10/11 (64-bit), [download](https://hydractrl.d17e.dev/#download) |
+| Editor, 64 scenes, XY pad, docs, audio reactivity | Yes | Yes |
+| MIDI (Korg nanoPAD2) | Chrome and Edge | Yes |
+| Syphon (macOS) / Spout (Windows) output | No | Yes, 720p to 4K, 24 to 120 fps, optional alpha |
+| Images and videos dropped on the editor | No | Yes, from a media folder |
+
+The desktop app is an Electron shell around the same interface, with a live
+Syphon or Spout feed of your visuals for Resolume, MadMapper, VDMX,
+TouchDesigner, OBS and the like. See [desktop/README.md](./desktop/README.md)
+for how it works and how to build it.
 
 ## Features
 
@@ -15,7 +36,8 @@ A performance wrapper around [hydra](https://hydra.ojack.xyz/) designed for live
 - **Audio reactivity** — Hydra's `a.fft` data out of the box, guarded by an audio watchdog that logs dropouts and auto-resumes suspended audio
 - **Built-in Hydra documentation** — always at hand while coding
 - **Breakout view** — send visuals to a second window at a precise size for projections or recordings ([OBS](https://obsproject.com/) and [NDI](https://ndi.video/) work great)
-- **Desktop app with Syphon/Spout output** — a standalone app that shares your visuals with Resolume, MadMapper, VDMX, TouchDesigner or OBS as a GPU texture, plus a chrome-less `/output` page for OBS and TouchDesigner browser sources (see below)
+- **Desktop app with Syphon/Spout output** — share your visuals with Resolume, MadMapper, VDMX, TouchDesigner or OBS as a GPU texture, plus a chrome-less `/output` page for OBS and TouchDesigner browser sources (see below)
+- **Your own images and videos** — drop them on the editor in the desktop app, which copies them into its media folder and writes the line that loads them (see below)
 - **Import/export banks** — save and share entire scene banks as JSON
 - **Share sketches as URLs** — `Alt/⌥ + U` copies a link with your sketch encoded in it
 - **Plugin system** — new features are isolated plugins; write your own (see below)
@@ -45,11 +67,34 @@ A performance wrapper around [hydra](https://hydra.ojack.xyz/) designed for live
 # Install dependencies
 bun install
 
-# Start development server with hot reload
+# Build the bundles and start the server (it restarts when server code changes)
 bun dev
 ```
 
-Then open http://localhost:3000 in your browser.
+After changing the interface or the landing page (`src/client`, `src/site`),
+run `bun run build` and reload the page.
+
+Then open http://localhost:3000 in your browser. A local server opens straight
+into the interface (at `/` and `/app`); the landing page of the hosted site is
+at http://localhost:3000/index.html.
+
+## The website
+
+[hydractrl.d17e.dev](https://hydractrl.d17e.dev/) is a static
+[Cloudflare Pages](https://pages.cloudflare.com/) site built from `public/`
+with `bun run build:production`:
+
+| Path | File | What |
+| --- | --- | --- |
+| `/` | `public/index.html` | The landing page; its scripts live in `src/site/` and its media in `public/site/` |
+| `/app` | `public/app.html` | The interface |
+| `/output` | `public/output.html` | The chrome-less render head |
+
+The landing page plays a few hydra sketches in the background
+(`src/sketches.js`, which are also the interface's starter scenes), at reduced
+resolution and frame rate, paused for people who prefer reduced motion. Links
+shared before the landing page existed (`/#sketch=...`) are forwarded to
+`/app`.
 
 ## Building a Standalone Executable
 
@@ -62,9 +107,12 @@ bun run build:exe:full
 
 This creates:
 - `hydractrl.XXX` - The standalone executable. XXX depends on the OS you're building on, e.g. will produce an exe file on Windows.
-- `hydractrl-public/` - Directory containing web assets
+- `hydractrl-public/` - Directory containing web assets (the website's landing page and its media are left out)
 
 ### Local File Support
+
+In the desktop app you drop images and videos on the editor instead, as
+described in [Your own images and videos](#your-own-images-and-videos).
 
 When using the executable, you can serve local images and videos by placing them in a `local-assets/` directory before building. These files will be available at `http://localhost:3000/filename.ext` in your hydra sketches:
 
@@ -76,20 +124,45 @@ await s0.initVideo("http://localhost:3000/my-video.mp4");
 ```
 
 Supported formats:
-- **Images**: `.jpg`, `.jpeg`, `.png`, `.svg`, `.ico`
+- **Images**: `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.svg`, `.ico`
 - **Videos**: `.mp4`, `.webm`, `.ogg`, `.avi`, `.mov`
 
 ## Sharing Sketches as URLs
 
 Press `Alt/⌥ + U` to copy a link with your current sketch encoded in the URL.
 Opening such a link loads and runs the sketch without touching the recipient's
-saved banks — nothing is persisted unless they explicitly save it.
+saved banks — nothing is persisted unless they explicitly save it. Links
+copied in the desktop app or on a local server point at the browser version,
+so anyone can open them.
+
+## Your own images and videos
+
+In the desktop app, drop an image or a video on the editor. HYDRACTRL copies
+it into its media folder and adds the line that loads it into a free source:
+
+```javascript
+s0.initVideo("/media/clip.mp4");
+```
+
+The line goes where you drop the file, or above the chain you drop it on, and
+an empty sketch also gets `src(s0).out()`. The app's server serves the media
+folder at `/media/`, so the Syphon or Spout output and any `/output` page play
+the same file. Images can be PNG, JPG, GIF, WebP, AVIF, BMP or SVG, and videos
+MP4, MOV, M4V, WebM or OGV. You choose the folder in the settings window; the
+[desktop README](./desktop/README.md#images-and-videos) has the details.
+
+A sketch keeps only the file's address, so a shared link or an exported bank
+shows the image or video only on a computer with the same file in its media
+folder. The browser version can't read files from your computer. It loads
+images and videos from web addresses that allow it, such as
+`s0.initImage("https://…")`. The standalone executable serves files from a
+`local-assets/` folder, described under [Local File Support](#local-file-support).
 
 ## External Outputs (Syphon, Spout, OBS, TouchDesigner)
 
-The quickest route to a Syphon or Spout source is the desktop app in
-`desktop/`: one app that runs the interface and shares the output. The pieces
-it builds on are available to any setup:
+The quickest route to a Syphon or Spout source is the desktop app: one app
+that runs the interface and shares the output. The pieces it builds on are
+available to any setup:
 
 The server exposes a chrome-less render head at
 [http://localhost:3000/output](http://localhost:3000/output): one full-window
@@ -101,9 +174,10 @@ microphone input.
 
 Anything that can render a web page can be an output:
 
-- **HYDRACTRL Desktop** (`desktop/`) — the standalone app: the full interface
+- **HYDRACTRL Desktop** — the standalone app: the full interface
   plus a **Syphon** (macOS) or **Spout** (Windows) output of your visuals with
-  zero GPU copies, controlled from the Output menu. See
+  zero GPU copies, controlled from the Output menu. Each sketch renders once,
+  on that output, and the interface shows the very frames it shares. See
   [desktop/README.md](./desktop/README.md).
 - **OBS** — a Browser Source pointing at `/output`, then NDI, Spout or Syphon
   output plugins. Launch OBS with `--enable-media-stream` for microphone access.
@@ -121,8 +195,9 @@ New features are built as plugins on a small plugin system with an event bus,
 quota-safe storage and error isolation — a broken plugin can't take down a live
 set. Much of the app itself runs as built-in plugins (see
 `src/client/plugins/`): URL sketch sharing, the audio watchdog, the info
-panel, auto-run, slot advance on save, the breakout view, output sync, the
-MIDI device UI and the mobile UI.
+panel, the feedback panel, auto-run, slot advance on save, the breakout view,
+output sync, the desktop app's output, mirror and media drop, the MIDI device
+UI and the mobile UI.
 
 Want to implement your own? **[Read the plugin documentation](./docs/PLUGINS.md)** —
 it covers the plugin shape, the context object you get, and the events you can
@@ -134,11 +209,22 @@ via `window.hydractrl.registerPlugin(...)`.
 ```bash
 bun run lint   # Biome checks (enforced in CI)
 bun test       # unit tests (enforced in CI)
-bun run build  # build the client bundle
+bun run build  # build the interface and landing page bundles
 ```
 
-Contributions are welcome — bug reports and ideas live in
-[GitHub issues](https://github.com/dxviie/HYDRACTRL/issues).
+Contributions are welcome. Bug reports and feature requests go in
+[GitHub issues](https://github.com/dxviie/HYDRACTRL/issues); what's planned is
+on the [roadmap](https://hydractrl.d17e.dev/#roadmap).
+
+## Versions and releases
+
+HYDRACTRL uses [semantic versioning](https://semver.org/), with one version
+for the browser version and the desktop app; the About panel shows which one
+you are running. Changes are listed in the [changelog](./CHANGELOG.md), and
+[RELEASING.md](./RELEASING.md) describes how a release is cut: pushing a
+`v1.2.3` tag builds the desktop app for macOS and Windows and publishes it on
+the [releases page](https://github.com/dxviie/HYDRACTRL/releases), which the
+website's download buttons point at.
 
 ## Credits & License
 

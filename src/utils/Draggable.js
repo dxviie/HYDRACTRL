@@ -1,6 +1,46 @@
 import { loadPanelPosition, savePanelPosition } from "./PanelStorage.js";
 
 /**
+ * Follow one pointer (mouse, finger or pen) from a press on `target` until it
+ * lets go. `start` gets the pointerdown event and can return false to ignore
+ * it; `move` and `end` only get that pointer's events, so a second finger
+ * cannot take over a drag. Sets `touch-action: none` on the target, without
+ * which touch screens scroll or zoom the page instead of dragging.
+ * @param {HTMLElement} target - Where the drag starts (a handle, a grip).
+ * @param {object} handlers
+ * @param {(e: PointerEvent) => boolean | void} [handlers.start]
+ * @param {(e: PointerEvent) => void} handlers.move
+ * @param {(e: PointerEvent) => void} [handlers.end]
+ */
+export function trackPointerDrag(target, { start, move, end }) {
+  let pointerId = null;
+
+  function onMove(e) {
+    if (e.pointerId === pointerId) move(e);
+  }
+
+  function onRelease(e) {
+    if (e.pointerId !== pointerId) return;
+    pointerId = null;
+    document.removeEventListener("pointermove", onMove);
+    document.removeEventListener("pointerup", onRelease);
+    document.removeEventListener("pointercancel", onRelease);
+    end?.(e);
+  }
+
+  target.style.touchAction = "none";
+  target.addEventListener("pointerdown", (e) => {
+    // One pointer at a time, and a mouse only drags with its main button
+    if (pointerId !== null || e.button !== 0) return;
+    if (start?.(e) === false) return;
+    pointerId = e.pointerId;
+    document.addEventListener("pointermove", onMove);
+    document.addEventListener("pointerup", onRelease);
+    document.addEventListener("pointercancel", onRelease);
+  });
+}
+
+/**
  * Make an element draggable by a handle, with optional position persistence.
  * @param {HTMLElement} element - The element to move.
  * @param {HTMLElement} handle - The drag handle (usually a header bar).
@@ -48,12 +88,12 @@ export function makeDraggable(element, handle, panelId) {
     }
   }, 100);
 
-  // Mouse down handler
-  function onMouseDown(e) {
+  // Pointer down handler
+  function onPointerDown(e) {
     e.preventDefault();
     e.stopPropagation();
 
-    // Calculate initial mouse position
+    // Calculate initial pointer position
     initialX = e.clientX;
     initialY = e.clientY;
 
@@ -64,18 +104,11 @@ export function makeDraggable(element, handle, panelId) {
     // Start dragging
     isDragging = true;
     element.classList.add("dragging");
-
-    // Add listeners
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
   }
 
-  // Mouse move handler
-  function onMouseMove(e) {
+  // Pointer move handler
+  function onPointerMove(e) {
     if (!isDragging) return;
-
-    e.preventDefault();
-    e.stopPropagation();
 
     // Calculate offset
     offsetX = e.clientX - initialX;
@@ -93,8 +126,8 @@ export function makeDraggable(element, handle, panelId) {
     element.style.top = newY + "px";
   }
 
-  // Mouse up handler
-  function onMouseUp() {
+  // Pointer up handler
+  function onPointerUp() {
     if (!isDragging) return;
 
     // Update current position with final offsets
@@ -114,12 +147,7 @@ export function makeDraggable(element, handle, panelId) {
     // End dragging
     isDragging = false;
     element.classList.remove("dragging");
-
-    // Remove listeners
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", onMouseUp);
   }
 
-  // Add listener to handle
-  handle.addEventListener("mousedown", onMouseDown);
+  trackPointerDrag(handle, { start: onPointerDown, move: onPointerMove, end: onPointerUp });
 }

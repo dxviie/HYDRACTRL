@@ -6,7 +6,7 @@
  * in-range settings object. The store takes its `fs` so it can be tested on a
  * temp directory without Electron.
  */
-import { dirname } from "node:path";
+import { dirname, isAbsolute } from "node:path";
 
 export const RESOLUTION_PRESETS = Object.freeze([
   Object.freeze({ label: "720p", width: 1280, height: 720 }),
@@ -25,6 +25,7 @@ export const LIMITS = Object.freeze({
   minPort: 1024,
   maxPort: 65535,
   maxNameLength: 64,
+  maxPathLength: 4096,
 });
 
 export const DEFAULT_SETTINGS = Object.freeze({
@@ -41,6 +42,10 @@ export const DEFAULT_SETTINGS = Object.freeze({
     port: 3000,
     allowNetwork: false,
   }),
+  media: Object.freeze({
+    // Where dropped images and videos go; empty means the app's own folder
+    folder: "",
+  }),
 });
 
 function clampInt(value, min, max, fallback) {
@@ -56,18 +61,30 @@ function toBool(value, fallback) {
   return fallback;
 }
 
-function toName(value, fallback) {
-  if (typeof value !== "string") return fallback;
-  // Control characters have no place in a sender name shown by other apps
-  const cleaned = Array.from(value)
+function withoutControlCharacters(value) {
+  return Array.from(value)
     .filter((char) => {
       const code = char.charCodeAt(0);
       return code > 31 && code !== 127;
     })
-    .join("")
-    .trim();
+    .join("");
+}
+
+function toName(value, fallback) {
+  if (typeof value !== "string") return fallback;
+  // Control characters have no place in a sender name shown by other apps
+  const cleaned = withoutControlCharacters(value).trim();
   if (!cleaned) return fallback;
   return cleaned.slice(0, LIMITS.maxNameLength);
+}
+
+/** An absolute folder path, or "" for the default folder. */
+function toFolder(value, fallback) {
+  if (typeof value !== "string") return fallback;
+  const cleaned = withoutControlCharacters(value).trim();
+  if (!cleaned) return "";
+  if (cleaned.length > LIMITS.maxPathLength || !isAbsolute(cleaned)) return fallback;
+  return cleaned;
 }
 
 /**
@@ -79,6 +96,7 @@ export function validateSettings(input, base = DEFAULT_SETTINGS) {
   const raw = input && typeof input === "object" ? input : {};
   const output = raw.output && typeof raw.output === "object" ? raw.output : {};
   const server = raw.server && typeof raw.server === "object" ? raw.server : {};
+  const media = raw.media && typeof raw.media === "object" ? raw.media : {};
   return {
     output: {
       autoStart: toBool(output.autoStart, base.output.autoStart),
@@ -97,6 +115,9 @@ export function validateSettings(input, base = DEFAULT_SETTINGS) {
     server: {
       port: clampInt(server.port, LIMITS.minPort, LIMITS.maxPort, base.server.port),
       allowNetwork: toBool(server.allowNetwork, base.server.allowNetwork),
+    },
+    media: {
+      folder: toFolder(media.folder, base.media.folder),
     },
   };
 }

@@ -24,10 +24,24 @@ function fakeFetch(ports) {
   };
 }
 
+class FakeStdin extends EventEmitter {
+  constructor() {
+    super();
+    this.lines = [];
+    this.destroyed = false;
+    this.writableEnded = false;
+  }
+  write(text) {
+    this.lines.push(text);
+    return true;
+  }
+}
+
 class FakeChild extends EventEmitter {
   constructor(pid) {
     super();
     this.pid = pid;
+    this.stdin = new FakeStdin();
     this.stdout = new EventEmitter();
     this.stderr = new EventEmitter();
     this.exitCode = null;
@@ -42,7 +56,7 @@ class FakeChild extends EventEmitter {
   }
 }
 
-function setup({ ports = {}, readyAfterSpawn = true, command } = {}) {
+function setup({ ports = {}, readyAfterSpawn = true, command, getEnv, log = silentLog } = {}) {
   const spawned = [];
   const states = [];
   let nextPid = 100;
@@ -62,8 +76,9 @@ function setup({ ports = {}, readyAfterSpawn = true, command } = {}) {
     },
     fetch: fakeFetch(ports),
     findFreePort: async (start) => start + 4,
-    log: silentLog,
+    log,
     onState: (state) => states.push(state),
+    getEnv,
     baseEnv: { PATH: "/bin" },
     readyTimeoutMs: 400,
     pollIntervalMs: 10,
@@ -119,6 +134,43 @@ describe("createServerManager", () => {
     await manager.stop();
     expect(spawned[0].child.killed).toEqual(["SIGTERM"]);
     expect(manager.getState().status).toBe("stopped");
+  });
+
+  test("adds the extra environment, read again at every start", async () => {
+    let folder = "/media/one";
+    const { manager, spawned, ports } = setup({
+      getEnv: () => ({ HYDRACTRL_MEDIA_DIR: folder }),
+    });
+    await manager.start();
+    expect(spawned[0].options.env.HYDRACTRL_MEDIA_DIR).toBe("/media/one");
+    expect(spawned[0].options.stdio).toEqual(["pipe", "pipe", "pipe"]);
+    await manager.stop();
+    ports[3000] = "free";
+    folder = "/media/two";
+    await manager.start();
+    expect(spawned[1].options.env.HYDRACTRL_MEDIA_DIR).toBe("/media/two");
+    await manager.stop();
+  });
+
+  test("sends control lines to a server it spawned, and only then", async () => {
+    const warnings = [];
+    const log = { ...silentLog, warn: (message) => warnings.push(message) };
+    const { manager, spawned } = setup({ log });
+    expect(manager.send({ type: "media-folder", path: "/x" })).toBe(false);
+    await manager.start();
+    expect(manager.send({ type: "media-folder", path: "/x" })).toBe(true);
+    expect(spawned[0].child.stdin.lines).toEqual(['{"type":"media-folder","path":"/x"}\n']);
+
+    // A broken pipe is logged, not thrown
+    spawned[0].child.stdin.emit("error", Object.assign(new Error("EPIPE"), { code: "EPIPE" }));
+    expect(warnings.some((message) => message.includes("EPIPE"))).toBe(true);
+    await manager.stop();
+    expect(manager.send({ type: "media-folder", path: "/y" })).toBe(false);
+
+    const attached = setup({ ports: { 3000: "hydractrl" } });
+    await attached.manager.start();
+    expect(attached.manager.send({ type: "media-folder", path: "/x" })).toBe(false);
+    await attached.manager.stop();
   });
 
   test("binds all interfaces when network access is allowed", async () => {

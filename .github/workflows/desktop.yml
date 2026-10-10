@@ -1,13 +1,41 @@
 name: Desktop app
 
 # Builds the packaged desktop app for macOS (Apple Silicon and Intel) and
-# Windows. Runs on demand and for desktop release tags. Artifacts are unsigned
-# unless signing credentials are configured as repository secrets.
+# Windows and checks that each build starts, and smoke-tests a Linux directory
+# build. Runs for pull requests that touch the app, on demand, and from the
+# Release workflow, which asks for signed builds. A build is signed (and on
+# macOS notarized) only when it asks to be, through the Release workflow or
+# the Sign option of a manual run, and the credentials are in the repository
+# secrets; otherwise it is unsigned (ad-hoc signed on macOS). Pull request
+# builds never sign. See RELEASING.md.
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - "desktop-v*"
+    inputs:
+      sign:
+        description: Sign (and notarize) with the credentials in the repository secrets
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      sign:
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - "desktop/**"
+      - "src/**"
+      - "public/**"
+      - "scripts/**"
+      - "package.json"
+      - "bun.lock"
+      - ".github/workflows/desktop.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-build-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -19,15 +47,23 @@ jobs:
         include:
           - name: macOS (Apple Silicon)
             os: macos-15
+            platform: mac
             args: --mac --arm64
           - name: macOS (Intel)
             os: macos-15-intel
+            platform: mac
             args: --mac --x64
+            # These runners have no Metal device, and SwiftShader doesn't run
+            # there either, so they can't render WebGL: the smoke test checks
+            # all but the interface's own start. Real Intel Macs that run
+            # macOS 11 or later all have Metal.
+            smoke: --no-gpu
           - name: Windows (x64)
             os: windows-latest
+            platform: win
             args: --win --x64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -45,28 +81,106 @@ jobs:
         working-directory: desktop
 
       - name: Package
-        run: bunx electron-builder ${{ matrix.args }}
+        shell: bash
         working-directory: desktop
         env:
-          # Unsigned builds by default; set CSC_LINK / CSC_KEY_PASSWORD (and
-          # APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID with
-          # -c.mac.notarize=true) to sign and notarize.
+          # Never pick up a random identity from the runner's keychain; turned
+          # on below when there is a certificate
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          # macOS: a Developer ID Application certificate (.p12, base64) and
+          # credentials for notarization: an App Store Connect API key (the
+          # .p8 file's contents, its key ID and the issuer ID), or an Apple ID
+          # with an app-specific password and the team ID
+          CSC_LINK: ${{ inputs.sign && matrix.platform == 'mac' && secrets.MAC_CERTIFICATE_P12_BASE64 || '' }}
+          CSC_KEY_PASSWORD: ${{ inputs.sign && matrix.platform == 'mac' && secrets.MAC_CERTIFICATE_PASSWORD || '' }}
+          APPLE_API_KEY_P8: ${{ inputs.sign && matrix.platform == 'mac' && secrets.APPLE_API_KEY_P8 || '' }}
+          APPLE_API_KEY_ID: ${{ inputs.sign && matrix.platform == 'mac' && secrets.APPLE_API_KEY_ID || '' }}
+          APPLE_API_ISSUER: ${{ inputs.sign && matrix.platform == 'mac' && secrets.APPLE_API_ISSUER || '' }}
+          APPLE_ID: ${{ inputs.sign && matrix.platform == 'mac' && secrets.APPLE_ID || '' }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ inputs.sign && matrix.platform == 'mac' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
+          APPLE_TEAM_ID: ${{ inputs.sign && matrix.platform == 'mac' && secrets.APPLE_TEAM_ID || '' }}
+          # Windows: a code-signing certificate (.p12/.pfx, base64)
+          WIN_CSC_LINK: ${{ inputs.sign && matrix.platform == 'win' && secrets.WINDOWS_CERTIFICATE_P12_BASE64 || '' }}
+          WIN_CSC_KEY_PASSWORD: ${{ inputs.sign && matrix.platform == 'win' && secrets.WINDOWS_CERTIFICATE_PASSWORD || '' }}
+        run: |
+          # electron-builder treats a variable that is set but empty as a
+          # certificate path, so drop the ones without a secret behind them
+          if [ -z "$CSC_LINK" ]; then unset CSC_LINK CSC_KEY_PASSWORD; fi
+          if [ -z "$WIN_CSC_LINK" ]; then unset WIN_CSC_LINK WIN_CSC_KEY_PASSWORD; fi
+          if [ -n "$CSC_LINK" ]; then
+            # electron-builder imports the certificate into a keychain of its
+            # own and only looks for the identity there while discovery is
+            # on; with it off, it skips signing. The search stays inside that
+            # keychain, so the runner's own identities are still left alone.
+            export CSC_IDENTITY_AUTO_DISCOVERY=true
+          fi
+          if [ -n "$APPLE_API_KEY_P8" ]; then
+            # notarytool reads the API key from a file
+            printf '%s\n' "$APPLE_API_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+            export APPLE_API_KEY="$RUNNER_TEMP/AuthKey.p8"
+          fi
+          unset APPLE_API_KEY_P8
+          args="${{ matrix.args }} --publish never"
+          if [ "${{ matrix.platform }}" = "mac" ] && [ -z "$CSC_LINK" ]; then
+            # Without a certificate, sign ad hoc (Apple Silicon Macs refuse to
+            # open a downloaded app with no signature at all) and don't try
+            # to notarize. With one, electron-builder signs, and its afterSign
+            # hook (scripts/notarize.cjs) notarizes when the Apple credentials
+            # are set.
+            args="$args -c.mac.identity=- -c.mac.timestamp=none"
+            # In a pull request build (GITHUB_BASE_REF is set) electron-builder
+            # skips signing altogether, ad hoc included, unless told
+            # otherwise. Pull requests never get the signing secrets, so
+            # there is no certificate here to protect.
+            export CSC_FOR_PULL_REQUEST=true
+            unset APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
+            unset APPLE_API_KEY APPLE_API_KEY_ID APPLE_API_ISSUER
+          fi
+          echo "electron-builder $args"
+          bunx electron-builder $args
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
-          name: hydractrl-desktop-${{ runner.os }}-${{ runner.arch }}
+          name: hydractrl-desktop-${{ matrix.platform }}-${{ runner.arch }}
           path: |
             desktop/dist/*.dmg
-            desktop/dist/*.zip
             desktop/dist/*.exe
           if-no-files-found: error
+
+      # What people download has to open. On macOS that takes a valid
+      # signature: a broken one makes macOS call the app damaged, with no way
+      # to open it anyway.
+      - name: Verify the macOS signature
+        if: matrix.platform == 'mac'
+        working-directory: desktop
+        run: |
+          app=$(ls -d dist/mac*/HYDRACTRL.app)
+          codesign --verify --deep --strict --verbose=2 "$app"
+          codesign --display --verbose=2 "$app"
+          # A Developer ID build also has to be notarized, with the ticket
+          # stapled: macOS blocks a signed app that isn't, just like an
+          # unsigned one
+          if ! codesign --display --verbose=2 "$app" 2>&1 | grep -q "^Signature=adhoc"; then
+            spctl --assess --type execute --verbose=4 "$app"
+            xcrun stapler validate "$app"
+          fi
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      # The packaged app has to start its bundled server under the hardened
+      # runtime and load the interface. Runners have no real GPU, so a Syphon
+      # or Spout output that doesn't start here only warns.
+      - name: Smoke test the packaged app
+        working-directory: desktop
+        run: node scripts/smoke.mjs --optional-output ${{ matrix.smoke }}
 
   smoke:
     name: Linux smoke test (packaged app)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: oven-sh/setup-bun@v2
         with:

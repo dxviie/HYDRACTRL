@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { buildWindowFeatures } from "./BreakoutPlugin.js";
+import { buildWindowFeatures, parseSize } from "./BreakoutPlugin.js";
 
 describe("buildWindowFeatures", () => {
   test("includes the requested dimensions", () => {
@@ -21,5 +21,19 @@ describe("buildWindowFeatures", () => {
     const features = buildWindowFeatures();
     expect(features).toContain("width=1280");
     expect(features).toContain("height=720");
+  });
+});
+
+describe("parseSize", () => {
+  test("reads the dropdown's WIDTHxHEIGHT values", () => {
+    expect(parseSize("1280x720")).toEqual({ width: 1280, height: 720 });
+    expect(parseSize("1080x1080")).toEqual({ width: 1080, height: 1080 });
+  });
+
+  test("rejects anything else", () => {
+    expect(parseSize("")).toBeNull();
+    expect(parseSize(null)).toBeNull();
+    expect(parseSize("1280×720")).toBeNull();
+    expect(parseSize("HD")).toBeNull();
   });
 });

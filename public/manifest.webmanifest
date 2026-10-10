@@ -1,0 +1,30 @@
+{
+  "id": "/app",
+  "name": "HYDRACTRL",
+  "short_name": "HYDRACTRL",
+  "description": "A performance wrapper around hydra for live visuals: 64 scenes, MIDI, an XY pad with physics and a live-coding editor.",
+  "lang": "en",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#08080b",
+  "theme_color": "#08080b",
+  "icons": [
+    {
+      "src": "/assets/favicon/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/favicon/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/favicon/maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

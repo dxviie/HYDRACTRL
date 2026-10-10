@@ -3,6 +3,7 @@ import hydraData from "./data/hydra-functions.json" assert { type: "json" };
  * Documentation Panel Component
  * A draggable panel with Hydra function reference
  */
+import { trackPointerDrag } from "./utils/Draggable.js";
 import { loadPanelPosition, savePanelPosition } from "./utils/PanelStorage.js";
 
 // Extract categories and functions from the shared JSON resource
@@ -24,39 +25,38 @@ export function createDocPanel() {
     panel.style.left = savedPosition.left + "px";
     panel.style.top = savedPosition.top + "px";
     panel.style.width = savedPosition.width ? savedPosition.width + "px" : "500px";
-    panel.style.height = savedPosition.height ? savedPosition.height + "px" : "900px";
+    panel.style.height = savedPosition.height ? savedPosition.height + "px" : "640px";
   } else {
     panel.style.left = "60px";
     panel.style.top = "60px";
     panel.style.width = "500px";
-    panel.style.height = "900px";
+    panel.style.height = "640px";
   }
 
   panel.style.backgroundColor =
     "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important";
-  panel.style.borderRadius = "8px";
+  panel.style.borderRadius = "var(--panel-radius)";
   panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
   panel.style.backdropFilter = "blur(var(--color-panel-blur))";
   panel.style.zIndex = "999";
   panel.style.overflow = "hidden";
-  panel.style.fontFamily = "sans-serif";
-  panel.style.fontSize = "14px";
+  panel.style.fontSize = "12px";
   panel.style.color = "var(--color-text-primary)";
   panel.style.flexDirection = "column";
 
   // Create the handle
   const handle = document.createElement("div");
   handle.className = "doc-handle";
-  handle.style.height = "28px";
+  handle.style.height = "24px";
   handle.style.backgroundColor = "rgba(var(--color-bg-tertiary-rgb), var(--panel-opacity))";
   handle.style.display = "flex";
   handle.style.justifyContent = "space-between";
   handle.style.alignItems = "center";
-  handle.style.padding = "0 10px";
+  handle.style.padding = "0 3px 0 8px";
   handle.style.cursor = "move";
   handle.style.userSelect = "none";
-  handle.style.borderTopLeftRadius = "8px";
-  handle.style.borderTopRightRadius = "8px";
+  handle.style.borderTopLeftRadius = "var(--panel-radius)";
+  handle.style.borderTopRightRadius = "var(--panel-radius)";
 
   // Create the title container
   const titleContainer = document.createElement("div");
@@ -65,19 +65,22 @@ export function createDocPanel() {
 
   // Create the title
   const title = document.createElement("div");
-  title.textContent = "Hydra Functions";
-  title.style.fontWeight = "bold";
-  title.style.fontSize = "14px";
+  title.textContent = "HYDRA FUNCTIONS";
+  title.style.fontWeight = "600";
+  title.style.fontSize = "11px";
+  title.style.letterSpacing = "0.08em";
+  title.style.color = "var(--color-text-secondary)";
 
   // Create the close button
   const closeButton = document.createElement("button");
   closeButton.innerHTML = "×";
   closeButton.style.background = "none";
   closeButton.style.border = "none";
-  closeButton.style.fontSize = "20px";
+  closeButton.style.fontSize = "16px";
+  closeButton.style.lineHeight = "1";
   closeButton.style.color = "var(--color-text-primary)";
   closeButton.style.cursor = "pointer";
-  closeButton.style.padding = "0 5px";
+  closeButton.style.padding = "0 4px";
   closeButton.title = "Close";
   closeButton.addEventListener("click", () => {
     panel.style.display = "none";
@@ -98,18 +101,21 @@ export function createDocPanel() {
   // Create the left sidebar (categories and functions)
   const leftSidebar = document.createElement("div");
   leftSidebar.style.width = "100%";
-  leftSidebar.style.height = "fit-content";
+  leftSidebar.style.flex = "1";
+  leftSidebar.style.minHeight = "0"; // Scrolls when the panel is shorter than the list
   leftSidebar.style.borderRight = "1px solid rgba(var(--color-bg-tertiary-rgb), 0.5)";
   leftSidebar.style.overflow = "auto";
-  leftSidebar.style.padding = "10px";
+  leftSidebar.style.padding = "6px";
 
   // Create the right content area (function details)
   const rightContent = document.createElement("div");
-  rightContent.style.flex = "1";
-  rightContent.style.padding = "10px";
-  rightContent.style.height = "20rem";
+  rightContent.style.flex = "none";
+  rightContent.style.padding = "8px";
+  rightContent.style.height = "13rem";
+  rightContent.style.maxHeight = "45%"; // Leaves the list room in a short panel
+  rightContent.style.overflow = "auto";
   rightContent.style.width = "100%";
-  rightContent.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
+  rightContent.style.backgroundColor = "rgba(var(--color-contrast-rgb, 255, 255, 255), 0.1)";
 
   // Selected function indicator
   let selectedFunction = null;
@@ -135,10 +141,10 @@ export function createDocPanel() {
 
     // Build the simplified content
     let content = `
-      <div class="function-header" style="border-bottom: 1px solid ${categoryColor}4D; margin-bottom: 8px;">
-        <h2 style="color: ${categoryColor}; font-size: 16px; margin: 0 0 5px 0">${funcName}()</h2>
+      <div class="function-header" style="border-bottom: 1px solid ${categoryColor}4D; margin-bottom: 6px;">
+        <h2 style="color: ${categoryColor}; font-size: 14px; margin: 0 0 4px 0">${funcName}()</h2>
       </div>
-      <div class="function-description" style="margin-bottom: 10px; font-size: 13px;">
+      <div class="function-description" style="margin-bottom: 8px; font-size: 12px;">
         ${funcInfo.description}
       </div>
     `;
@@ -149,12 +155,12 @@ export function createDocPanel() {
       content += `
         <div class="function-example">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <div style="font-size: 13px; font-weight: bold;">Example</div>
+            <div style="font-size: 11px; font-weight: 600;">Example</div>
             <button id="${exampleButtonId}" title="Copy example" class="copy-example-button" style="background: none; border: none; cursor: pointer; color: var(--color-text-secondary); padding: 2px 4px; line-height: 1;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.829 12.861c.171-.413.171-.938.171-1.986s0-1.573-.171-1.986a2.25 2.25 0 0 0-1.218-1.218c-.413-.171-.938-.171-1.986-.171H11.1c-1.26 0-1.89 0-2.371.245a2.25 2.25 0 0 0-.984.984C7.5 9.209 7.5 9.839 7.5 11.1v6.525c0 1.048 0 1.573.171 1.986c.229.551.667.99 1.218 1.218c.413.171.938.171 1.986.171s1.573 0 1.986-.171m7.968-7.968a2.25 2.25 0 0 1-1.218 1.218c-.413.171-.938.171-1.986.171s-1.573 0-1.986.171a2.25 2.25 0 0 0-1.218 1.218c-.171.413-.171.938-.171 1.986s0 1.573-.171 1.986a2.25 2.25 0 0 1-1.218 1.218m7.968-7.968a11.68 11.68 0 0 1-7.75 7.9l-.218.068M16.5 7.5v-.9c0-1.26 0-1.89-.245-2.371a2.25 2.25 0 0 0-.983-.984C14.79 3 14.16 3 12.9 3H6.6c-1.26 0-1.89 0-2.371.245a2.25 2.25 0 0 0-.984.984C3 4.709 3 5.339 3 6.6v6.3c0 1.26 0 1.89.245 2.371c.216.424.56.768.984.984c.48.245 1.111.245 2.372.245H7.5"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.829 12.861c.171-.413.171-.938.171-1.986s0-1.573-.171-1.986a2.25 2.25 0 0 0-1.218-1.218c-.413-.171-.938-.171-1.986-.171H11.1c-1.26 0-1.89 0-2.371.245a2.25 2.25 0 0 0-.984.984C7.5 9.209 7.5 9.839 7.5 11.1v6.525c0 1.048 0 1.573.171 1.986c.229.551.667.99 1.218 1.218c.413.171.938.171 1.986.171s1.573 0 1.986-.171m7.968-7.968a2.25 2.25 0 0 1-1.218 1.218c-.413.171-.938.171-1.986.171s-1.573 0-1.986.171a2.25 2.25 0 0 0-1.218 1.218c-.171.413-.171.938-.171 1.986s0 1.573-.171 1.986a2.25 2.25 0 0 1-1.218 1.218m7.968-7.968a11.68 11.68 0 0 1-7.75 7.9l-.218.068M16.5 7.5v-.9c0-1.26 0-1.89-.245-2.371a2.25 2.25 0 0 0-.983-.984C14.79 3 14.16 3 12.9 3H6.6c-1.26 0-1.89 0-2.371.245a2.25 2.25 0 0 0-.984.984C3 4.709 3 5.339 3 6.6v6.3c0 1.26 0 1.89.245 2.371c.216.424.56.768.984.984c.48.245 1.111.245 2.372.245H7.5"/></svg>
             </button>
           </div>
-          <pre style="background-color: rgba(0,0,0,0.2); padding: 6px; border-radius: 4px; overflow-x: auto; font-family: monospace; font-size: 12px; margin: 0;">${funcInfo.example}</pre>
+          <pre style="background-color: rgba(0,0,0,0.2); padding: 6px; border-radius: 4px; overflow-x: auto; font-family: var(--font-code); font-size: 12px; margin: 0;">${funcInfo.example}</pre>
         </div>
       `;
     }
@@ -173,7 +179,7 @@ export function createDocPanel() {
             .then(() => {
               const originalIconHTML = copyButton.innerHTML;
               copyButton.innerHTML =
-                '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><path fill="none" stroke="var(--color-success, green)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.829 12.861c.171-.413.171-.938.171-1.986s0-1.573-.171-1.986a2.25 2.25 0 0 0-1.218-1.218c-.413-.171-.938-.171-1.986-.171H11.1c-1.26 0-1.89 0-2.371.245a2.25 2.25 0 0 0-.984.984C7.5 9.209 7.5 9.839 7.5 11.1v6.525c0 1.048 0 1.573.171 1.986c.229.551.667.99 1.218 1.218c.413.171.938.171 1.986.171s1.573 0 1.986-.171m7.968-7.968a2.25 2.25 0 0 1-1.218 1.218c-.413.171-.938.171-1.986.171s-1.573 0-1.986.171a2.25 2.25 0 0 0-1.218 1.218c-.171.413-.171.938-.171 1.986s0 1.573-.171 1.986a2.25 2.25 0 0 1-1.218 1.218m7.968-7.968a11.68 11.68 0 0 1-7.75 7.9l-.218.068M16.5 7.5v-.9c0-1.26 0-1.89-.245-2.371a2.25 2.25 0 0 0-.983-.984C14.79 3 14.16 3 12.9 3H6.6c-1.26 0-1.89 0-2.371.245a2.25 2.25 0 0 0-.984.984C3 4.709 3 5.339 3 6.6v6.3c0 1.26 0 1.89.245 2.371c.216.424.56.768.984.984c.48.245 1.111.245 2.372.245H7.5"/></svg>';
+                '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><path fill="none" stroke="var(--color-success, green)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.829 12.861c.171-.413.171-.938.171-1.986s0-1.573-.171-1.986a2.25 2.25 0 0 0-1.218-1.218c-.413-.171-.938-.171-1.986-.171H11.1c-1.26 0-1.89 0-2.371.245a2.25 2.25 0 0 0-.984.984C7.5 9.209 7.5 9.839 7.5 11.1v6.525c0 1.048 0 1.573.171 1.986c.229.551.667.99 1.218 1.218c.413.171.938.171 1.986.171s1.573 0 1.986-.171m7.968-7.968a2.25 2.25 0 0 1-1.218 1.218c-.413.171-.938.171-1.986.171s-1.573 0-1.986.171a2.25 2.25 0 0 0-1.218 1.218c-.171.413-.171.938-.171 1.986s0 1.573-.171 1.986a2.25 2.25 0 0 1-1.218 1.218m7.968-7.968a11.68 11.68 0 0 1-7.75 7.9l-.218.068M16.5 7.5v-.9c0-1.26 0-1.89-.245-2.371a2.25 2.25 0 0 0-.983-.984C14.79 3 14.16 3 12.9 3H6.6c-1.26 0-1.89 0-2.371.245a2.25 2.25 0 0 0-.984.984C3 4.709 3 5.339 3 6.6v6.3c0 1.26 0 1.89.245 2.371c.216.424.56.768.984.984c.48.245 1.111.245 2.372.245H7.5"/></svg>';
 
               setTimeout(() => {
                 copyButton.innerHTML = originalIconHTML;
@@ -192,8 +198,7 @@ export function createDocPanel() {
   const functionTagsContainer = document.createElement("div");
   functionTagsContainer.style.display = "flex";
   functionTagsContainer.style.flexWrap = "wrap";
-  functionTagsContainer.style.gap = "4px";
-  functionTagsContainer.style.padding = "4px 0";
+  functionTagsContainer.style.gap = "3px";
   functionTagsContainer.style.alignItems = "center";
 
   // Create function list by categories
@@ -202,10 +207,10 @@ export function createDocPanel() {
 
     // Create category heading
     const categoryHeading = document.createElement("div");
-    categoryHeading.style.fontWeight = "bold";
+    categoryHeading.style.fontWeight = "600";
     categoryHeading.style.backgroundColor = category.color;
     categoryHeading.style.color = "black";
-    categoryHeading.style.padding = ".5rem 1rem";
+    categoryHeading.style.padding = "2px 8px";
     categoryHeading.style.borderRadius = "4px";
     categoryHeading.textContent = category.title;
 
@@ -217,9 +222,9 @@ export function createDocPanel() {
       funcTag.textContent = funcName;
       funcTag.style.backgroundColor = `${category.color}20`; // 12% opacity background
       funcTag.style.color = "var(--color-text-primary)";
-      funcTag.style.padding = ".5rem 1rem";
+      funcTag.style.padding = "2px 8px";
       funcTag.style.borderRadius = "3px";
-      funcTag.style.fontSize = "12px";
+      funcTag.style.fontSize = "11px";
       funcTag.style.cursor = "pointer";
       funcTag.style.height = "fit-content";
       funcTag.style.transition = "all 0.15s ease";
@@ -250,7 +255,7 @@ export function createDocPanel() {
               tag.style.backgroundColor = `${category.color}20`; // Reset background
               tag.style.transform = "translateY(0)";
               tag.style.boxShadow = "none";
-              tag.style.fontWeight = "normal";
+              tag.style.fontWeight = "400";
             }
           });
         }
@@ -258,7 +263,7 @@ export function createDocPanel() {
         // Set new selection
         selectedFunction = funcName;
         funcTag.style.backgroundColor = `${category.color}40`; // 25% opacity for selected
-        funcTag.style.fontWeight = "bold";
+        funcTag.style.fontWeight = "600";
         funcTag.style.boxShadow = "0 2px 4px rgba(0,0,0,0.15)";
 
         // Show function details
@@ -273,10 +278,10 @@ export function createDocPanel() {
   // Add initial content to right panel
   rightContent.innerHTML = `
     <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; color: var(--color-text-secondary);">
-      <div style="font-size: 36px; margin-bottom: 10px;">
+      <div style="font-size: 36px; margin-bottom: 6px;">
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9.8V20m0-10.2c0-1.704.107-3.584-1.638-4.473C9.72 5 8.88 5 7.2 5H4.6C3.364 5 3 5.437 3 6.6v8.8c0 .568-.036 1.195.546 1.491c.214.109.493.109 1.052.109H7.43c2.377 0 3.26 1.036 4.569 3m0-10.2c0-1.704-.108-3.584 1.638-4.473C14.279 5 15.12 5 16.8 5h2.6c1.235 0 1.6.436 1.6 1.6v8.8c0 .567.035 1.195-.546 1.491c-.213.109-.493.109-1.052.109h-2.833c-2.377 0-3.26 1.036-4.57 3"/></svg>
       </div>
-      <div>Select a function from in the list below to view its documentation</div>
+      <div>Pick a function below to see its documentation</div>
     </div>
   `;
 
@@ -287,33 +292,23 @@ export function createDocPanel() {
   // Add content container to panel
   panel.appendChild(contentContainer);
 
-  // Make panel resizable
+  // Make panel resizable by its bottom-right corner
   const resizeHandle = document.createElement("div");
-  resizeHandle.style.position = "absolute";
-  resizeHandle.style.width = "10px";
-  resizeHandle.style.height = "10px";
-  resizeHandle.style.bottom = "0";
-  resizeHandle.style.right = "0";
-  resizeHandle.style.cursor = "nwse-resize";
-  resizeHandle.style.zIndex = "5";
+  resizeHandle.className = "resize-grip";
   panel.appendChild(resizeHandle);
 
-  let isResizing = false;
   let initialX, initialY, initialWidth, initialHeight;
 
-  resizeHandle.addEventListener("mousedown", (e) => {
-    isResizing = true;
+  function onResizeStart(e) {
     initialX = e.clientX;
     initialY = e.clientY;
     initialWidth = panel.offsetWidth;
     initialHeight = panel.offsetHeight;
     e.preventDefault();
     e.stopPropagation();
-  });
+  }
 
-  document.addEventListener("mousemove", (e) => {
-    if (!isResizing) return;
-
+  function onResizeMove(e) {
     const width = initialWidth + (e.clientX - initialX);
     const height = initialHeight + (e.clientY - initialY);
 
@@ -327,61 +322,70 @@ export function createDocPanel() {
       width: Number.parseInt(panel.style.width),
       height: Number.parseInt(panel.style.height),
     });
-  });
+  }
 
-  document.addEventListener("mouseup", () => {
-    isResizing = false;
-  });
+  trackPointerDrag(resizeHandle, { start: onResizeStart, move: onResizeMove });
 
   // Add the panel to the document
   document.body.appendChild(panel);
 
   // Make the panel draggable
-  let isDragging = false;
   let offsetX, offsetY;
 
-  handle.addEventListener("mousedown", (e) => {
-    isDragging = true;
+  function onDragStart(e) {
     panel.classList.add("dragging");
     offsetX = e.clientX - panel.getBoundingClientRect().left;
     offsetY = e.clientY - panel.getBoundingClientRect().top;
-  });
+  }
 
-  document.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-
+  function onDragMove(e) {
+    // Keep the title bar on screen, or there is nothing left to drag it back by
+    const top = Math.min(
+      Math.max(0, e.clientY - offsetY),
+      window.innerHeight - handle.offsetHeight,
+    );
     panel.style.left = e.clientX - offsetX + "px";
-    panel.style.top = e.clientY - offsetY + "px";
-  });
+    panel.style.top = top + "px";
+  }
 
-  document.addEventListener("mouseup", () => {
-    if (isDragging) {
-      isDragging = false;
-      panel.classList.remove("dragging");
+  function onDragEnd() {
+    panel.classList.remove("dragging");
 
-      // Save the new position
-      savePanelPosition("doc-panel", {
-        left: Number.parseInt(panel.style.left),
-        top: Number.parseInt(panel.style.top),
-        width: Number.parseInt(panel.style.width),
-        height: Number.parseInt(panel.style.height),
-      });
-    }
-  });
+    // Save the new position
+    savePanelPosition("doc-panel", {
+      left: Number.parseInt(panel.style.left),
+      top: Number.parseInt(panel.style.top),
+      width: Number.parseInt(panel.style.width),
+      height: Number.parseInt(panel.style.height),
+    });
+  }
+
+  trackPointerDrag(handle, { start: onDragStart, move: onDragMove, end: onDragEnd });
+
+  // Keep the panel's bottom and its resize grip on screen, however short the
+  // window or tall the saved size
+  function fitToWindow() {
+    const top = Math.max(0, Number.parseInt(panel.style.top) || 0);
+    const maxHeight = Math.max(200, window.innerHeight - top - 20);
+    if (panel.offsetHeight > maxHeight) panel.style.height = `${maxHeight}px`;
+  }
+
+  function show() {
+    panel.style.display = "flex";
+    fitToWindow();
+  }
 
   // Return an object with methods to control the panel
   return {
     panel,
     toggle: () => {
       if (panel.style.display === "none") {
-        panel.style.display = "flex";
+        show();
       } else {
         panel.style.display = "none";
       }
     },
-    show: () => {
-      panel.style.display = "flex";
-    },
+    show,
     hide: () => {
       panel.style.display = "none";
     },

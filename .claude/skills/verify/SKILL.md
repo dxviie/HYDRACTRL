@@ -13,9 +13,18 @@ the UI — not running `bun test`.
 
 ```bash
 bun install
-bun run build          # bundles src/client/index.js -> public/assets/
+bun run build          # bundles src/client -> public/assets/, src/site -> public/site/
 bun src/index.ts &     # serves on http://localhost:3000
 ```
+
+The interface is at `/` (and `/app`); the hosted site's landing page is at
+`/index.html` locally. On the landing page, `#backdrop` gets the class
+`is-ready` once the hydra background renders, and `#now-playing` shows the
+current background sketch with a link that opens it in the app. The GitHub
+API call for the latest release fails in the sandbox unless the browser
+context ignores HTTPS errors (the egress proxy re-signs TLS); the download
+links keep their static `releases/latest/download/...` targets either way.
+Headless Chromium here has no H.264, so the feature videos stay blank.
 
 ## Drive it (headless Chromium + playwright-core)
 
@@ -29,9 +38,16 @@ const browser = await chromium.launch({
 });
 ```
 
-- **Desktop session:** viewport ≥ 1280×800, no touch. **Mobile session:**
-  small viewport + `hasTouch: true` + mobile UA (the app branches hard on
-  `isMobileOrTablet()`).
+- **Desktop session:** viewport ≥ 1280×800, no touch. **Phone session:** a
+  Playwright phone profile (`devices["iPhone 13"]`): the app branches hard on
+  `isPhone()`, a coarse pointer with a screen under 600px on its short side.
+  **Tablet session:** `devices["iPad (gen 7)"]`, or `hasTouch` + `isMobile`
+  with a Mac UA as iPadOS sends: the full interface, driven by touch, minus
+  the system panel's MIDI controls and breakout window (`isTablet()`).
+- Drive touch drags with CDP `Input.dispatchTouchEvent` (touchStart,
+  touchMove…, touchEnd) through `context.newCDPSession(page)`; Playwright
+  itself only taps. `page.evaluate` counts as a user gesture, so set up
+  anything that must happen without one in `page.addInitScript`.
 - Wait ~2.5s after `goto` — init is async (hydra, panels, plugins).
 
 ## Flows worth driving
@@ -43,11 +59,24 @@ const browser = await chromium.launch({
   `hydractrl-auto-run`; typing in `.cm-content` triggers a run ~250ms later.
 - URL share: `Alt+U` puts a `#sketch=` URL on the clipboard (grant
   `clipboard-read`/`clipboard-write` on the context).
-- Breakout: pick a size via `window.statsPanel.display.sizeButtons`, click
-  `breakoutButton`, expect a popup + `window.breakoutHydra`.
+- Breakout: pick a size in `window.statsPanel.display.sizeSelect` (a
+  `<select>`, HD 1280×720 unless `hydractrl-breakout-size` says otherwise),
+  click `breakoutButton` (Open/Close), expect a popup +
+  `window.breakoutHydra`. Changing the size while it's open resizes it.
+- Slots panel: dragging `.slots-resize-grip` sets the panel's width; the
+  slots stay square, 40 to 100px (349 to 829px wide), and the width persists.
+- Feedback: the About panel's `.info-feedback-button` (or
+  `window.showFeedbackPanel()`) opens `#feedback-panel` with a sandboxed
+  tally.so frame. The sandbox can't reach tally.so, so route
+  `https://tally.so/**` to a stand-in page that posts
+  `parent.postMessage(JSON.stringify({ event: "Tally.FormLoaded" }), "*")`
+  (and `Tally.FormSubmitted` to test the thank-you toast and auto-close).
 - Slot advance: enable `moveToNextSlotCheckbox`, call
   `slotsPanel.saveToActiveSlot()` + `window.moveToNextSlot(info)`, active
   slot moves after ~500ms.
+- Touch: panels drag by their title bars, the editor, doc and slots panels
+  resize by the grip in their corner, and with the UI hidden (`body.ui-hidden`) a tap
+  anywhere brings it back without clicking what reappears under the finger.
 
 ## Gotchas
 

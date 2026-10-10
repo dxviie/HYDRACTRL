@@ -2,11 +2,38 @@
  * Slots Panel Component
  * A draggable panel with 16 slots for saving and loading Hydra programs
  */
+import { trackPointerDrag } from "./utils/Draggable.js";
 import { loadPanelPosition, savePanelPosition } from "./utils/PanelStorage.js";
+
+// White at some opacity, or the theme's contrast color on light themes (styles.css)
+const contrast = (alpha) => `rgba(var(--color-contrast-rgb, 255, 255, 255), ${alpha})`;
+
+// The slots are square and the grid is 8 wide, so the panel's width sets
+// their size: 40 to 100px, resized by the grip in the panel's corner
+const SLOT_MIN = 40;
+const SLOT_MAX = 100;
+const SLOT_GAP = 3;
+const PANEL_PADDING = 4;
+
+/** The panel width at which the slots are `slotSize` pixels. */
+export function slotsPanelWidth(slotSize) {
+  return slotSize * 8 + SLOT_GAP * 7 + PANEL_PADDING * 2;
+}
+
+/** A panel width within the slot size limits. */
+export function clampSlotsPanelWidth(width) {
+  return Math.min(slotsPanelWidth(SLOT_MAX), Math.max(slotsPanelWidth(SLOT_MIN), width));
+}
 
 export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false, options = {}) {
   // Load saved position or use defaults
   const savedPosition = loadPanelPosition("slots-panel");
+
+  // The saved width, or the one for the slot size the system panel used to set
+  const legacySlotSize = Number(localStorage.getItem("hydractrl-slot-size")) || SLOT_MIN;
+  const initialWidth = clampSlotsPanelWidth(
+    savedPosition?.width || slotsPanelWidth(legacySlotSize),
+  );
 
   // Create the panel container
   const panel = document.createElement("div");
@@ -19,23 +46,24 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     panel.style.left = "50%";
     panel.style.transform = "translateX(-50%)";
     panel.style.zIndex = "1000";
+    // The smallest slots, narrower still on the smallest phones
+    panel.style.width = `min(${slotsPanelWidth(SLOT_MIN)}px, calc(100vw - 16px))`;
   } else if (savedPosition) {
     panel.style.left = savedPosition.left + "px";
     panel.style.top = savedPosition.top + "px";
-    // Don't apply width as slots panel has fixed width slots
   } else {
     panel.style.right = "20px";
     panel.style.top = "20px";
   }
 
   panel.style.backgroundColor = "var(--color-bg-secondary)";
-  panel.style.borderRadius = "8px";
+  panel.style.borderRadius = "var(--panel-radius)";
   panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
   panel.style.backdropFilter = "blur(var(--color-panel-blur))";
   panel.style.zIndex = "100";
   panel.style.overflow = "hidden";
-  panel.style.width = "auto";
-  panel.style.padding = "8px";
+  if (!mobilePosition) panel.style.width = `${initialWidth}px`;
+  panel.style.padding = `${PANEL_PADDING}px`;
 
   // Create the handle
   const handle = document.createElement("div");
@@ -45,11 +73,11 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   handle.style.display = "flex";
   handle.style.justifyContent = "space-between";
   handle.style.alignItems = "center";
-  handle.style.padding = "0 8px";
+  handle.style.padding = "0 4px 0 6px";
   handle.style.cursor = "move";
   handle.style.userSelect = "none";
-  handle.style.marginBottom = "8px";
-  handle.style.borderRadius = "4px";
+  handle.style.marginBottom = "4px";
+  handle.style.borderRadius = "3px";
 
   // Create the title container
   const titleContainer = document.createElement("div");
@@ -61,8 +89,9 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   // Create the title
   const title = document.createElement("div");
   title.className = "slots-title";
-  title.style.fontSize = "12px";
-  title.style.fontWeight = "bold";
+  title.style.fontSize = "11px";
+  title.style.fontWeight = "600";
+  title.style.letterSpacing = "0.08em";
   title.style.textTransform = "uppercase";
   title.style.color = "var(--color-text-secondary)";
   title.textContent = "SCENE ";
@@ -71,7 +100,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   const dotsContainer = document.createElement("div");
   dotsContainer.className = "bank-selector";
   dotsContainer.style.display = "flex";
-  dotsContainer.style.gap = "5px";
+  dotsContainer.style.gap = "4px";
   dotsContainer.style.alignItems = "center";
 
   // Bank dot elements array
@@ -85,7 +114,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     dot.style.width = "8px";
     dot.style.height = "8px";
     dot.style.borderRadius = "50%";
-    dot.style.backgroundColor = i === 0 ? "rgba(255, 255, 255, 0.8)" : "rgba(255, 255, 255, 0.3)";
+    dot.style.backgroundColor = i === 0 ? contrast(0.8) : contrast(0.3);
     dot.style.cursor = "pointer";
     dot.style.transition = "all 0.2s ease";
 
@@ -97,7 +126,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
         if (bankHasContent(bank)) {
           dot.style.backgroundColor = "rgba(255, 0, 234, 0.8)";
         } else {
-          dot.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
+          dot.style.backgroundColor = contrast(0.5);
         }
         dot.style.transform = "scale(1.1)";
       }
@@ -138,15 +167,15 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   diceBtn.style.alignItems = "center";
   diceBtn.style.justifyContent = "center";
   diceBtn.style.cursor = "pointer";
-  diceBtn.style.color = "white";
-  diceBtn.style.marginLeft = "8px";
+  diceBtn.style.color = contrast(1);
+  diceBtn.style.marginLeft = "4px";
   diceBtn.style.borderRadius = "3px";
   diceBtn.style.transition = "all 0.2s ease";
   diceBtn.innerHTML = "🎲";
 
   // Add hover effect
   diceBtn.addEventListener("mouseover", () => {
-    diceBtn.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
+    diceBtn.style.backgroundColor = contrast(0.2);
     diceBtn.style.transform = "scale(1.2)";
   });
 
@@ -170,8 +199,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   iconsContainer.className = "slots-icons";
   iconsContainer.style.display = "flex";
   iconsContainer.style.alignItems = "center";
-  iconsContainer.style.marginLeft = "1rem";
-  iconsContainer.style.gap = "3px";
+  iconsContainer.style.marginLeft = "12px";
+  iconsContainer.style.gap = "4px";
 
   // Create export button
   const exportBtn = document.createElement("div");
@@ -184,7 +213,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   exportBtn.style.alignItems = "center";
   exportBtn.style.justifyContent = "center";
   exportBtn.style.cursor = "pointer";
-  exportBtn.style.color = "white";
+  exportBtn.style.color = contrast(1);
   exportBtn.style.fontWeight = "bold";
   exportBtn.innerHTML =
     "<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M12 16.5v-9M8.5 11L12 7.5l3.5 3.5'/><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/></g></svg>";
@@ -199,7 +228,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   importBtn.style.alignItems = "center";
   importBtn.style.justifyContent = "center";
   importBtn.style.cursor = "pointer";
-  importBtn.style.color = "white";
+  importBtn.style.color = contrast(1);
   importBtn.style.fontWeight = "bold";
   importBtn.innerHTML =
     "<svg xmlns='http://www.w3.org/2000/svg' style='transform: rotate(180deg);' width='32' height='32' viewBox='0 0 24 24'><!-- Icon from Myna UI Icons by Praveen Juge - https://github.com/praveenjuge/mynaui-icons/blob/main/LICENSE --><g fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'><path d='M12 16.5v-9M8.5 11L12 7.5l3.5 3.5'/><path d='M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6z'/></g></svg>";
@@ -248,9 +277,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   const slotsGrid = document.createElement("div");
   slotsGrid.className = "slots-grid";
   slotsGrid.style.display = "grid";
-  slotsGrid.style.gridTemplateColumns = "repeat(8, 1fr)";
-  slotsGrid.style.gridTemplateRows = "repeat(2, 1fr)";
-  slotsGrid.style.gap = "4px";
+  slotsGrid.style.gridTemplateColumns = "repeat(8, minmax(0, 1fr))";
+  slotsGrid.style.gap = `${SLOT_GAP}px`;
   slotsGrid.style.width = "100%";
 
   // Local storage key prefix
@@ -266,9 +294,6 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   // Store slot elements for easy access
   const slotElements = [];
 
-  // Load saved slot size or use default
-  const savedSlotSize = localStorage.getItem("hydractrl-slot-size") || "40";
-
   // Create 16 slots
   for (let i = 0; i < 16; i++) {
     const slot = document.createElement("div");
@@ -277,8 +302,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     slot.style.backgroundColor = "var(--color-bg-editor)";
     slot.style.borderRadius = "4px";
     slot.style.cursor = "pointer";
-    slot.style.height = savedSlotSize + "px";
-    slot.style.width = savedSlotSize + "px";
+    slot.style.aspectRatio = "1";
+    slot.style.minWidth = "0";
     slot.style.display = "flex";
     slot.style.justifyContent = "center";
     slot.style.alignItems = "center";
@@ -293,7 +318,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     index.style.bottom = "2px";
     index.style.right = "4px";
     index.style.fontSize = "12px";
-    index.style.fontWeight = "bold";
+    index.style.fontWeight = "600";
     index.innerHTML =
       "<span style='font-size: 8px; margin-right: 2px;'>Alt/⌥ +</span>" +
       i.toString(16).toUpperCase();
@@ -341,8 +366,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   function updateBankDots() {
     for (let i = 0; i < 4; i++) {
       if (i === currentBank) {
-        // Active bank is white
-        bankDots[i].style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+        // Active bank is white (or the theme's contrast color)
+        bankDots[i].style.backgroundColor = contrast(0.8);
         bankDots[i].style.transform = "scale(1.1)";
       } else if (bankHasContent(i)) {
         // Bank with content is colored fuchsia
@@ -350,7 +375,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
         bankDots[i].style.transform = "scale(1)";
       } else {
         // Empty bank is dim
-        bankDots[i].style.backgroundColor = "rgba(255, 255, 255, 0.3)";
+        bankDots[i].style.backgroundColor = contrast(0.3);
         bankDots[i].style.transform = "scale(1)";
       }
     }
@@ -592,8 +617,10 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
 
       // Delay capture to allow rendering to complete
       setTimeout(() => {
-        // Get the canvas element
-        const canvas = document.querySelector("#hydra-canvas canvas");
+        // The canvas on screen: hydra's, or the output's frames the desktop app shows instead
+        const canvas =
+          document.querySelector("#hydra-canvas canvas.desktop-mirror:not([hidden])") ||
+          document.querySelector("#hydra-canvas canvas");
         if (!canvas) return;
 
         // Force a new animation frame to make sure rendering is complete
@@ -865,6 +892,48 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   panel.appendChild(handle);
   panel.appendChild(content);
 
+  // Resize grip in the corner: the slots follow the panel's width
+  if (!mobilePosition) {
+    const grip = document.createElement("div");
+    grip.className = "resize-grip slots-resize-grip";
+    grip.title = "Drag to resize the slots";
+    panel.appendChild(grip);
+
+    let resizeFrom = null;
+    trackPointerDrag(grip, {
+      start: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const rect = panel.getBoundingClientRect();
+        resizeFrom = {
+          x: e.clientX,
+          y: e.clientY,
+          width: rect.width,
+          aspect: rect.width / rect.height,
+          left: rect.left,
+        };
+      },
+      move: (e) => {
+        const { x, y, width, aspect, left } = resizeFrom;
+        // Follow the pointer along whichever axis it moved further (the panel
+        // keeps its proportions), and keep the grip on screen
+        const dx = e.clientX - x;
+        const dy = (e.clientY - y) * aspect;
+        const delta = Math.abs(dx) >= Math.abs(dy) ? dx : dy;
+        const onScreen = Math.max(slotsPanelWidth(SLOT_MIN), window.innerWidth - left);
+        panel.style.width = `${Math.min(clampSlotsPanelWidth(width + delta), onScreen)}px`;
+      },
+      end: () => {
+        savePanelPosition("slots-panel", {
+          left: Number.parseInt(panel.style.left || "0"),
+          top: Number.parseInt(panel.style.top || "0"),
+          width: panel.offsetWidth,
+          height: panel.offsetHeight,
+        });
+      },
+    });
+  }
+
   // Add to document
   document.body.appendChild(panel);
 
@@ -913,9 +982,9 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     const originalTransform = bankDots[bankIndex].style.transform;
 
     // Flash effect
-    bankDots[bankIndex].style.backgroundColor = "rgba(255, 255, 255, 0.9)"; // Bright white
+    bankDots[bankIndex].style.backgroundColor = contrast(0.9); // Bright white
     bankDots[bankIndex].style.transform = "scale(1.3)"; // Bigger
-    bankDots[bankIndex].style.boxShadow = "0 0 10px rgba(255, 255, 255, 0.7)"; // Glow
+    bankDots[bankIndex].style.boxShadow = `0 0 10px ${contrast(0.7)}`; // Glow
 
     // Reset after animation
     setTimeout(() => {
@@ -1294,22 +1363,22 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   // Add hover effects for export/import buttons
   exportBtn.addEventListener("mouseover", () => {
     exportBtn.style.transform = "scale(1.2)";
-    exportBtn.style.color = "rgba(255, 255, 255, 1)";
+    exportBtn.style.color = contrast(1);
   });
 
   exportBtn.addEventListener("mouseout", () => {
     exportBtn.style.transform = "scale(1)";
-    exportBtn.style.color = "white";
+    exportBtn.style.color = contrast(1);
   });
 
   importBtn.addEventListener("mouseover", () => {
     importBtn.style.transform = "scale(1.2)";
-    importBtn.style.color = "rgba(255, 255, 255, 1)";
+    importBtn.style.color = contrast(1);
   });
 
   importBtn.addEventListener("mouseout", () => {
     importBtn.style.transform = "scale(1)";
-    importBtn.style.color = "white";
+    importBtn.style.color = contrast(1);
   });
 
   // Return API
@@ -1403,8 +1472,8 @@ function makeDraggable(element, handle, panelId) {
     }
   }, 100);
 
-  // Mouse down handler
-  function onMouseDown(e) {
+  // Pointer down handler (mouse, finger or pen)
+  function onPointerDown(e) {
     e.preventDefault();
     e.stopPropagation();
 
@@ -1413,7 +1482,7 @@ function makeDraggable(element, handle, panelId) {
       element.style.right = "";
     }
 
-    // Calculate initial mouse position
+    // Calculate initial pointer position
     initialX = e.clientX;
     initialY = e.clientY;
 
@@ -1424,18 +1493,11 @@ function makeDraggable(element, handle, panelId) {
     // Start dragging
     isDragging = true;
     element.classList.add("dragging");
-
-    // Add listeners
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
   }
 
-  // Mouse move handler
-  function onMouseMove(e) {
+  // Pointer move handler
+  function onPointerMove(e) {
     if (!isDragging) return;
-
-    e.preventDefault();
-    e.stopPropagation();
 
     // Calculate offset
     offsetX = e.clientX - initialX;
@@ -1453,8 +1515,8 @@ function makeDraggable(element, handle, panelId) {
     element.style.top = newY + "px";
   }
 
-  // Mouse up handler
-  function onMouseUp(e) {
+  // Pointer up handler
+  function onPointerUp() {
     if (!isDragging) return;
 
     // Update current position with final offsets
@@ -1474,12 +1536,7 @@ function makeDraggable(element, handle, panelId) {
     // End dragging
     isDragging = false;
     element.classList.remove("dragging");
-
-    // Remove listeners
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", onMouseUp);
   }
 
-  // Add listener to handle
-  handle.addEventListener("mousedown", onMouseDown);
+  trackPointerDrag(handle, { start: onPointerDown, move: onPointerMove, end: onPointerUp });
 }

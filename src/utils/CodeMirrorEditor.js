@@ -9,11 +9,12 @@ import { javascript } from "@codemirror/lang-javascript";
 import { Compartment, EditorState } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { EditorView, highlightActiveLineGutter, keymap, lineNumbers } from "@codemirror/view";
-import { dracula } from "@uiw/codemirror-theme-dracula";
-import { eclipse } from "@uiw/codemirror-theme-eclipse";
 import { monokai } from "@uiw/codemirror-theme-monokai";
 import { solarizedDark } from "@uiw/codemirror-theme-solarized";
 import hydraData from "../data/hydra-functions.json" assert { type: "json" };
+import { insertLines } from "./editorInsert.js";
+import { lightEditorTheme, popEditorTheme } from "./editorThemes.js";
+import { flashCode, runFlash } from "./runFlash.js";
 
 // Language compartment for JavaScript with Hydra extensions
 const languageCompartment = new Compartment();
@@ -27,7 +28,7 @@ const themeMapping = {
   default: oneDark,
 
   // Light theme
-  "theme-light": eclipse,
+  "theme-light": lightEditorTheme,
 
   // Dark theme (high contrast)
   "theme-dark": solarizedDark,
@@ -36,22 +37,36 @@ const themeMapping = {
   "theme-neon-eighties": monokai,
 
   // Nineties Pop theme
-  "theme-nineties-pop": dracula,
+  "theme-nineties-pop": popEditorTheme,
 };
 
-// Create a minimal base theme for the editor
+// Create a minimal base theme for the editor. Code is set in Fira Code
+// (styles.css loads it), ligatures included.
 const hydraTheme = EditorView.theme({
   "&": {
     height: "100%",
     fontSize: "14px",
   },
   ".cm-scroller": {
-    fontFamily: "monospace",
+    fontFamily: "var(--font-code)",
     lineHeight: "1.5",
+  },
+  ".cm-content": {
+    padding: "2px 0",
   },
   ".cm-gutters": {
     backgroundColor: "var(--color-bg-editor)",
     border: "none",
+  },
+  ".cm-lineNumbers .cm-gutterElement": {
+    padding: "0 2px 0 6px",
+  },
+  ".cm-tooltip.cm-tooltip-autocomplete > ul": {
+    fontFamily: "var(--font-code)",
+  },
+  ".cm-tooltip": {
+    fontFamily: "var(--font-ui)",
+    fontSize: "12px",
   },
 });
 
@@ -187,6 +202,53 @@ function hydraCompletions(context) {
   return null;
 }
 
+// Set on the editor while files are dragged over it (styles.css)
+const FILE_DROP_CLASS = "cm-file-drop-target";
+
+function hasFiles(event) {
+  return Array.from(event.dataTransfer?.types ?? []).includes("Files");
+}
+
+/**
+ * Hand files dropped anywhere on the editor, gutter included, to
+ * `handler({ files, pos })`, with the document position under the pointer.
+ * The listeners capture the events before CodeMirror sees them, and
+ * CodeMirror leaves handled events alone, so it doesn't paste the files' text.
+ * Returns a function that stops it.
+ */
+function watchFileDrops(view, handler) {
+  const target = view.dom;
+  let clearTimer = null;
+  const unmark = () => {
+    clearTimeout(clearTimer);
+    target.classList.remove(FILE_DROP_CLASS);
+  };
+  const onDragOver = (event) => {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    target.classList.add(FILE_DROP_CLASS);
+    // dragleave also fires between the editor's own elements, so the mark
+    // goes once the dragover events stop
+    clearTimeout(clearTimer);
+    clearTimer = setTimeout(unmark, 150);
+  };
+  const onDrop = (event) => {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    unmark();
+    const pos = view.posAtCoords({ x: event.clientX, y: event.clientY }, false);
+    handler({ files: Array.from(event.dataTransfer.files), pos });
+  };
+  target.addEventListener("dragover", onDragOver, true);
+  target.addEventListener("drop", onDrop, true);
+  return () => {
+    unmark();
+    target.removeEventListener("dragover", onDragOver, true);
+    target.removeEventListener("drop", onDrop, true);
+  };
+}
+
 /**
  * Create a CodeMirror editor for Hydra code
  * @param {HTMLElement} container - Container to add the editor to
@@ -260,6 +322,7 @@ export function createCodeMirrorEditor(container, initialCode = "") {
       themeCompartment.of(getCurrentTheme()), // Theme-specific syntax coloring
       EditorView.lineWrapping,
       EditorState.tabSize.of(2),
+      runFlash(), // The code lights up for a moment when it runs
       preventCtrlEnterHandler, // Add our custom handler
       // Add autocompletion with custom Hydra completions
       autocompletion({
@@ -306,7 +369,17 @@ export function createCodeMirrorEditor(container, initialCode = "") {
       });
     },
     focus: () => view.focus(),
+    // Light the code up for a moment, to show it ran (not with reduced motion)
+    flash: () => {
+      if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+      flashCode(view);
+    },
     element: view.dom,
+    // Take files dropped on the editor instead of pasting them (the desktop
+    // app's media drops). Returns a function that stops it.
+    handleFileDrops: (handler) => watchFileDrops(view, handler),
+    // Put lines of code near `pos`, where they don't split a statement
+    insertLines: (pos, lines) => view.dispatch(insertLines(view.state, pos, lines)),
     // Add method to manually update theme
     updateTheme: () => {
       const newTheme = getCurrentTheme();

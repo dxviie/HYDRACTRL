@@ -6,7 +6,10 @@
 appId: dev.d17e.hydractrl
 productName: HYDRACTRL
 copyright: Copyright © 2026 D17E · Built on hydra by Olivia Jack · AGPL-3.0
-artifactName: ${productName}-${version}-${os}-${arch}.${ext}
+# No version in the file names: the landing page links to
+# github.com/dxviie/HYDRACTRL/releases/latest/download/<name>, so these must
+# stay stable (src/site/downloads.js, checked by src/site/downloads.test.js).
+artifactName: ${productName}-${os}-${arch}.${ext}
 
 directories:
   output: dist
@@ -27,6 +30,13 @@ extraResources:
     to: server
 
 beforePack: scripts/before-pack.cjs
+# Restores the symlinks of the Syphon framework that npm flattens, so macOS
+# signing accepts it
+afterPack: scripts/after-pack.cjs
+# Notarizes the signed macOS app and staples the ticket before the DMG is
+# built, retrying through the network drops that electron-builder's own
+# notarization gives up on (mac.notarize is off)
+afterSign: scripts/notarize.cjs
 
 npmRebuild: false
 nodeGypRebuild: false
@@ -35,9 +45,11 @@ publish: null
 
 mac:
   category: public.app-category.video
+  # The DMG is the download (landing page, release notes). A ZIP of the app
+  # would only be needed for auto-updates (Squirrel.Mac), which the app
+  # doesn't do, and would double every macOS artifact.
   target:
     - dmg
-    - zip
   icon: resources/icon.png
   darkModeSupport: true
   minimumSystemVersion: "11.0"
@@ -45,8 +57,12 @@ mac:
   gatekeeperAssess: false
   entitlements: resources/entitlements.mac.plist
   entitlementsInherit: resources/entitlements.mac.inherit.plist
-  # Notarization is opt-in: pass -c.mac.notarize=true with Apple credentials
-  # in the environment (see README).
+  # Signing needs a Developer ID certificate (CSC_LINK / CSC_KEY_PASSWORD);
+  # without one, pass -c.mac.identity=- -c.mac.timestamp=none for an ad-hoc
+  # signature (those can't be timestamped). Notarization (the afterSign hook)
+  # runs whenever Apple credentials are in the environment (APPLE_API_KEY,
+  # APPLE_API_KEY_ID and APPLE_API_ISSUER, or APPLE_ID,
+  # APPLE_APP_SPECIFIC_PASSWORD and APPLE_TEAM_ID); see RELEASING.md.
   notarize: false
   extendInfo:
     NSMicrophoneUsageDescription: HYDRACTRL listens to the microphone for audio-reactive sketches (a.fft).
@@ -62,6 +78,7 @@ win:
   icon: resources/icon.png
 
 nsis:
+  artifactName: ${productName}-${os}-${arch}-setup.${ext}
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true

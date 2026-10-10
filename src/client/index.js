@@ -3,19 +3,25 @@ import { createMidiManager } from "../MidiManager.js";
 import { createSlotsPanel } from "../SlotsPanel.js";
 // Import utilities
 import { createStatsPanel } from "../StatsPanel.js";
+import { VERSION } from "../project.js";
+import { SKETCHES, sketchSource } from "../sketches.js";
 import { createCodeMirrorEditor } from "../utils/CodeMirrorEditor.js";
-import { isMobileOrTablet } from "../utils/DeviceDetection.js";
-import { makeDraggable } from "../utils/Draggable.js";
+import { isPhone, isTablet, isTouchFirst } from "../utils/DeviceDetection.js";
+import { makeDraggable, trackPointerDrag } from "../utils/Draggable.js";
 import { savePanelPosition } from "../utils/PanelStorage.js";
 import { createEventBus } from "./core/EventBus.js";
 import { createPluginHost } from "./core/PluginHost.js";
 import { createSafeStorage } from "./core/Storage.js";
 import { notify, notifyError } from "./core/notify.js";
+import { createRenderLoop } from "./core/renderLoop.js";
 import { executeSketch } from "./core/sketchRunner.js";
 import { createAudioWatchdogPlugin } from "./plugins/AudioWatchdogPlugin.js";
 import { createAutoRunPlugin } from "./plugins/AutoRunPlugin.js";
 import { createBreakoutPlugin } from "./plugins/BreakoutPlugin.js";
+import { createDesktopMediaPlugin } from "./plugins/DesktopMediaPlugin.js";
+import { createDesktopMirrorPlugin } from "./plugins/DesktopMirrorPlugin.js";
 import { createDesktopOutputPlugin } from "./plugins/DesktopOutputPlugin.js";
+import { createFeedbackPlugin } from "./plugins/FeedbackPlugin.js";
 import { createInfoPanelPlugin } from "./plugins/InfoPanelPlugin.js";
 import { createMidiUiPlugin } from "./plugins/MidiUiPlugin.js";
 import { createMobileUiPlugin } from "./plugins/MobileUiPlugin.js";
@@ -45,15 +51,24 @@ function debounce(func, wait) {
   };
 }
 
-// Default starter code for Hydra
-const DEFAULT_CODE = `// HYDRACTRL Sample
+// The editor's code until a scene loads: the first starter scene
+const DEFAULT_CODE = sketchSource(SKETCHES[0]);
 
-osc(10, 0.1, 1.2)
-  .color(0.5, 0.1, 0.9)
-  .rotate(0, 0.1)
-  .modulateScale(osc(3, 0.2))
-  .out()
-`;
+// Runs the main instance's sketches somewhere else when a plugin sets it (the
+// desktop app runs them on its Syphon/Spout output and shows that output's
+// frames); null runs them on the main instance itself
+let mainSketchRunner = null;
+
+// The XY pad's values, for sketches that use them. The pad and MIDI take
+// over on computers and tablets; on phones they stay centred instead of undefined.
+window.nanoX ??= 0.5;
+window.nanoY ??= 0.5;
+
+// Hand focus back to the editor after a button press, as keyboard users
+// expect. Not on touch screens, where it would pop up the on-screen keyboard.
+function refocusEditor(editor) {
+  if (!isTouchFirst()) editor.focus();
+}
 
 // Initialize a CodeMirror editor for Hydra
 function initEditor() {
@@ -99,7 +114,7 @@ function initEditor() {
 
       // Load new tab content
       editor.setCode(editorTabs[currentTab].code);
-      editor.focus();
+      refocusEditor(editor);
     });
   });
 
@@ -139,6 +154,28 @@ function initEditor() {
   // Make the editor draggable by the handle with position persistence
   makeDraggable(editorContainer, document.getElementById("editor-handle"), "editor-panel");
 
+  // Touch screens draw no handle for CSS resize, so styles.css shows this
+  // grip in the corner instead
+  const resizeGrip = document.createElement("div");
+  resizeGrip.className = "resize-grip editor-resize-grip";
+  editorContainer.appendChild(resizeGrip);
+  let resizeFrom = null;
+  trackPointerDrag(resizeGrip, {
+    start: (e) => {
+      e.preventDefault();
+      const rect = editorContainer.getBoundingClientRect();
+      resizeFrom = { x: e.clientX, y: e.clientY, rect };
+    },
+    move: (e) => {
+      // CSS sets the minimum size; the window the maximum, so the grip stays in reach
+      const { x, y, rect } = resizeFrom;
+      const width = Math.min(rect.width + e.clientX - x, window.innerWidth - rect.left);
+      const height = Math.min(rect.height + e.clientY - y, window.innerHeight - rect.top);
+      editorContainer.style.width = `${width}px`;
+      editorContainer.style.height = `${height}px`;
+    },
+  });
+
   // Add a resize observer to save dimensions when resized
   const resizeObserver = new ResizeObserver(
     debounce(() => {
@@ -177,6 +214,7 @@ function initEditor() {
       }
     },
     focus: () => editor.focus(),
+    flash: () => editor.flash(),
     // Add the raw editor object for direct access if needed
     _editor: editor,
   };
@@ -231,6 +269,8 @@ async function initHydra() {
 
     return new HydraSynth({
       canvas: canvas,
+      // Driven by our own render loop, which can be stopped (see core/renderLoop.js)
+      autoLoop: false,
       detectAudio: true, // Enable audio reactivity for a.fft[]
       enableStreamCapture: false,
       numBins: 6, // Set bins for a.fft[0], a.fft[1], etc.
@@ -314,7 +354,9 @@ async function runCode(editor, hydra) {
     existingErrors.forEach((el) => el.remove());
 
     // Shared with the output page so every render head runs sketches identically
-    const result = await executeSketch(hydra, { setup: setupCode, main: mainCode });
+    const sketch = { setup: setupCode, main: mainCode };
+    const runner = hydra === window.mainHydra ? mainSketchRunner : null;
+    const result = runner ? await runner(sketch) : await executeSketch(hydra, sketch);
 
     // Check if there was an error
     if (!result.success) {
@@ -327,7 +369,7 @@ async function runCode(editor, hydra) {
     // Let plugins react to a successful run on the main instance
     // (the output-sync plugin mirrors it to external render heads)
     if (hydra === window.mainHydra) {
-      events.emit("sketch:run", { setup: setupCode, main: mainCode });
+      events.emit("sketch:run", result.runId ? { ...sketch, runId: result.runId } : sketch);
     }
     return true;
   } catch (error) {
@@ -336,6 +378,9 @@ async function runCode(editor, hydra) {
     return false;
   }
 }
+
+// Whether this page load has told a touch-screen user how to bring back the UI
+let hiddenUiHintShown = false;
 
 // Show or hide the editor and all panels. Uses the visibility property to
 // preserve layout. This is the single source of truth for UI visibility —
@@ -361,11 +406,17 @@ function setUiVisibility(visible) {
   storage.set("hydractrl-ui-visible", visible ? "true" : "false");
   events.emit("ui:visibility", { visible });
 
+  // Without a keyboard there is no Esc to press, so say it once
+  if (!visible && isTouchFirst() && !hiddenUiHintShown) {
+    hiddenUiHintShown = true;
+    notify("Tap anywhere to bring back the interface", { duration: 3000 });
+  }
+
   if (visible) {
     // Focus the editor and trigger resize after showing
     setTimeout(() => {
       if (window._editorProxy) {
-        window._editorProxy.focus();
+        refocusEditor(window._editorProxy);
       }
       // Force a resize event to make sure sizes are updated
       window.dispatchEvent(new Event("resize"));
@@ -496,10 +547,15 @@ async function runCodeOnAllInstances(editor, mainHydra) {
 // Initialize the application
 async function init() {
   try {
-    const isMobile = isMobileOrTablet();
+    // Phones get the mobile UI; tablets such as the iPad get the full interface
+    // except MIDI and the breakout window, which don't work there
+    const isMobile = isPhone();
+    const tablet = isTablet();
 
     const editor = initEditor(); // No longer async
     const hydra = await initHydra();
+    const renderLoop = createRenderLoop((dt) => hydra.tick(dt));
+    renderLoop.start();
 
     // Apply UI visibility state from localStorage right after panels are created.
     // Only applies when explicitly hidden, so first-time users see the UI.
@@ -522,7 +578,8 @@ async function init() {
     document.getElementById("run-btn").addEventListener("click", async () => {
       const success = await runCodeOnAllInstances(editor, hydra);
       if (success) {
-        editor.focus(); // Return focus to editor after successful run
+        editor.flash(); // The code lights up to show it ran
+        refocusEditor(editor); // Return focus to editor after successful run
       }
     });
 
@@ -545,7 +602,7 @@ async function init() {
         notify("Saved!", { duration: 1500 });
       }
 
-      editor.focus(); // Return focus to editor after saving
+      refocusEditor(editor); // Return focus to editor after saving
     });
 
     // Add keyboard shortcuts
@@ -555,6 +612,7 @@ async function init() {
         e.preventDefault();
         runCodeOnAllInstances(editor, hydra).then((success) => {
           if (success) {
+            editor.flash(); // The code lights up to show it ran
             editor.focus();
           }
         });
@@ -618,13 +676,23 @@ async function init() {
           }
         }
 
-        // Atl/Opt+X to export scene bank
-        if (e.key === "x" && window.slotsPanel && window.slotsPanel.exportAllSlots) {
+        // Alt/Opt+X to export scene bank. On a Mac, Option turns the key into
+        // another character (≈), so the physical key counts too.
+        const letter = e.key.toLowerCase();
+        if (
+          (letter === "x" || keyCode === "KeyX") &&
+          window.slotsPanel &&
+          window.slotsPanel.exportAllSlots
+        ) {
           e.preventDefault();
           window.slotsPanel.exportAllSlots();
         }
-        // Atl/Opt+I to import scene bank
-        if (e.key === "i" && window.slotsPanel && window.slotsPanel.importSlots) {
+        // Alt/Opt+I to import scene bank (Option+I is a dead key on a Mac)
+        if (
+          (letter === "i" || keyCode === "KeyI") &&
+          window.slotsPanel &&
+          window.slotsPanel.importSlots
+        ) {
           e.preventDefault();
           window.slotsPanel.importSlots();
         }
@@ -679,6 +747,19 @@ async function init() {
       }
     });
 
+    // Touch screens have no Esc key, so a tap brings back a hidden UI. Cancelling
+    // the touch keeps its click from landing on a panel that reappears under
+    // the finger.
+    document.addEventListener(
+      "touchend",
+      (e) => {
+        if (!document.body.classList.contains("ui-hidden")) return;
+        e.preventDefault();
+        setUiVisibility(true);
+      },
+      { passive: false },
+    );
+
     // A sketch shared via URL (#sketch=...) takes precedence over saved code
     // and is deliberately NOT persisted — the user's banks stay untouched
     // unless they explicitly save (issue #5).
@@ -696,7 +777,7 @@ async function init() {
 
     // Focus the editor initially
     if (!isMobile) {
-      editor.focus();
+      refocusEditor(editor);
     }
 
     // Only create certain panels based on device type
@@ -704,7 +785,7 @@ async function init() {
 
     if (!isMobile) {
       // Create the stats panel using our simple implementation
-      statsPanel = createStatsPanel();
+      statsPanel = createStatsPanel({ midi: !tablet, breakout: !tablet });
 
       // Create the documentation panel (hidden by default)
       docPanel = createDocPanel();
@@ -748,9 +829,9 @@ async function init() {
     // Apply UI visibility state after all panels are created
     applyUiVisibility();
 
-    // Initialize MIDI access (desktop only)
+    // Initialize MIDI access (not on phones or tablets)
     let midiSupported = false;
-    if (!isMobile && midiManager) {
+    if (!isMobile && !tablet && midiManager) {
       midiSupported = midiManager.init();
     }
 
@@ -778,6 +859,13 @@ async function init() {
       // Run the current code on one specific hydra instance (e.g. a breakout
       // window's), without touching the main instance
       runCodeOn: (instance) => runCode(editor, instance),
+      // The main instance's animation loop: stop() and start()
+      renderLoop,
+      // Run the main instance's sketches elsewhere: runner(sketch) resolves to
+      // { success, message?, runId? }; null runs them on the main instance again
+      setSketchRunner: (runner) => {
+        mainSketchRunner = typeof runner === "function" ? runner : null;
+      },
       events,
       storage,
       notify,
@@ -794,11 +882,14 @@ async function init() {
     pluginHost.register(createUrlSharePlugin());
     pluginHost.register(createAudioWatchdogPlugin());
     pluginHost.register(createInfoPanelPlugin());
+    pluginHost.register(createFeedbackPlugin());
     pluginHost.register(createAutoRunPlugin());
     pluginHost.register(createSlotAdvancePlugin());
     pluginHost.register(createBreakoutPlugin());
     pluginHost.register(createOutputSyncPlugin());
     pluginHost.register(createDesktopOutputPlugin());
+    pluginHost.register(createDesktopMirrorPlugin());
+    pluginHost.register(createDesktopMediaPlugin());
     pluginHost.register(createMidiUiPlugin());
     pluginHost.register(createMobileUiPlugin());
     pluginHost.init();
@@ -806,7 +897,7 @@ async function init() {
     // Public extension point: external code (console, userscripts, future
     // built-ins) can register plugins via window.hydractrl.
     window.hydractrl = {
-      version: "0.0.1",
+      version: VERSION,
       events,
       storage,
       plugins: pluginHost,

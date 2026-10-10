@@ -52,4 +52,25 @@ describe("registerIpc", () => {
     registration.dispose();
     expect(ipcMain.handlers.size).toBe(0);
   });
+
+  test("tells handlers which window called", async () => {
+    const ipcMain = fakeIpcMain();
+    const calls = [];
+    registerIpc({
+      ipcMain,
+      isTrustedSender: () => true,
+      handlers: {
+        setMirror(enabled) {
+          calls.push({ enabled, sender: this.sender.id });
+          return enabled;
+        },
+      },
+      log: { warn() {}, error() {}, info() {} },
+    });
+    expect(await ipcMain.handlers.get(IPC.setMirror)({ sender: { id: 7 } }, true)).toEqual({
+      ok: true,
+      value: true,
+    });
+    expect(calls).toEqual([{ enabled: true, sender: 7 }]);
+  });
 });

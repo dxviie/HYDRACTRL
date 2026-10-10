@@ -26,6 +26,11 @@
     copyUrl: $("copy-url"),
     openOutput: $("open-output"),
     allowNetwork: $("allowNetwork"),
+    mediaFolder: $("media-folder"),
+    showMedia: $("show-media"),
+    chooseMedia: $("choose-media"),
+    defaultMedia: $("default-media"),
+    mediaWarning: $("media-warning"),
     dropped: $("dropped"),
     serverMode: $("server-mode"),
     logPath: $("log-path"),
@@ -34,6 +39,8 @@
 
   let state = null;
   let savedTimer = null;
+  // The last media folder action that failed, until the next one
+  let mediaError = null;
 
   function isEditing(element) {
     return document.activeElement === element;
@@ -195,12 +202,33 @@
     els.openOutput.disabled = !url;
     els.allowNetwork.checked = settings.server.allowNetwork;
 
+    renderMedia(state.media);
+
     els.dropped.textContent =
       String(output.droppedFrames || 0) +
       (output.lastDropReason ? ` (${output.lastDropReason})` : "");
     els.serverMode.textContent = describeServer(server);
     els.logPath.textContent = shortenPath(app.logPath);
     els.logPath.title = app.logPath;
+  }
+
+  function renderMedia(media) {
+    if (!media) return;
+    els.mediaFolder.textContent = shortenPath(media.folder);
+    els.mediaFolder.title = media.folder;
+    els.defaultMedia.disabled = media.isDefault;
+    const warning = mediaError || media.unavailableReason;
+    els.mediaWarning.textContent = warning || "";
+    els.mediaWarning.hidden = !warning;
+  }
+
+  function mediaAction(action) {
+    mediaError = null;
+    action()
+      .catch((error) => {
+        mediaError = error.message || String(error);
+      })
+      .finally(() => renderMedia(state?.media));
   }
 
   /** Keep the tail of a long path readable: "…/HYDRACTRL/logs/file.log". */
@@ -280,6 +308,18 @@
     els.openOutput.addEventListener("click", () => api.openOutputPage().catch(() => {}));
     els.openLogs.addEventListener("click", () => api.openLogs().catch(() => {}));
 
+    els.showMedia.addEventListener("click", () => mediaAction(() => api.openMediaFolder()));
+    els.chooseMedia.addEventListener("click", () =>
+      mediaAction(() =>
+        api.chooseMediaFolder().then((folder) => {
+          if (folder) flashSaved();
+        }),
+      ),
+    );
+    els.defaultMedia.addEventListener("click", () =>
+      mediaAction(() => api.updateSettings({ media: { folder: "" } }).then(flashSaved)),
+    );
+
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") window.close();
     });
@@ -291,6 +331,7 @@
       frameRate: els.frameRate,
       name: els.name,
       server: els.allowNetwork,
+      media: els.chooseMedia,
     };
     const target = map[section];
     if (!target) return;

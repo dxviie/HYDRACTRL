@@ -7,6 +7,11 @@
  * restart only when the sender must be recreated), recovers from a crashed
  * render process, and keeps the display awake while output is running.
  *
+ * The page it renders is `/output?primary`, the output that runs the
+ * interface's sketches itself. While the interface asks for them
+ * (`setMirrorTarget`), every frame shared is also forwarded to the interface
+ * window, zero-copy, and shown there instead of a second rendering.
+ *
  * The bridge factory is injected: the real one loads the native module, the
  * tests pass a fake.
  */
@@ -68,10 +73,14 @@ export function createOutputManager({
     lastDropReason: null,
     error: null,
     previewOpen: false,
+    /** Frames are being forwarded to the interface window. */
+    mirror: false,
     since: null,
   };
 
   let bridge = null;
+  let mirrorTarget = null;
+  let mirrorForward = null;
   let generation = 0;
   let blockerId = null;
   let dropEmitTimer = null;
@@ -127,6 +136,42 @@ export function createOutputManager({
     });
   }
 
+  /** Forward the bridge's frames to the interface window, when it asked for them. */
+  function forwardToMirror(current) {
+    if (!mirrorTarget || typeof current?.forwardFrames !== "function") return;
+    try {
+      const forward = current.forwardFrames(mirrorTarget, {
+        onStatus: (result) => {
+          if (bridge !== current) return;
+          if (result.ok) log.info("the interface receives the output's frames");
+          else log.warn(`forwarding frames to the interface failed: ${result.reason}`);
+        },
+      });
+      if (forward.active) {
+        mirrorForward = forward;
+      } else {
+        log.warn("could not forward frames to the interface");
+      }
+    } catch (error) {
+      log.warn(`could not forward frames to the interface: ${describeError(error)}`);
+    }
+  }
+
+  /**
+   * The webContents to forward every frame to (the interface window), or null
+   * to stop. Only set it while that page has a receiver for the frames: one
+   * without makes each frame wait out a timeout.
+   */
+  function setMirrorTarget(contents) {
+    const target = contents ?? null;
+    if (target === mirrorTarget) return;
+    mirrorForward?.dispose();
+    mirrorForward = null;
+    mirrorTarget = target;
+    if (bridge) forwardToMirror(bridge);
+    set({ mirror: mirrorForward !== null });
+  }
+
   function scheduleDropEmit() {
     if (dropEmitTimer !== null) return;
     dropEmitTimer = timers.setTimeout(() => {
@@ -153,7 +198,8 @@ export function createOutputManager({
   function hook(current) {
     current.on("fps", (fps) => {
       if (bridge !== current) return;
-      set({ fps: Math.round(fps * 10) / 10 });
+      // Whole numbers: 59.9 against 60 would make the status line change width
+      set({ fps: Math.round(fps) });
     });
     current.on("frameDropped", (defect) => {
       if (bridge !== current) return;
@@ -221,7 +267,8 @@ export function createOutputManager({
         height: settings.height,
         frameRate: settings.frameRate,
         includeAlpha: settings.includeAlpha,
-        rendererUrl: `${url}/output`,
+        // The output that runs the interface's sketches itself
+        rendererUrl: `${url}/output?primary`,
         preview: { enabled: settings.preview, title: "HYDRACTRL Output Preview" },
         webPreferences: { backgroundThrottling: false },
       });
@@ -244,8 +291,14 @@ export function createOutputManager({
 
     bridge = created;
     hook(created);
+    forwardToMirror(created);
     keepAwake();
-    set({ state: OUTPUT_STATE.running, since: now(), previewOpen: isPreviewOpen(created) });
+    set({
+      state: OUTPUT_STATE.running,
+      since: now(),
+      previewOpen: isPreviewOpen(created),
+      mirror: mirrorForward !== null,
+    });
     log.info("output running");
     return true;
   }
@@ -254,6 +307,8 @@ export function createOutputManager({
     generation += 1;
     const current = bridge;
     bridge = null;
+    // Disposing the bridge ends the forwarding too
+    mirrorForward = null;
     if (dropEmitTimer !== null) {
       timers.clearTimeout(dropEmitTimer);
       dropEmitTimer = null;
@@ -267,7 +322,14 @@ export function createOutputManager({
       log.info("output stopped");
     }
     allowSleep();
-    set({ state: OUTPUT_STATE.stopped, fps: null, since: null, previewOpen: false, error: null });
+    set({
+      state: OUTPUT_STATE.stopped,
+      fps: null,
+      since: null,
+      previewOpen: false,
+      mirror: false,
+      error: null,
+    });
   }
 
   async function restart() {
@@ -344,5 +406,14 @@ export function createOutputManager({
     stop();
   }
 
-  return { start, stop, restart, toggle, applySettings, getStatus, dispose };
+  return {
+    start,
+    stop,
+    restart,
+    toggle,
+    applySettings,
+    setMirrorTarget,
+    getStatus,
+    dispose,
+  };
 }

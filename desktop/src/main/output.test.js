@@ -28,6 +28,7 @@ class FakeBridge extends EventEmitter {
     this.previewWindow = options.preview?.enabled ? new FakePreview() : null;
     this.renderWindow = { webContents: new EventEmitter() };
     this.failResize = false;
+    this.forwards = [];
   }
   dispose() {
     this.disposed = true;
@@ -42,6 +43,22 @@ class FakeBridge extends EventEmitter {
   }
   closePreview() {
     this.previewWindow?.close();
+  }
+  forwardFrames(target, options) {
+    const entry = { target, options, disposed: false };
+    this.forwards.push(entry);
+    return {
+      dispose: () => {
+        entry.disposed = true;
+      },
+      get active() {
+        return !entry.disposed && !target.destroyed;
+      },
+    };
+  }
+  /** The forwards still in place. */
+  liveForwards() {
+    return this.forwards.filter((entry) => !entry.disposed && !this.disposed);
   }
 }
 
@@ -111,7 +128,7 @@ describe("createOutputManager", () => {
     expect(status.state).toBe("running");
     expect(status.protocol).toBe("Syphon");
     expect(status.name).toBe("Main");
-    expect(bridges[0].options.rendererUrl).toBe("http://127.0.0.1:3000/output");
+    expect(bridges[0].options.rendererUrl).toBe("http://127.0.0.1:3000/output?primary");
     expect(bridges[0].options.width).toBe(1280);
     expect(bridges[0].options.webPreferences.backgroundThrottling).toBe(false);
     expect(blocker.started).toBe(1);
@@ -145,7 +162,7 @@ describe("createOutputManager", () => {
     await new Promise((resolve) => setTimeout(resolve, 550));
     const status = manager.getStatus();
     expect(status.state).toBe("running");
-    expect(status.fps).toBe(59.9);
+    expect(status.fps).toBe(60);
     expect(status.droppedFrames).toBe(2);
     expect(status.lastDropReason).toBe("send-failed");
     expect(status.error).toBe("transient");
@@ -285,5 +302,85 @@ describe("createOutputManager", () => {
     manager.dispose();
     expect(bridges[0].disposed).toBe(true);
     expect(await manager.start()).toBe(false);
+  });
+
+  test("forwards frames to the interface while it asks for them", async () => {
+    const { manager, bridges } = setup();
+    const interfaceContents = { id: 1 };
+    // Asked for before the output starts: forwarded once it runs
+    manager.setMirrorTarget(interfaceContents);
+    expect(manager.getStatus().mirror).toBe(false);
+    await manager.start();
+    expect(bridges[0].liveForwards().map((f) => f.target)).toEqual([interfaceContents]);
+    expect(manager.getStatus().mirror).toBe(true);
+
+    // The same page asking again changes nothing
+    manager.setMirrorTarget(interfaceContents);
+    expect(bridges[0].forwards).toHaveLength(1);
+
+    // The page went away
+    manager.setMirrorTarget(null);
+    expect(bridges[0].liveForwards()).toHaveLength(0);
+    expect(manager.getStatus().mirror).toBe(false);
+
+    // Asked for while running
+    manager.setMirrorTarget(interfaceContents);
+    expect(bridges[0].liveForwards()).toHaveLength(1);
+    expect(manager.getStatus().mirror).toBe(true);
+  });
+
+  test("keeps forwarding across restarts and stops with the output", async () => {
+    const { manager, bridges, setSettings } = setup();
+    const interfaceContents = { id: 1 };
+    manager.setMirrorTarget(interfaceContents);
+    await manager.start();
+    const { next, changed } = setSettings({ frameRate: 30 });
+    await manager.applySettings(next, changed);
+    expect(bridges).toHaveLength(2);
+    expect(bridges[1].liveForwards()).toHaveLength(1);
+    expect(manager.getStatus().mirror).toBe(true);
+
+    manager.stop();
+    expect(manager.getStatus().mirror).toBe(false);
+    expect(bridges[1].liveForwards()).toHaveLength(0);
+  });
+
+  test("an interface window that can't take frames is not forwarded to", async () => {
+    const { manager, bridges } = setup();
+    await manager.start();
+    manager.setMirrorTarget({ id: 1, destroyed: true });
+    expect(bridges[0].forwards).toHaveLength(1);
+    expect(manager.getStatus().mirror).toBe(false);
+  });
+
+  test("logs when forwarding to the interface fails and recovers", async () => {
+    const warnings = [];
+    const infos = [];
+    const log = {
+      info: (m) => infos.push(m),
+      warn: (m) => warnings.push(m),
+      error() {},
+      child: () => log,
+    };
+    const bridges = [];
+    const manager = createOutputManager({
+      createBridge: async (options) => {
+        const bridge = new FakeBridge(options);
+        bridges.push(bridge);
+        return bridge;
+      },
+      availability: { available: true, protocol: "Syphon", reason: null },
+      getRendererUrl: () => "http://127.0.0.1:3000",
+      getSettings: () => validateSettings({}).output,
+      log,
+    });
+    manager.setMirrorTarget({ id: 1 });
+    await manager.start();
+    const { onStatus } = bridges[0].forwards[0].options;
+    onStatus({ ok: false, reason: "send-failed" });
+    onStatus({ ok: true });
+    expect(warnings.some((m) => m.includes("send-failed"))).toBe(true);
+    expect(infos.some((m) => m.includes("receives the output's frames"))).toBe(true);
+    manager.dispose();
   });
 });

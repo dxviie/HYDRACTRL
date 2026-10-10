@@ -2,13 +2,14 @@
  * InfoPanelPlugin - the "About" panel with keyboard shortcuts.
  *
  * Shows app information, the keyboard shortcut reference and the
- * "show on startup" preference. On mobile it doubles as the landing screen
+ * "show on startup" preference. On phones it doubles as the landing screen
  * with a big "load random scenes" button.
  *
  * Exposes `window.showInfoPanel` / `window.hideInfoPanel` because the stats
  * panel's info button (and legacy code) calls them.
  */
 
+import { CHANGELOG_URL, VERSION, WEBSITE_URL } from "../../project.js";
 import { makeDraggable } from "../../utils/Draggable.js";
 
 const STARTUP_KEY = "hydractrl-show-info-on-startup";
@@ -49,7 +50,7 @@ export function createInfoPanelPlugin() {
         panel.style.position = "fixed";
         panel.style.backgroundColor =
           "rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important";
-        panel.style.borderRadius = "8px";
+        panel.style.borderRadius = "var(--panel-radius)";
         panel.style.boxShadow = "0 4px 15px var(--color-panel-shadow)";
         panel.style.backdropFilter = "blur(var(--color-panel-blur))";
         panel.style.zIndex = "1000";
@@ -79,7 +80,7 @@ export function createInfoPanelPlugin() {
         const header = document.createElement("div");
         header.className = "info-panel-header";
         header.style.backgroundColor = "rgba(var(--color-bg-tertiary-rgb), var(--panel-opacity))";
-        header.style.padding = "12px 16px";
+        header.style.padding = "4px 3px 4px 10px";
         header.style.display = "flex";
         header.style.justifyContent = "space-between";
         header.style.alignItems = "center";
@@ -89,15 +90,18 @@ export function createInfoPanelPlugin() {
         const title = document.createElement("h2");
         title.textContent = "About";
         title.style.margin = "0";
-        title.style.fontSize = "16px";
-        title.style.fontWeight = "bold";
-        title.style.color = "var(--color-text-primary)";
+        title.style.fontSize = "11px";
+        title.style.fontWeight = "600";
+        title.style.letterSpacing = "0.08em";
+        title.style.textTransform = "uppercase";
+        title.style.color = "var(--color-text-secondary)";
 
         const closeButton = document.createElement("button");
         closeButton.textContent = "×";
         closeButton.style.background = "none";
         closeButton.style.border = "none";
-        closeButton.style.fontSize = "20px";
+        closeButton.style.fontSize = "16px";
+        closeButton.style.lineHeight = "1";
         closeButton.style.color = "var(--color-text-primary)";
         closeButton.style.cursor = "pointer";
         closeButton.style.padding = "0 5px";
@@ -109,7 +113,7 @@ export function createInfoPanelPlugin() {
         // Create the content container
         const content = document.createElement("div");
         content.className = "info-panel-content";
-        content.style.padding = "20px";
+        content.style.padding = "10px 12px";
         content.style.overflowY = "auto";
 
         // Create sections
@@ -117,18 +121,54 @@ export function createInfoPanelPlugin() {
         const aboutSection = document.createElement("div");
         aboutSection.className = "info-section";
 
+        const linkStyle = "color:var(--color-text-secondary);text-decoration:underline";
+        const websiteLink = `<a href="${WEBSITE_URL}" target="_blank" rel="noopener" style="${linkStyle}">hydractrl.d17e.dev</a>`;
         const aboutText = document.createElement("p");
         if (isMobile) {
-          aboutText.innerHTML = `This app is designed for desktop, but you can play around here by loading random clips (by clicking on the dice 🎲). For the full experience, visit this site on a desktop computer. Check out the <a href="https://dxviie.github.io/HYDRACTRL/" style="color:var(--color-text-secondary);text-decoration:underline">GitHub Page</a> for more info.`;
+          aboutText.innerHTML = `This app is designed for bigger screens, but you can play around here by loading random clips (tap the dice 🎲). For the full experience, open it on a computer or tablet. See ${websiteLink} for more info.`;
         } else {
-          aboutText.innerHTML = `HYDRACTRL is a tool built around <a href="https://hydra.ojack.xyz" target="_blank" style="color:var(--color-text-secondary);text-decoration:underline">hydra</a> designed for live performances. Check out the <a href="https://dxviie.github.io/HYDRACTRL/" style="color:var(--color-text-secondary);text-decoration:underline">GitHub Page</a> for a feature overview.`;
+          // Inside the desktop app there's no need to advertise the desktop app
+          const moreInfo = window.hydractrlDesktop
+            ? "for a feature overview and the latest version"
+            : "for a feature overview and the desktop app with Syphon and Spout output";
+          aboutText.innerHTML = `HYDRACTRL is a tool built around <a href="https://hydra.ojack.xyz" target="_blank" rel="noopener" style="${linkStyle}">hydra</a> designed for live performances. Visit ${websiteLink} ${moreInfo}.`;
         }
-        aboutText.style.margin = "0 0 15px 0";
-        aboutText.style.fontSize = "13px";
+        aboutText.style.margin = "0 0 8px 0";
+        aboutText.style.fontSize = "12px";
         aboutText.style.lineHeight = "1.4";
         aboutText.style.color = "var(--color-text-secondary)";
 
         aboutSection.appendChild(aboutText);
+
+        const versionText = document.createElement("p");
+        versionText.className = "info-version";
+        versionText.innerHTML = `Version ${VERSION} · <a href="${CHANGELOG_URL}" target="_blank" rel="noopener" style="${linkStyle}">What's new</a>`;
+        versionText.style.margin = "0";
+        versionText.style.fontSize = "11px";
+        versionText.style.color = "var(--color-text-secondary)";
+        aboutSection.appendChild(versionText);
+
+        // Opens the feedback panel (FeedbackPlugin)
+        const feedbackRow = document.createElement("p");
+        feedbackRow.style.display = "flex";
+        feedbackRow.style.alignItems = "center";
+        feedbackRow.style.flexWrap = "wrap";
+        feedbackRow.style.gap = "4px 8px";
+        feedbackRow.style.margin = "8px 0 0";
+        feedbackRow.style.fontSize = "12px";
+        feedbackRow.style.color = "var(--color-text-secondary)";
+        feedbackRow.append("Found a bug or have an idea?");
+        const feedbackButton = document.createElement("button");
+        feedbackButton.className = "info-feedback-button";
+        feedbackButton.textContent = "Send feedback";
+        feedbackButton.style.fontSize = "11px";
+        feedbackButton.style.padding = "2px 8px";
+        feedbackButton.addEventListener("click", () => {
+          hide();
+          ctx.events.emit("feedback:open");
+        });
+        feedbackRow.append(feedbackButton);
+        aboutSection.appendChild(feedbackRow);
 
         // Add big dice button for mobile
         if (isMobile) {
@@ -160,20 +200,23 @@ export function createInfoPanelPlugin() {
         // Keyboard shortcuts section
         const shortcutsSection = document.createElement("div");
         shortcutsSection.className = "info-section";
-        shortcutsSection.style.marginTop = "20px";
+        shortcutsSection.style.marginTop = "12px";
 
         const shortcutsTitle = document.createElement("h3");
         shortcutsTitle.textContent = "Keyboard Shortcuts";
-        shortcutsTitle.style.fontSize = "14px";
+        shortcutsTitle.style.fontSize = "11px";
+        shortcutsTitle.style.fontWeight = "600";
+        shortcutsTitle.style.letterSpacing = "0.08em";
+        shortcutsTitle.style.textTransform = "uppercase";
         shortcutsTitle.style.marginTop = "0";
-        shortcutsTitle.style.marginBottom = "10px";
-        shortcutsTitle.style.color = "var(--color-text-primary)";
+        shortcutsTitle.style.marginBottom = "4px";
+        shortcutsTitle.style.color = "var(--color-text-secondary)";
 
         // Create table for shortcuts
         const shortcutsTable = document.createElement("table");
         shortcutsTable.style.width = "100%";
         shortcutsTable.style.borderCollapse = "collapse";
-        shortcutsTable.style.fontSize = "13px";
+        shortcutsTable.style.fontSize = "12px";
 
         // Add shortcuts to table
         KEYBOARD_SHORTCUTS.forEach((shortcut) => {
@@ -182,14 +225,13 @@ export function createInfoPanelPlugin() {
 
           const keysCell = document.createElement("td");
           keysCell.textContent = shortcut.keys;
-          keysCell.style.padding = "8px 16px 8px 0";
-          keysCell.style.fontFamily = "monospace";
+          keysCell.style.padding = "4px 12px 4px 0";
           keysCell.style.whiteSpace = "nowrap";
           keysCell.style.color = "var(--color-text-primary)";
 
           const actionCell = document.createElement("td");
           actionCell.textContent = shortcut.action;
-          actionCell.style.padding = "8px 0";
+          actionCell.style.padding = "4px 0";
           actionCell.style.color = "var(--color-text-secondary)";
 
           row.appendChild(keysCell);
@@ -203,7 +245,7 @@ export function createInfoPanelPlugin() {
         // Show on startup option
         const startupSection = document.createElement("div");
         startupSection.className = "startup-section";
-        startupSection.style.marginTop = "20px";
+        startupSection.style.marginTop = "10px";
         startupSection.style.display = "flex";
         startupSection.style.alignItems = "center";
 
@@ -215,8 +257,8 @@ export function createInfoPanelPlugin() {
         const showOnStartupLabel = document.createElement("label");
         showOnStartupLabel.htmlFor = "show-on-startup";
         showOnStartupLabel.textContent = "Show on startup";
-        showOnStartupLabel.style.marginLeft = "8px";
-        showOnStartupLabel.style.fontSize = "13px";
+        showOnStartupLabel.style.marginLeft = "6px";
+        showOnStartupLabel.style.fontSize = "12px";
         showOnStartupLabel.style.color = "var(--color-text-secondary)";
 
         showOnStartupCheckbox.addEventListener("change", (e) => {
@@ -245,19 +287,15 @@ export function createInfoPanelPlugin() {
           hide();
         });
 
-        // Add one-time event listeners to close the panel
+        // Add one-time event listeners to close the panel. Pointer events,
+        // because iPad Safari sends no mousedown for a tap on the visuals.
         const outsideClickHandler = (e) => {
           // Only close if click is outside the panel
           if (panel.parentNode && !panel.contains(e.target)) {
             hide();
-            document.removeEventListener("mousedown", outsideClickHandler);
+            document.removeEventListener("pointerdown", outsideClickHandler);
           }
         };
-
-        // Prevent clicks inside the panel from bubbling to document
-        panel.addEventListener("mousedown", (e) => {
-          e.stopPropagation();
-        });
 
         const escKeyHandler = (e) => {
           if (panel.parentNode && e.key === "Escape") {
@@ -271,7 +309,7 @@ export function createInfoPanelPlugin() {
         panel.outsideClickHandler = outsideClickHandler;
         panel.escKeyHandler = escKeyHandler;
 
-        // Make the panel draggable using the header as handle (desktop only)
+        // Make the panel draggable using the header as handle (not on phones)
         if (!isMobile) {
           makeDraggable(panel, header, "info-panel");
         }
@@ -292,11 +330,11 @@ export function createInfoPanelPlugin() {
 
         // Add event listeners to close when clicking outside or pressing ESC
         // First remove any existing listeners to avoid duplicates
-        document.removeEventListener("mousedown", panel.outsideClickHandler);
+        document.removeEventListener("pointerdown", panel.outsideClickHandler);
         document.removeEventListener("keydown", panel.escKeyHandler);
 
         // Then add the listeners
-        document.addEventListener("mousedown", panel.outsideClickHandler);
+        document.addEventListener("pointerdown", panel.outsideClickHandler);
         document.addEventListener("keydown", panel.escKeyHandler);
       }
 
@@ -304,7 +342,7 @@ export function createInfoPanelPlugin() {
         const panel = document.getElementById("info-panel");
         if (panel) {
           // Remove event listeners
-          document.removeEventListener("mousedown", panel.outsideClickHandler);
+          document.removeEventListener("pointerdown", panel.outsideClickHandler);
           document.removeEventListener("keydown", panel.escKeyHandler);
 
           // Fade out and hide
@@ -335,7 +373,7 @@ export function createInfoPanelPlugin() {
           clearTimeout(startupTimer);
           const panel = document.getElementById("info-panel");
           if (panel) {
-            document.removeEventListener("mousedown", panel.outsideClickHandler);
+            document.removeEventListener("pointerdown", panel.outsideClickHandler);
             document.removeEventListener("keydown", panel.escKeyHandler);
             panel.remove();
           }

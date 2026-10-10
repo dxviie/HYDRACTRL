@@ -4,7 +4,8 @@
  * stage it with the web assets, in the layout the binary expects at runtime:
  *
  *   <out>/hydractrl[.exe]
- *   <out>/hydractrl-public/     public/ plus local-assets/
+ *   <out>/hydractrl-public/     public/ plus local-assets/, without the
+ *                               hosted website's landing page and media
  *   <out>/manifest.json
  *
  * Usage: bun scripts/build-server.mjs --platform darwin --arch arm64 --out .server-staging/current
@@ -14,6 +15,7 @@ import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { copyPublic } from "../../scripts/copy-public.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const DESKTOP_DIR = resolve(here, "..");
@@ -85,9 +87,7 @@ export function buildServer({
   );
 
   const publicDir = join(out, "hydractrl-public");
-  fs.cpSync(join(REPO_ROOT, "public"), publicDir, { recursive: true });
-  const localAssets = join(REPO_ROOT, "local-assets");
-  if (fs.existsSync(localAssets)) fs.cpSync(localAssets, publicDir, { recursive: true });
+  copyPublic({ root: REPO_ROOT, target: publicDir, fs });
 
   const rootPackage = JSON.parse(fs.readFileSync(join(REPO_ROOT, "package.json"), "utf8"));
   fs.writeFileSync(

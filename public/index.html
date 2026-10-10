@@ -3,70 +3,2656 @@
 
 <head>
   <meta charset="UTF-8">
+  <script>
+    // Share links from before this landing page pointed at the site root
+    // (/#sketch=...). Fragments never reach the server, so forward them here.
+    if (/^#(?:.*&)?sketch=/.test(location.hash)) location.replace("/app" + location.hash);
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HYDRACTRL</title>
-
-  <!-- Favicon -->
+  <title>HYDRACTRL · live visuals with hydra, in your browser or on your desktop</title>
+  <meta name="description"
+    content="HYDRACTRL is a free, open source performance tool around hydra for live visuals: 64 scenes, MIDI, an XY pad with physics and a live-coding editor. Play in your browser, or get the desktop app with Syphon and Spout output.">
+  <meta name="keywords"
+    content="hydra, hydra-synth, live visuals, VJ, live coding, MIDI, Syphon, Spout, Resolume, creative coding">
+  <meta name="author" content="David Vandenbogaerde">
+  <meta name="theme-color" content="#050505">
+  <link rel="canonical" href="https://hydractrl.d17e.dev/">
   <link rel="icon" type="image/x-icon" href="/assets/favicon/favicon.ico">
   <link rel="apple-touch-icon" href="/assets/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preload" href="/site/fonts/martian-mono-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/site/fonts/fira-code-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 
-  <!-- OpenGraph Tags -->
-  <meta property="og:title" content="HYDRACTRL">
+  <meta property="og:title" content="HYDRACTRL · live visuals with hydra">
   <meta property="og:description"
-    content="HYDRACTRL is a tool built around hydra designed for live performances, featuring CodeMirror for code editing and MIDI controller support.">
-  <meta property="og:image" content="https://dxviie.github.io/HYDRACTRL/assets/hydractrl-preview.jpg">
-  <meta property="og:url" content="https://dxviie.github.io/HYDRACTRL/">
+    content="A performance wrapper around hydra for live visuals. Play in your browser, or get the desktop app with Syphon and Spout output.">
+  <meta property="og:image" content="https://hydractrl.d17e.dev/site/hydractrl-preview.jpg">
+  <meta property="og:url" content="https://hydractrl.d17e.dev/">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
 
-  <link href="/assets/banks/hydractrl-init-basic.json" rel="hydra:extension-pack" type="application/json">
-  <!-- Other Meta -->
-  <meta name="description"
-    content="HYDRACTRL is a tool built around hydra designed for live performances, featuring CodeMirror for code editing and MIDI controller support.">
-  <meta name="keywords" content="hydra, hydra-synth, visual coding, live performance, MIDI, creative coding">
-  <meta name="author" content="David Vandenbogaerde">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "HYDRACTRL",
+      "url": "https://hydractrl.d17e.dev/",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Web browser, macOS 11+, Windows 10+",
+      "description": "A performance wrapper around hydra for live visuals, with MIDI control, scene banks and Syphon/Spout output in the desktop app.",
+      "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+      "author": { "@type": "Person", "name": "David Vandenbogaerde", "url": "https://www.d17e.dev" }
+    }
+  </script>
 
-  <link rel="stylesheet" href="/styles.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js" defer></script>
+  <style>
+    /* Two families, self-hosted (see /site/fonts/LICENSE.txt) */
+    @font-face {
+      font-family: "Martian Mono";
+      src: url("/site/fonts/martian-mono-latin-standard-normal.woff2") format("woff2");
+      font-weight: 100 800;
+      font-stretch: 75% 112.5%;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Fira Code";
+      src: url("/site/fonts/fira-code-latin-wght-normal.woff2") format("woff2");
+      font-weight: 300 700;
+      font-display: swap;
+    }
+
+    /* ── Tokens ─────────────────────────────────────────────── */
+
+    :root {
+      color-scheme: dark;
+      --bg: #050505;
+      /* The sheets every section sits on: barely see-through, blurred, a hint of violet */
+      --pane: rgba(13, 11, 19, 0.88);
+      --glass: rgba(6, 5, 9, 0.8);
+      --box: rgba(0, 0, 0, 0.84);
+      --text: #f3f3ef;
+      --dim: #908f88;
+      --faint: #4f4e4a;
+      --rule: rgba(243, 243, 239, 0.12);
+      --select: #9000ff;
+      --run: #0cf590;
+      --num: #c3a2ff;
+      /* The violet in quieter doses: markers, numbers, lines */
+      --violet-mute: #8f72c9;
+      --violet-faint: #4b3d66;
+      --violet-line: rgba(195, 162, 255, 0.24);
+      --str: #8af5c7;
+      --add: rgba(12, 245, 144, 0.08);
+
+      --display: "Martian Mono", ui-monospace, Menlo, Consolas, monospace;
+      --code: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+
+      /* Six sizes */
+      --fs-label: 12px;
+      --fs-small: 14px;
+      --fs-body: 16px;
+      --fs-lead: 20px;
+      --fs-h2: clamp(28px, 1.25vw + 22px, 40px);
+
+      /* One grid: a gutter for the line markers, then twelve columns */
+      --pad: 16px;
+      --gutter: 0px;
+      --gap: 16px;
+      --content: 1120px;
+      --sheet-pad: 16px;
+      --section-gap: 56px;
+      --top-h: 64px;
+      --status-h: 44px;
+      --tap: 44px;
+    }
+
+    @media (min-width: 600px) {
+      :root {
+        --pad: 24px;
+        --gap: 24px;
+        --sheet-pad: 24px;
+        --section-gap: 80px;
+      }
+    }
+
+    @media (min-width: 900px) {
+      :root {
+        --pad: 32px;
+        --gutter: 56px;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      :root {
+        --pad: 40px;
+        --gutter: 80px;
+        --sheet-pad: 40px;
+        --section-gap: 112px;
+      }
+    }
+
+    /* With a mouse, controls can be tighter than a fingertip */
+    @media (pointer: fine) {
+      :root {
+        --status-h: 32px;
+        --tap: 40px;
+      }
+    }
+
+    /* No lowercase text under 13px on phones */
+    @media (max-width: 599px) {
+      :root {
+        --fs-label: 14px;
+      }
+    }
+
+    /* ── Base ───────────────────────────────────────────────── */
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: calc(var(--top-h) + 16px);
+      scroll-padding-bottom: var(--status-h);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--display);
+      font-size: var(--fs-body);
+      font-stretch: 87.5%;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    ::selection {
+      background: var(--select);
+      color: #fff;
+    }
+
+    img,
+    video {
+      max-width: 100%;
+    }
+
+    p,
+    li,
+    dd {
+      text-wrap: pretty;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      margin: 0;
+      text-wrap: balance;
+    }
+
+    a {
+      color: inherit;
+      text-decoration-line: underline;
+      text-decoration-thickness: 1px;
+      text-decoration-color: var(--violet-mute);
+      text-underline-offset: 0.28em;
+    }
+
+    a:hover {
+      text-decoration-color: var(--select);
+      text-decoration-thickness: 2px;
+    }
+
+    a:active {
+      text-decoration-color: var(--run);
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--run);
+      outline-offset: 2px;
+    }
+
+    code,
+    kbd {
+      font-family: var(--code);
+      font-size: var(--fs-small);
+    }
+
+    /* A long call breaks rather than pushing out of a narrow column */
+    p code {
+      overflow-wrap: anywhere;
+    }
+
+    kbd {
+      display: inline-block;
+      padding: 0 6px;
+      border: 1px solid var(--violet-line);
+      border-radius: 2px;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      white-space: nowrap;
+    }
+
+    .lc {
+      text-transform: lowercase;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .skip-link {
+      position: absolute;
+      left: var(--pad);
+      top: -80px;
+      z-index: 50;
+      padding: 12px 16px;
+      background: var(--run);
+      color: #000;
+      font: 500 var(--fs-small) var(--code);
+      text-decoration: none;
+    }
+
+    .skip-link:focus {
+      top: 12px;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+
+    .wrap {
+      width: 100%;
+      max-width: calc(var(--content) + var(--gutter) + 2 * var(--pad));
+      margin-inline: auto;
+      padding-inline: var(--pad);
+    }
+
+    /* The content column, right of the gutter */
+    .col {
+      padding-left: var(--gutter);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: var(--gap);
+    }
+
+    /* Text set on the visuals, the way hydra's editor sets code: one dark
+       highlight behind each line */
+    .hl {
+      background: var(--box);
+      box-shadow: 8px 0 0 var(--box), -8px 0 0 var(--box);
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+    }
+
+    /* ── Buttons ────────────────────────────────────────────── */
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 48px;
+      padding: 0 20px;
+      border: 1px solid transparent;
+      font: 500 var(--fs-body) / 1 var(--code);
+      text-decoration: none;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    /* Source text stays sentence case; the buttons speak lowercase */
+    .btn .lbl {
+      display: inline-block;
+    }
+
+    .btn .lbl::first-letter {
+      text-transform: lowercase;
+    }
+
+    .btn-run {
+      border-color: var(--run);
+      background: var(--run);
+      color: #000;
+    }
+
+    .btn-run:hover {
+      background: #000;
+      color: var(--run);
+    }
+
+    .btn-line {
+      border-color: var(--text);
+      background: var(--box);
+      color: var(--text);
+    }
+
+    .btn-line:hover {
+      background: var(--text);
+      color: #000;
+    }
+
+    .btn-sm {
+      min-height: var(--tap);
+      padding: 0 16px;
+      font-size: var(--fs-small);
+    }
+
+    /* ▶, drawn: the font subset has no such glyph */
+    .tri {
+      flex: none;
+      width: 0.6em;
+      height: 0.7em;
+      background: currentColor;
+      clip-path: polygon(0 0, 100% 50%, 0 100%);
+    }
+
+    .arrow {
+      font-weight: 400;
+    }
+
+    /* ── Top bar ────────────────────────────────────────────── */
+
+    .top {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      height: var(--top-h);
+      border-bottom: 1px solid transparent;
+    }
+
+    .top.is-solid {
+      border-bottom-color: var(--rule);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+    }
+
+    .top-inner {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      height: 100%;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: var(--tap);
+      padding: 0 12px 0 8px;
+      background: var(--box);
+      color: var(--text);
+      font: 800 var(--fs-body) / 1 var(--display);
+      font-stretch: 112.5%;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      background: currentColor;
+      -webkit-mask: url("/assets/img/hydractrl-logo.svg") center / contain no-repeat;
+      mask: url("/assets/img/hydractrl-logo.svg") center / contain no-repeat;
+    }
+
+    .brand:hover {
+      background: var(--text);
+      color: #000;
+    }
+
+    .nav {
+      display: flex;
+      margin-left: auto;
+      background: var(--box);
+    }
+
+    .nav a {
+      display: inline-flex;
+      align-items: center;
+      height: var(--tap);
+      padding: 0 12px;
+      color: var(--text);
+      font: 400 var(--fs-small) / 1 var(--code);
+      text-decoration: none;
+      text-transform: lowercase;
+    }
+
+    .nav a:hover {
+      background: var(--text);
+      color: #000;
+    }
+
+    .nav a:active,
+    .brand:active {
+      transform: translateY(1px);
+    }
+
+    /* ── Backdrop: the sketch plays behind the whole page ────── */
+
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .backdrop canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+    }
+
+    .backdrop canvas.is-ready {
+      opacity: 1;
+    }
+
+    @media (forced-colors: active) {
+      .backdrop {
+        display: none;
+      }
+    }
+
+    /* ── Hero ───────────────────────────────────────────────── */
+
+    /* The words and the code sit in the middle of the first screen, between
+       the top bar and the status line (with room under the code for its
+       message line) */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: max(640px, 100svh);
+      padding: calc(var(--top-h) + 32px) 0 calc(var(--status-h) + 72px);
+    }
+
+    .hero-grid {
+      row-gap: 56px;
+      align-items: center;
+    }
+
+    .hero-text {
+      grid-column: 1 / span 7;
+      container-type: inline-size;
+    }
+
+    /* Where the hero's words begin: the top bar turns solid when they reach it */
+    .edge {
+      display: block;
+      height: 0;
+    }
+
+    .kicker {
+      margin: 0 0 20px;
+      padding-left: 3ch;
+      text-indent: -3ch;
+      color: var(--dim);
+      font: 400 var(--fs-small) / 1.6 var(--code);
+    }
+
+    .hero h1 {
+      /* The one word fills the column, and no more */
+      font-size: min(176px, 100cqi / 6.75);
+      font-weight: 800;
+      font-stretch: 112.5%;
+      line-height: 0.8;
+      text-transform: uppercase;
+    }
+
+    .h1-box {
+      display: inline-block;
+      padding: 0.13em 0 0.12em;
+      background: var(--box);
+      box-shadow: 8px 0 0 var(--box), -8px 0 0 var(--box);
+    }
+
+    .lead {
+      max-width: 44ch;
+      margin: 24px 0 0;
+      font-size: var(--fs-lead);
+      line-height: 1.5;
+      text-wrap: balance;
+    }
+
+    .lead .hl {
+      padding-block: 2px;
+    }
+
+    /* Their edges line up with the highlights above, which reach 8px past the text */
+    .ctas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 32px -8px 0;
+    }
+
+    .note {
+      max-width: 54ch;
+      margin: 20px 0 0;
+      color: var(--dim);
+      font-size: var(--fs-small);
+      line-height: 1.6;
+      text-wrap: balance;
+    }
+
+    /* ── The code panel ─────────────────────────────────────── */
+
+    .code {
+      position: relative;
+      grid-column: 8 / span 5;
+      margin: 0;
+      font: 400 var(--fs-small) / 1.6 var(--code);
+    }
+
+    .code-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: var(--tap);
+      margin-bottom: 8px;
+      padding-left: 12px;
+      background: var(--box);
+      color: var(--dim);
+    }
+
+    .code-file {
+      color: var(--text);
+    }
+
+    .code-ro {
+      color: var(--dim);
+    }
+
+    /* Changes the visuals don't show yet: run them */
+    .code-dirty {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-left: 10px;
+      vertical-align: 1px;
+      background: var(--text);
+    }
+
+    .code-dirty[hidden] {
+      display: none;
+    }
+
+    .code-run {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      align-self: stretch;
+      padding: 0 0 0 12px;
+      border: 0;
+      background: transparent;
+      color: var(--dim);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .code-run[hidden] {
+      display: none;
+    }
+
+    .code-run .go {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      align-self: stretch;
+      padding: 0 16px;
+      background: var(--run);
+      color: #000;
+      font-weight: 500;
+    }
+
+    .code-run:hover .go {
+      background: #000;
+      color: var(--run);
+    }
+
+    .code-run:active .go {
+      transform: translateY(1px);
+    }
+
+    .code-body {
+      display: grid;
+    }
+
+    /* The highlighted code and the textarea on top of it share every metric */
+    .code-view,
+    .code-input {
+      grid-area: 1 / 1;
+      min-width: 0;
+      margin: 0;
+      font: inherit;
+      font-variant-ligatures: contextual;
+      letter-spacing: normal;
+      tab-size: 2;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      word-break: normal;
+    }
+
+    .code-view .cl {
+      display: block;
+      padding-left: 4ch;
+      text-indent: -4ch;
+    }
+
+    .code-view .cb {
+      padding-block: 1px;
+      background: var(--box);
+      box-shadow: 0.6ch 0 0 var(--box);
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+    }
+
+    .code-view.is-run .cb {
+      background: var(--select);
+      box-shadow: 0.6ch 0 0 var(--select);
+    }
+
+    .cn {
+      color: var(--faint);
+    }
+
+    .tc {
+      color: var(--dim);
+    }
+
+    .ts {
+      color: var(--str);
+    }
+
+    .tn {
+      color: var(--num);
+    }
+
+    .cl.is-hidden,
+    .rest {
+      visibility: hidden;
+    }
+
+    .cur {
+      position: relative;
+    }
+
+    .cur::after {
+      content: "";
+      position: absolute;
+      top: -1px;
+      bottom: -1px;
+      left: 0;
+      width: 1ch;
+      background: var(--run);
+    }
+
+    .cur.is-idle::after {
+      animation: blink 1.1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .code-body:focus-within .cur {
+      display: none;
+    }
+
+    .code-input {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      padding: 0 0 0 4ch;
+      border: 0;
+      border-radius: 0;
+      outline: 0;
+      background: transparent;
+      color: transparent;
+      caret-color: var(--run);
+      resize: none;
+      overflow: hidden;
+    }
+
+    .code-input::selection {
+      background: var(--select);
+      color: #fff;
+    }
+
+    .code-body:focus-within {
+      outline: 1px solid var(--run);
+      outline-offset: 4px;
+    }
+
+    /* One line under the code, in the room the hero keeps above the status
+       line, so the panel doesn't move when it appears */
+    .code-msg {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      height: var(--tap);
+      margin: 0;
+      padding-left: 12px;
+      background: var(--box);
+      color: var(--dim);
+      white-space: nowrap;
+    }
+
+    .code-msg > span {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .code-msg[hidden] {
+      display: none;
+    }
+
+    .code-msg[data-tone="ok"] {
+      color: var(--run);
+    }
+
+    .code-msg[data-tone="error"] {
+      background: var(--select);
+      color: #fff;
+    }
+
+    .code-reset {
+      flex: none;
+      align-self: stretch;
+      padding: 0 12px;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .code-reset[hidden] {
+      display: none;
+    }
+
+    .code-reset:hover {
+      background: var(--text);
+      color: #000;
+    }
+
+    .code-reset:active {
+      transform: translateY(1px);
+    }
+
+    /* Keyboard hints mean nothing on a touch screen */
+    @media (pointer: coarse) {
+      .code .hint {
+        display: none;
+      }
+    }
+
+    .code-reset kbd {
+      padding: 0 4px;
+      border-color: currentColor;
+      background: transparent;
+      color: inherit;
+      font-size: var(--fs-label);
+      line-height: 1.5;
+    }
+
+    /* ── Status line ────────────────────────────────────────── */
+
+    .status {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      height: var(--status-h);
+      border-top: 1px solid var(--rule);
+      background: var(--glass);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      color: var(--dim);
+      font: 400 var(--fs-label) / 1 var(--code);
+    }
+
+    .status[hidden] {
+      display: none;
+    }
+
+    .status-inner {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      height: 100%;
+      white-space: nowrap;
+    }
+
+    .status-mode {
+      align-self: stretch;
+      min-width: calc(6.5ch + 24px);
+      padding: 0 12px;
+      border: 0;
+      background: var(--run);
+      color: #000;
+      font: 600 var(--fs-label) / 1 var(--code);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .status-mode[data-state="paused"] {
+      background: var(--faint);
+      color: var(--text);
+    }
+
+    .status-mode:hover {
+      background: var(--text);
+      color: #000;
+    }
+
+    .status-mode:active {
+      transform: translateY(1px);
+    }
+
+    .status-mode .when-paused,
+    .status-mode[data-state="paused"] .when-playing {
+      display: none;
+    }
+
+    .status-mode[data-state="paused"] .when-paused {
+      display: inline;
+    }
+
+    .status-file {
+      color: var(--text);
+    }
+
+    .status-open {
+      display: inline-flex;
+      align-items: center;
+      align-self: stretch;
+      margin-left: auto;
+      padding: 0 12px;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .status-open:hover {
+      background: var(--text);
+      color: #000;
+    }
+
+    .status-open:active {
+      transform: translateY(1px);
+    }
+
+    @media (max-width: 479px) {
+      .status-scene {
+        display: none;
+      }
+    }
+
+    @media (max-width: 359px) {
+      .status-long {
+        display: none;
+      }
+    }
+
+    /* ── Panes: every section after the hero is an editor tab ── */
+
+    /* Every section sits on a sheet of its own, with the sketch playing
+       around it, between the sheets and faintly through them */
+    .pane {
+      margin-top: var(--section-gap);
+    }
+
+    .sheet,
+    .tab,
+    .pane-body {
+      border: 1px solid var(--violet-line);
+      background: var(--pane);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
+    }
+
+    /* A sheet under a tab bar is its tab and its body: the bar shows only
+       the open file, a notch in from the left, with the sketch either side */
+    .sheet:has(> .tabs) {
+      border: 0;
+      background: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    /* The tab bar: the notch, the open file, then the sheet's edge runs on */
+    .tabs {
+      display: flex;
+      height: 40px;
+    }
+
+    .tabs::before,
+    .tabs::after {
+      content: "";
+      border-bottom: 1px solid var(--violet-line);
+    }
+
+    .tabs::before {
+      width: var(--sheet-pad);
+    }
+
+    .tabs::after {
+      flex: 1;
+    }
+
+    .tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 16px;
+      border-top: 2px solid var(--select);
+      border-bottom: 0;
+      color: var(--text);
+      font: 400 var(--fs-small) / 1 var(--code);
+    }
+
+    .pane-body {
+      padding-block: 72px 88px;
+      border-top: 0;
+    }
+
+    .sheet .pane-body {
+      padding-inline: max(var(--gutter), var(--sheet-pad)) var(--sheet-pad);
+    }
+
+    .h2 {
+      font-size: var(--fs-h2);
+      font-weight: 700;
+      font-stretch: 100%;
+      line-height: 1.2;
+    }
+
+    .h3 {
+      font-size: var(--fs-lead);
+      font-weight: 700;
+      font-stretch: 100%;
+      line-height: 1.2;
+    }
+
+    .pfx {
+      color: var(--violet-mute);
+      font-weight: 400;
+    }
+
+    /* A heading marked as a comment wraps under its words, not under the marker */
+    .h2:has(.pfx) {
+      padding-left: 3ch;
+      text-indent: -3ch;
+    }
+
+    .h2:has(.pfx-short) {
+      padding-left: 2ch;
+      text-indent: -2ch;
+    }
+
+    /* Line numbers, hung in the gutter */
+    .ln {
+      display: inline-block;
+      width: var(--gutter);
+      margin-left: calc(-1 * var(--gutter));
+      padding-right: 24px;
+      color: var(--violet-faint);
+      font: 400 var(--fs-small) / 1 var(--code);
+      text-align: right;
+      vertical-align: baseline;
+    }
+
+    .lede {
+      max-width: 60ch;
+      margin: 24px 0 0;
+      font-size: var(--fs-lead);
+      line-height: 1.5;
+    }
+
+    /* An opener with the heading and its paragraph side by side */
+    .split {
+      align-items: end;
+      align-items: last baseline;
+    }
+
+    .split .h2 {
+      grid-column: 1 / span 7;
+    }
+
+    .split p {
+      grid-column: 8 / span 5;
+      max-width: 50ch;
+      margin: 0;
+    }
+
+    .nowrap {
+      white-space: nowrap;
+    }
+
+    .fine {
+      color: var(--dim);
+      font-size: var(--fs-small);
+      line-height: 1.6;
+    }
+
+    /* A comment that wraps hangs under its own text, not under the // */
+    .cmt {
+      padding-left: 3ch;
+      text-indent: -3ch;
+      color: var(--dim);
+      font: 400 var(--fs-small) / 1.6 var(--code);
+    }
+
+    .cmt code {
+      color: var(--text);
+    }
+
+    /* The comment marker itself */
+    .cmt > span[aria-hidden]:first-child {
+      color: var(--violet-mute);
+    }
+
+    /* ── features.js ────────────────────────────────────────── */
+
+    .window {
+      margin: 56px 0 0;
+      border: 1px solid var(--rule);
+      background: #000;
+    }
+
+    .window-bar {
+      display: flex;
+      align-items: center;
+      height: 32px;
+      padding: 0 12px;
+      border-bottom: 1px solid var(--rule);
+      background: var(--bg);
+      color: var(--dim);
+      font: 400 var(--fs-label) / 1 var(--code);
+    }
+
+    .window img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .features {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .features-big {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 56px;
+      margin-top: 96px;
+    }
+
+    .features-small {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      row-gap: 48px;
+      margin-top: 64px;
+    }
+
+    .media {
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border: 1px solid var(--rule);
+      background: #000;
+    }
+
+    .media img,
+    .media video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .feature-title {
+      display: flex;
+      align-items: baseline;
+      margin-top: 16px;
+    }
+
+    .feature-num {
+      flex: none;
+      width: 4ch;
+      color: var(--violet-mute);
+      font: 400 var(--fs-small) / 1 var(--code);
+    }
+
+    .features-small .h3 {
+      font-size: var(--fs-body);
+    }
+
+    .feature .cmt {
+      margin: 8px 0 0;
+      padding-left: 4ch;
+      text-indent: -4ch;
+    }
+
+    .extras {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      row-gap: 32px;
+      margin: 80px 0 0;
+      padding: 32px 0 0;
+      border-top: 1px solid var(--rule);
+      list-style: none;
+    }
+
+    .extras h3 {
+      position: relative;
+      font-size: var(--fs-body);
+      font-weight: 700;
+      font-stretch: 100%;
+      line-height: 1.5;
+    }
+
+    .extras h3::before {
+      content: "+";
+      position: absolute;
+      left: -2ch;
+      color: var(--num);
+      font-family: var(--code);
+      font-weight: 400;
+    }
+
+    .extras p {
+      margin: 8px 0 0;
+      color: var(--dim);
+      font-size: var(--fs-small);
+      line-height: 1.6;
+    }
+
+    /* ── browser-vs-desktop.diff ────────────────────────────── */
+
+    .diff {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-top: 56px;
+      border: 1px solid var(--rule);
+      font: 400 var(--fs-small) / 1.6 var(--code);
+    }
+
+    /* Both sides share the rows: the header parts and the shared lines line up */
+    .diff-side {
+      display: grid;
+      grid-row: 1 / span 16;
+      grid-template-rows: subgrid;
+    }
+
+    .diff-side + .diff-side {
+      border-left: 1px solid var(--rule);
+    }
+
+    .diff-head {
+      display: grid;
+      grid-row: span 4;
+      grid-template-rows: subgrid;
+      /* A long button wraps instead of widening the column */
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: start;
+      align-items: start;
+      padding: 24px 24px 32px;
+      border-bottom: 1px solid var(--rule);
+      background: var(--bg);
+      font-family: var(--display);
+    }
+
+    .diff-head > * + * {
+      margin-top: 16px;
+    }
+
+    .diff-head h3 {
+      font: 700 var(--fs-lead) / 1.2 var(--code);
+    }
+
+    .diff-head p {
+      max-width: 52ch;
+      margin-bottom: 0;
+    }
+
+    .diff-lines {
+      display: contents;
+    }
+
+    .diff-lines li {
+      display: grid;
+      grid-template-columns: 5ch 3ch minmax(0, 1fr);
+      padding: 6px 24px 6px 0;
+    }
+
+    .dn,
+    .dm {
+      color: var(--faint);
+      text-align: right;
+    }
+
+    .dm {
+      padding-right: 1ch;
+    }
+
+    .diff-lines .add {
+      background: var(--add);
+    }
+
+    .diff-lines .add .dm {
+      color: var(--run);
+    }
+
+    .diff-lines .skip {
+      display: none;
+    }
+
+    .diff-lines kbd {
+      font-size: var(--fs-label);
+      line-height: 1.5;
+    }
+
+    .output {
+      row-gap: 40px;
+      margin-top: 64px;
+    }
+
+    .how {
+      grid-column: 1 / span 6;
+    }
+
+    .how p {
+      max-width: 60ch;
+      margin: 12px 0 0;
+    }
+
+    .targets {
+      grid-column: 8 / span 5;
+      margin: 0;
+      font: 400 var(--fs-small) / 1.6 var(--code);
+    }
+
+    .targets ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 1ch;
+      margin: 0;
+      padding: 0 0 0 2ch;
+      list-style: none;
+    }
+
+    .targets .ts::after {
+      content: ",";
+      color: var(--text);
+    }
+
+    .targets .fine,
+    .targets .tc {
+      margin: 0;
+      font-family: var(--code);
+    }
+
+    .output .fine {
+      grid-column: 1 / span 6;
+      max-width: 62ch;
+      margin: 0;
+    }
+
+    .output .fine + .fine {
+      grid-column: 8 / span 5;
+    }
+
+    /* ── download.sh ────────────────────────────────────────── */
+
+    .mobile-note {
+      display: none;
+      max-width: 62ch;
+      margin: 32px 0 0;
+      padding: 12px 16px;
+      border-left: 4px solid var(--select);
+      background: var(--bg);
+    }
+
+    [data-platform="mobile"] .mobile-note {
+      display: block;
+    }
+
+    .prompt {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 3ch;
+      margin: 56px 0 0;
+      font: 400 var(--fs-small) / 1.6 var(--code);
+    }
+
+    .prompt-cmd {
+      color: var(--text);
+    }
+
+    .prompt-cmd .ps {
+      color: var(--num);
+    }
+
+    .prompt-cmt {
+      flex: 1 1 32ch;
+      max-width: 72ch;
+      padding-left: 2ch;
+      text-indent: -2ch;
+      color: var(--dim);
+    }
+
+    .dls {
+      margin-top: 16px;
+      border-top: 1px solid var(--rule);
+    }
+
+    .dl {
+      position: relative;
+      display: grid;
+      grid-template-columns: 10ch minmax(0, 1fr) auto 16ch 2ch;
+      align-items: center;
+      column-gap: 2ch;
+      min-height: 64px;
+      padding: 12px 24px 12px 32px;
+      border-bottom: 1px solid var(--rule);
+      color: var(--text);
+      font: 400 var(--fs-body) / 1.5 var(--code);
+      text-decoration: none;
+    }
+
+    .dl:hover {
+      background: var(--select);
+      color: #fff;
+    }
+
+    .dl:active .dl-arrow {
+      transform: translateY(1px);
+    }
+
+    .dl-os {
+      font-weight: 600;
+    }
+
+    .dl-this,
+    .dl-soon {
+      display: none;
+      font-size: var(--fs-small);
+    }
+
+    .dl-soon {
+      grid-column: 4 / span 2;
+      text-align: right;
+    }
+
+    .dl-meta {
+      color: var(--dim);
+      font-size: var(--fs-small);
+      text-align: right;
+    }
+
+    .dl:hover .dl-meta {
+      color: inherit;
+    }
+
+    .dl-arrow {
+      text-align: right;
+    }
+
+    /* The build for this computer: a run-coloured bar in the gutter */
+    .dl.is-recommended::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: -1px;
+      bottom: 0;
+      width: 4px;
+      background: var(--run);
+    }
+
+    .dl.is-recommended .dl-this {
+      display: inline;
+      color: var(--run);
+    }
+
+    .dl.is-recommended:hover .dl-this {
+      color: inherit;
+    }
+
+    /* Not built yet: the line is commented out until it is */
+    .dl.is-pending {
+      color: var(--dim);
+    }
+
+    .dl.is-pending .dl-os {
+      font-weight: 400;
+    }
+
+    .dl.is-pending .dl-os::before {
+      content: "#";
+      position: absolute;
+      left: 12px;
+    }
+
+    .dl.is-pending .dl-soon {
+      display: inline;
+    }
+
+    .dl.is-pending .dl-meta,
+    .dl.is-pending .dl-arrow {
+      display: none;
+    }
+
+    .dl.is-pending:hover {
+      color: #fff;
+    }
+
+
+    .dl-notes {
+      row-gap: 24px;
+      margin-top: 40px;
+      color: var(--dim);
+      font-size: var(--fs-small);
+      line-height: 1.6;
+    }
+
+    .dl-notes p {
+      grid-column: span 6;
+      max-width: 60ch;
+      margin: 0;
+    }
+
+    .dl-notes strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .fold {
+      margin-top: 48px;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .fold summary {
+      display: flex;
+      align-items: center;
+      gap: 1.5ch;
+      min-height: 56px;
+      color: var(--text);
+      font: 400 var(--fs-small) / 1.5 var(--code);
+      list-style: none;
+      cursor: pointer;
+    }
+
+    .fold summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .fold summary:hover .fold-dots {
+      border-color: var(--select);
+      background: var(--select);
+      color: #fff;
+    }
+
+    .fold summary:active {
+      transform: translateY(1px);
+    }
+
+    .fold-mark {
+      flex: none;
+      width: 0.55em;
+      height: 0.65em;
+      background: var(--dim);
+      clip-path: polygon(0 0, 100% 50%, 0 100%);
+    }
+
+    .fold[open] .fold-mark {
+      transform: rotate(90deg);
+    }
+
+    .fold-dots {
+      padding: 0 6px;
+      border: 1px solid var(--rule);
+      background: var(--bg);
+      color: var(--dim);
+    }
+
+    .fold[open] .fold-dots {
+      display: none;
+    }
+
+    .fold-body {
+      row-gap: 32px;
+      padding: 16px 0 40px;
+      color: var(--dim);
+      font-size: var(--fs-small);
+      line-height: 1.6;
+    }
+
+    .fold-body > div {
+      grid-column: span 6;
+    }
+
+    .fold-body h3 {
+      color: var(--text);
+      font: 500 var(--fs-small) / 1.6 var(--code);
+    }
+
+    .fold-body ol {
+      max-width: 60ch;
+      margin: 8px 0 0;
+      padding-left: 3ch;
+    }
+
+    .fold-body li + li {
+      margin-top: 8px;
+    }
+
+    .fold-body li::marker {
+      color: var(--violet-mute);
+      font-family: var(--code);
+    }
+
+    .fold-body em {
+      color: var(--text);
+      font-style: normal;
+    }
+
+    .dl-more {
+      max-width: 72ch;
+      margin: 32px 0 0;
+    }
+
+    /* ── keymap.json ────────────────────────────────────────── */
+
+    .keys {
+      grid-auto-flow: column;
+      grid-template-rows: repeat(5, auto);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin: 56px 0 0;
+      border-top: 1px solid var(--rule);
+    }
+
+    .key {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      align-items: baseline;
+      gap: 2ch;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .key dt {
+      font: 400 var(--fs-small) / 1.6 var(--code);
+    }
+
+    .key dd {
+      margin: 0;
+      color: var(--dim);
+      font-size: var(--fs-small);
+      line-height: 1.6;
+    }
+
+    /* ── README.md ──────────────────────────────────────────── */
+
+    .readme {
+      row-gap: 64px;
+    }
+
+    .readme > div {
+      grid-column: span 6;
+    }
+
+    .md-list {
+      margin: 32px 0 0;
+      padding: 0 0 0 2ch;
+      list-style: "- ";
+      max-width: 56ch;
+    }
+
+    .md-list li + li {
+      margin-top: 12px;
+    }
+
+    .md-list li::marker {
+      color: var(--violet-mute);
+      font-family: var(--code);
+    }
+
+    .md-list .fine {
+      display: block;
+    }
+
+    /* ── Tally forms ────────────────────────────────────────── */
+
+    .form-box {
+      padding: 24px;
+      border: 1px solid var(--violet-line);
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .form-box iframe {
+      display: block;
+      width: 100%;
+      border: 0;
+      /* With color-scheme dark on the page, Chrome paints an opaque white
+         box behind the transparent form */
+      color-scheme: normal;
+    }
+
+    /* ── TODO.md ────────────────────────────────────────────── */
+
+    .roadmap {
+      row-gap: 56px;
+      align-items: start;
+    }
+
+    .roadmap-plans {
+      grid-column: 1 / span 7;
+    }
+
+    .roadmap-news {
+      grid-column: 9 / span 4;
+    }
+
+    /* A markdown task list, every box still open */
+    .todo {
+      max-width: 60ch;
+      margin: 40px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .todo li {
+      position: relative;
+      padding-left: 6ch;
+    }
+
+    .todo li + li {
+      margin-top: 20px;
+    }
+
+    .todo li::before {
+      content: "- [ ]";
+      content: "- [ ]" / "";
+      position: absolute;
+      left: 0;
+      color: var(--violet-mute);
+      font-family: var(--code);
+      white-space: pre;
+    }
+
+    .todo .todo-yours::before {
+      color: var(--run);
+    }
+
+    .todo strong {
+      font-weight: 600;
+    }
+
+    .todo .fine {
+      display: block;
+    }
+
+    .roadmap-news p {
+      max-width: 46ch;
+      margin: 12px 0 0;
+    }
+
+    .roadmap-news .form-box {
+      margin-top: 24px;
+    }
+
+    .roadmap-news .fine {
+      margin-top: 16px;
+    }
+
+    .roadmap-news em {
+      color: var(--text);
+      font-style: normal;
+    }
+
+    /* ── say-hi.txt ─────────────────────────────────────────── */
+
+    .contact {
+      row-gap: 48px;
+      align-items: start;
+    }
+
+    .contact-intro {
+      grid-column: 1 / span 5;
+    }
+
+    .contact-intro p {
+      max-width: 46ch;
+      margin: 24px 0 0;
+    }
+
+    .contact-intro .lede {
+      margin-top: 24px;
+    }
+
+    .contact-form {
+      grid-column: 7 / span 6;
+    }
+
+    .contact-form iframe {
+      min-height: 350px;
+    }
+
+    /* ── Footer ─────────────────────────────────────────────── */
+
+    /* The last sheet clears the status line */
+    .foot {
+      margin-top: var(--section-gap);
+      padding-bottom: calc(var(--status-h) + var(--section-gap) / 2);
+      color: var(--dim);
+      font: 400 var(--fs-small) / 1.6 var(--code);
+    }
+
+    .foot-sheet .col {
+      padding: 24px var(--sheet-pad) 24px max(var(--gutter), var(--sheet-pad));
+    }
+
+    .tildes {
+      margin: 0 0 16px;
+      color: var(--violet-faint);
+      white-space: pre;
+    }
+
+    .foot p {
+      max-width: 72ch;
+      margin: 0;
+    }
+
+    .foot nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0 3ch;
+      margin-top: 8px;
+    }
+
+    .foot nav a {
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--tap);
+      color: var(--text);
+      text-transform: lowercase;
+    }
+
+    /* ── Narrower screens ───────────────────────────────────── */
+
+    @media (max-width: 1199px) {
+      .hero-text {
+        grid-column: 1 / span 6;
+      }
+
+      .ctas .btn {
+        padding-inline: 16px;
+      }
+
+      .code {
+        grid-column: 7 / span 6;
+      }
+
+      .targets {
+        grid-column: 7 / span 6;
+      }
+
+      .output .fine + .fine {
+        grid-column: 7 / span 6;
+      }
+
+      .roadmap-news {
+        grid-column: 8 / span 5;
+      }
+    }
+
+    @media (max-width: 899px) {
+      .hero {
+        justify-content: flex-start;
+        padding-top: 0;
+        padding-bottom: calc(var(--status-h) + 72px);
+      }
+
+      .hero-grid {
+        row-gap: 48px;
+      }
+
+      /* The words sit in the middle of the first screen, the code
+         follows underneath */
+      .hero-text {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        grid-column: 1 / -1;
+        min-height: calc(100svh - var(--status-h));
+        padding-block: calc(var(--top-h) + 16px) 32px;
+      }
+
+      .code {
+        grid-column: 1 / -1;
+      }
+
+      .nav {
+        display: none;
+      }
+
+      .top .btn {
+        margin-left: auto;
+      }
+
+      .features-big,
+      .features-small,
+      .extras {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .features-small {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .split .h2,
+      .split p,
+      .how,
+      .targets,
+      .output .fine,
+      .output .fine + .fine,
+      .roadmap-plans,
+      .roadmap-news,
+      .contact-intro,
+      .contact-form {
+        grid-column: 1 / -1;
+      }
+
+      .readme > div,
+      .dl-notes p,
+      .fold-body > div {
+        grid-column: 1 / -1;
+      }
+
+      .split p {
+        margin-top: 24px;
+      }
+
+      .keys {
+        grid-auto-flow: row;
+        grid-template-rows: none;
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .extras {
+        padding-left: 2ch;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .diff {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .diff-side {
+        display: block;
+        grid-row: auto;
+      }
+
+      .diff-side + .diff-side {
+        border-top: 1px solid var(--rule);
+        border-left: 0;
+      }
+
+      .diff-lines {
+        display: block;
+        margin: 0;
+        padding: 0;
+      }
+
+      .diff-b .same {
+        display: none;
+      }
+
+      .diff-lines .skip {
+        display: grid;
+        color: var(--dim);
+      }
+
+      .dl {
+        grid-template-columns: minmax(0, 1fr) auto;
+        row-gap: 4px;
+        padding: 16px 16px 16px 32px;
+      }
+
+      .dl-detail,
+      .dl-flag {
+        grid-column: 1;
+      }
+
+      .dl-meta,
+      .dl-soon {
+        grid-column: 2;
+        grid-row: 1;
+      }
+
+      .dl-arrow {
+        display: none;
+      }
+    }
+
+    @media (max-width: 599px) {
+      .pane-body {
+        padding-block: 48px 56px;
+      }
+
+      .features-small {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .ln {
+        display: none;
+      }
+
+      .ctas .btn {
+        flex: 1 1 100%;
+        justify-content: center;
+      }
+
+      .key {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 4px;
+      }
+
+      .form-box {
+        padding: 16px;
+      }
+
+      .diff-head {
+        padding: 20px 16px 24px;
+      }
+
+      .diff-head .btn {
+        white-space: normal;
+        line-height: 1.3;
+      }
+    }
+
+    @media (max-width: 399px) {
+      .brand-name {
+        display: none;
+      }
+
+      .brand {
+        padding: 0 8px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      .cur.is-idle::after {
+        animation: none;
+      }
+    }
+  </style>
+  <noscript>
+    <style>
+      .top {
+        position: absolute;
+      }
+    </style>
+  </noscript>
+  <script type="module" src="/site/landing.js"></script>
 </head>
 
 <body>
-  <div class="app-container">
-    <!-- Fullscreen Hydra canvas -->
-    <div class="preview-container" id="hydra-canvas"></div>
+  <a class="skip-link" href="#main">Skip to content</a>
 
-    <!-- Draggable editor modal with integrated controls -->
-    <div class="editor-container" id="editor-container">
-      <div class="editor-handle" id="editor-handle">
-        <div class="editor-handle-title">HYDRACTRL</div>
-        <div class="editor-handle-controls">
-          <button id="toggle-editor-btn" title="Toggle UI Visibility (Ctrl/⌘+`)">
-            <span class="shortcut">Ctrl/⌘+`</span>
-          </button>
+  <div class="backdrop" aria-hidden="true">
+    <canvas id="backdrop"></canvas>
+  </div>
+
+  <header class="top" data-top>
+    <div class="wrap top-inner">
+      <a class="brand" href="/" aria-label="HYDRACTRL home">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name lc" aria-hidden="true">HYDRACTRL</span>
+      </a>
+      <nav class="nav" aria-label="Sections">
+        <a href="#features">Features</a>
+        <a href="#versions">Browser &amp; desktop</a>
+        <a href="#download">Download</a>
+        <a href="https://github.com/dxviie/HYDRACTRL">GitHub</a>
+      </nav>
+      <a class="btn btn-run btn-sm" href="/app" data-umami-event="open-app" data-umami-event-location="topbar"><span
+          class="tri" aria-hidden="true"></span><span class="lbl">Open in browser</span></a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap">
+        <div class="col grid hero-grid">
+          <div class="hero-text">
+            <span class="edge" aria-hidden="true" data-edge></span>
+            <p class="kicker"><span class="hl"><span aria-hidden="true">// </span><span class="lc">Free and open
+                  source. Built on hydra.</span></span></p>
+            <h1 id="hero-title"><span class="h1-box">HYDRACTRL</span></h1>
+            <p class="lead"><span class="hl">Play hydra live. Scenes, MIDI and an XY pad for when you're not coding,
+                and a real editor for when you are.</span></p>
+            <div class="ctas">
+              <a class="btn btn-run" href="/app" data-umami-event="open-app" data-umami-event-location="hero"><span
+                  class="tri" aria-hidden="true"></span><span class="lbl">Open in browser</span></a>
+              <a class="btn btn-line" href="#download" data-platform-cta data-umami-event="go-download"
+                data-umami-event-location="hero"><span class="arrow" aria-hidden="true">↓</span><span class="lbl"
+                  data-platform-label>Download the desktop app</span></a>
+            </div>
+            <p class="note"><span class="hl">Nothing to install. The desktop app for macOS and Windows adds Syphon
+                and Spout output for your VJ software.</span></p>
+          </div>
+
+          <figure class="code" data-code>
+            <span class="edge" aria-hidden="true" data-edge></span>
+            <figcaption class="code-head">
+              <span class="code-file"><span data-code-file>tide.js</span><span class="code-ro" data-code-ro>
+                  [RO]</span><span class="code-dirty" data-code-dirty hidden></span><span class="visually-hidden">, the
+                  hydra sketch playing behind this page</span></span>
+              <button type="button" class="code-run" data-code-run hidden><span class="hint" aria-hidden="true">ctrl/⌘
+                  enter</span><span class="go"><span class="tri" aria-hidden="true"></span>run</span></button>
+            </figcaption>
+            <div class="code-body" data-code-body>
+              <pre class="code-view" data-code-view><span class="cl"><span class="cb"><span class="cn" aria-hidden="true"> 1  </span><span class="tc">// Tide · a HYDRACTRL starter scene</span></span></span><span class="cl"><span class="cb"><span class="cn" aria-hidden="true"> 2  </span><span class="tc">// Change anything, then press Ctrl/⌘ + Enter to run it</span></span></span><span class="cl"><span class="cb"><span class="cn" aria-hidden="true"> 3  </span></span></span><span class="cl"><span class="cb"><span class="cn" aria-hidden="true"> 4  </span>noise(<span class="tn">1.8</span>, <span class="tn">0.04</span>)</span></span><span class="cl"><span class="cb"><span class="cn" aria-hidden="true"> 5  </span>  .color(<span class="tn">0.56</span>, <span class="tn">0.1</span>, <span class="tn">1</span>)</span></span><span class="cl"><span class="cb"><span class="cn" aria-hidden="true"> 6  </span>  .modulate(osc(<span class="tn">2</span>, <span class="tn">0.03</span>, <span class="tn">0</span>).rotate(<span class="tn">0.4</span>), <span class="tn">0.3</span>)</span></span><span class="cl"><span class="cb"><span class="cn" aria-hidden="true"> 7  </span>  .add(</span></span><span class="cl"><span class="cb"><span class="cn" aria-hidden="true"> 8  </span>    noise(<span class="tn">3</span>, <span class="tn">0.06</span>)</span></span><span class="cl"><span class="cb"><span class="cn" aria-hidden="true"> 9  </span>      .thresh(<span class="tn">0.55</span>, <span class="tn">0.3</span>)</span></span><span class="cl"><span class="cb"><span class="cn" aria-hidden="true">10  </span>      .color(<span class="tn">0.05</span>, <span class="tn">0.9</span>, <span class="tn">0.55</span>)</span></span><span class="cl"><span class="cb"><span class="cn" aria-hidden="true">11  </span>      .modulate(noise(<span class="tn">1</span>, <span class="tn">0.03</span>), <span class="tn">0.2</span>),</span></span><span class="cl"><span class="cb"><span class="cn" aria-hidden="true">12  </span>    <span class="tn">0.35</span></span></span><span class="cl"><span class="cb"><span class="cn" aria-hidden="true">13  </span>  )</span></span><span class="cl"><span class="cb"><span class="cn" aria-hidden="true">14  </span>  .brightness(-<span class="tn">0.15</span>)</span></span><span class="cl"><span class="cb"><span class="cn" aria-hidden="true">15  </span>  .out()</span></span></pre>
+            </div>
+            <p class="code-msg" data-code-msg hidden><span data-code-note></span><button type="button"
+                class="code-reset" data-code-reset hidden><kbd class="hint">esc</kbd> reset</button></p>
+            <noscript>
+              <p class="code-msg"><span>// the visuals need JavaScript and WebGL</span></p>
+            </noscript>
+          </figure>
         </div>
       </div>
-      <div class="editor-tabs" id="editor-tabs">
-        <button class="editor-tab active" data-tab="main">Sketch</button>
-        <button class="editor-tab" data-tab="setup">Setup</button>
-      </div>
-      <div class="editor-content" id="editor-content"></div>
-      <div class="editor-footer">
-        <div class="editor-footer-left">
-          <label class="checkbox-container">
-            <input type="checkbox" id="auto-run-checkbox" title="Auto Run after typing stops (Ctrl+Y or Cmd+Y)">
-            <span>Auto Run <span class="shortcut">(Ctrl/⌘+Y)</span></span>
-          </label>
+    </section>
+
+    <section id="features" class="pane" aria-labelledby="features-title">
+      <div class="wrap">
+        <div class="sheet">
+          <div class="tabs" aria-hidden="true"><span class="tab">features.js</span></div>
+          <div class="col pane-body">
+            <h2 class="h2" id="features-title"><span class="ln" aria-hidden="true">1</span><span class="pfx"
+                aria-hidden="true">// </span>Built for the stage</h2>
+            <p class="lede"><span class="ln" aria-hidden="true">2</span>HYDRACTRL wraps <a
+                href="https://hydra.ojack.xyz/">hydra</a>, Olivia Jack's live-codable video synth, in tools for
+              performing. Recall a scene instead of typing it, play it with a controller, and keep the code one
+              keystroke away.</p>
+
+            <figure class="window">
+              <div class="window-bar" aria-hidden="true">HYDRACTRL · /app</div>
+              <img src="/site/hydractrl-preview.jpg" width="1920" height="1080" loading="lazy"
+                alt="The HYDRACTRL interface: a code editor, scene slots, an XY pad and the system panel over a running hydra sketch">
+            </figure>
+
+            <ul class="features features-big grid">
+              <li class="feature">
+                <div class="media"><video src="/site/scene-management.mp4" poster="/site/scene-management-poster.jpg"
+                    width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                    aria-label="Recalling scenes from the slot grid"></video></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">01</span><span
+                    class="h3">Scenes</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>64 scenes in 4 banks of 16 slots, with thumbnails so
+                  you find them mid-set.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><video src="/site/midi-integration.mp4" poster="/site/midi-integration-poster.jpg"
+                    width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                    aria-label="Pads on a nanoPAD2 switching scenes and its touchpad moving the XY pad"></video></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">02</span><span
+                    class="h3">MIDI</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>Made for the Korg nanoPAD2. Pads recall scenes and
+                  switch banks; the touchpad feeds <code>nanoX</code> and <code>nanoY</code> into your sketches.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><video src="/site/xy-pad-physics.mp4" poster="/site/xy-pad-physics-poster.jpg"
+                    width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                    aria-label="Flicking the XY pad and letting it bounce, with the sketch following it"></video></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">03</span><span class="h3">XY
+                    pad</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>Flick it and a small physics engine keeps it
+                  bouncing. Works with a mouse too.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><video src="/site/code-editor.mp4" poster="/site/code-editor-poster.jpg" width="960"
+                    height="540" muted loop playsinline preload="none" data-autoplay
+                    aria-label="Adding a line with completions and running it"></video></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">04</span><span
+                    class="h3">Editor</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>CodeMirror 6 with hydra-aware completions, error
+                  messages and auto-run, set in Fira Code with ligatures.</p>
+              </li>
+            </ul>
+
+            <ul class="features features-small grid">
+              <li class="feature">
+                <div class="media"><video src="/site/audio-reactivity.mp4" poster="/site/audio-reactivity-poster.jpg"
+                    width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                    aria-label="A sketch flashing on the beat through a.fft, with hydra's audio meter"></video></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">05</span><span
+                    class="h3">Audio</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>hydra's <code>a.fft</code> out of the box, with a
+                  watchdog that revives audio when the browser suspends it.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><img src="/site/breakout-view.jpg" width="1280" height="720" loading="lazy"
+                    alt="The interface next to a breakout window that shows only the visuals at 1280×720"></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">06</span><span
+                    class="h3">Breakout window</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>Send the visuals to a second window at an exact
+                  size, for a projector, a recording or an OBS window capture.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><video src="/site/multiple-themes.mp4" poster="/site/multiple-themes-poster.jpg"
+                    width="960" height="540" muted loop playsinline preload="none" data-autoplay
+                    aria-label="Switching between the five interface themes and dialing down panel opacity"></video>
+                </div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">07</span><span
+                    class="h3">Themes</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>Five interface themes. Dial the panels down to see
+                  your visuals.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><img src="/site/setup-code.jpg" width="1280" height="720" loading="lazy"
+                    alt="The Setup tab of the code editor with audio settings and shared colors"></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">08</span><span class="h3">Setup
+                    code</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>A setup tab that runs before every sketch, for audio
+                  settings and globals.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><img src="/site/builtin-docs.jpg" width="1280" height="720" loading="lazy"
+                    alt="The built-in hydra documentation showing modulateRotate"></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">09</span><span class="h3">hydra
+                    docs</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>Every hydra function with parameters and examples,
+                  one click away.</p>
+              </li>
+              <li class="feature">
+                <div class="media"><img src="/site/import-export.jpg" width="1280" height="720" loading="lazy"
+                    alt="The export button on the slots panel next to the exported JSON file"></div>
+                <h3 class="feature-title"><span class="feature-num" aria-hidden="true">10</span><span
+                    class="h3">Banks</span></h3>
+                <p class="cmt"><span aria-hidden="true">//  </span>Save all 64 slots, thumbnails included, as one JSON
+                  file.</p>
+              </li>
+            </ul>
+
+            <ul class="extras grid">
+              <li>
+                <h3>Your own images and videos</h3>
+                <p>In the desktop app, drop a picture or a clip on the editor. HYDRACTRL copies it into its media folder
+                  and writes the line that loads it, like <code>s0.initVideo("/media/clip.mp4")</code>.</p>
+              </li>
+              <li>
+                <h3>Sketches as links</h3>
+                <p><span class="nowrap"><kbd>Alt/⌥</kbd> + <kbd>U</kbd></span> copies a link with your sketch inside. Whoever opens it sees it
+                  running. The background of this page works the same way.</p>
+              </li>
+              <li>
+                <h3>Plugins</h3>
+                <p>Every feature is a plugin on a small core, so a broken one can't take down a live set. Write your
+                  own with the <a href="https://github.com/dxviie/HYDRACTRL/blob/main/docs/PLUGINS.md">plugin
+                    docs</a>.</p>
+              </li>
+            </ul>
+          </div>
         </div>
-        <div class="editor-footer-right">
-          <button id="run-btn" title="Run (Ctrl+Enter or Cmd+Enter)">Run <span
-              class="shortcut">(Ctrl/⌘+Enter)</span></button>
-          <button id="save-btn" title="Save (Ctrl+S or Cmd+S)">Save <span class="shortcut">(Ctrl/⌘+S)</span></button>
+      </div>
+    </section>
+
+    <section id="versions" class="pane" aria-labelledby="versions-title">
+      <div class="wrap">
+        <div class="sheet">
+          <div class="tabs" aria-hidden="true"><span class="tab">browser-vs-desktop.diff</span></div>
+          <div class="col pane-body">
+            <div class="grid split">
+              <h2 class="h2" id="versions-title"><span class="ln" aria-hidden="true">1</span><span class="pfx"
+                  aria-hidden="true">@@ </span>In your browser, or on your desktop</h2>
+              <p>Same interface, same scenes, same shortcuts. Start in the browser. Get the desktop app when your
+                visuals need to go into Resolume, MadMapper, VDMX, TouchDesigner or OBS.</p>
+            </div>
+
+            <div class="diff">
+              <div class="diff-side diff-a">
+                <div class="diff-head">
+                  <h3><span class="pfx" aria-hidden="true">--- </span>Browser</h3>
+                  <p>Nothing to install, always the latest version.</p>
+                  <a class="btn btn-run" href="/app" data-umami-event="open-app"
+                    data-umami-event-location="versions"><span class="tri" aria-hidden="true"></span><span
+                      class="lbl">Open in browser</span></a>
+                  <p class="fine">Scenes live in your browser. Export them as JSON to move them around.</p>
+                </div>
+                <ul class="diff-lines" role="list">
+                  <li><span class="dn" aria-hidden="true">1</span><span class="dm" aria-hidden="true"></span><span>The
+                      whole interface (editor, 64 scenes, XY pad, hydra docs)</span></li>
+                  <li><span class="dn" aria-hidden="true">2</span><span class="dm"
+                      aria-hidden="true"></span><span>MIDI in Chrome and Edge</span></li>
+                  <li><span class="dn" aria-hidden="true">3</span><span class="dm"
+                      aria-hidden="true"></span><span>Breakout window</span></li>
+                  <li><span class="dn" aria-hidden="true">4</span><span class="dm"
+                      aria-hidden="true"></span><span>Sketch links</span></li>
+                </ul>
+              </div>
+              <div class="diff-side diff-b">
+                <div class="diff-head">
+                  <h3><span class="pfx" aria-hidden="true">+++ </span>Desktop</h3>
+                  <p>The same interface as an app, with a live feed for your VJ software.</p>
+                  <a class="btn btn-line" href="#download" data-platform-cta data-umami-event="go-download"
+                    data-umami-event-location="versions"><span class="arrow" aria-hidden="true">↓</span><span
+                      class="lbl" data-platform-label>Download the desktop app</span></a>
+                  <p class="fine">macOS 11 or later (Apple Silicon or Intel). Windows 10 or 11 (64-bit).</p>
+                </div>
+                <ul class="diff-lines" role="list">
+                  <li class="same"><span class="dn" aria-hidden="true">1</span><span class="dm"
+                      aria-hidden="true"></span><span>The whole interface (editor, 64 scenes, XY pad, hydra
+                      docs)</span></li>
+                  <li class="same"><span class="dn" aria-hidden="true">2</span><span class="dm"
+                      aria-hidden="true"></span><span>MIDI</span></li>
+                  <li class="same"><span class="dn" aria-hidden="true">3</span><span class="dm"
+                      aria-hidden="true"></span><span>Breakout window</span></li>
+                  <li class="same"><span class="dn" aria-hidden="true">4</span><span class="dm"
+                      aria-hidden="true"></span><span>Sketch links</span></li>
+                  <li class="skip" aria-hidden="true"><span class="dn"></span><span class="dm"></span><span>… 4 lines
+                      as in the browser</span></li>
+                  <li class="add"><span class="dn" aria-hidden="true">5</span><span class="dm"
+                      aria-hidden="true">+</span><span>Syphon output on macOS, Spout on Windows</span></li>
+                  <li class="add"><span class="dn" aria-hidden="true">6</span><span class="dm"
+                      aria-hidden="true">+</span><span>720p to 4K or a custom size, 24 to 120 fps, optional
+                      alpha</span></li>
+                  <li class="add"><span class="dn" aria-hidden="true">7</span><span class="dm"
+                      aria-hidden="true">+</span><span>Your own sender name and a preview window</span></li>
+                  <li class="add"><span class="dn" aria-hidden="true">8</span><span class="dm"
+                      aria-hidden="true">+</span><span>Keeps running when the window is minimized or covered</span>
+                  </li>
+                  <li class="add"><span class="dn" aria-hidden="true">9</span><span class="dm"
+                      aria-hidden="true">+</span><span>Drop your own images and videos into a sketch</span></li>
+                  <li class="add"><span class="dn" aria-hidden="true">10</span><span class="dm"
+                      aria-hidden="true">+</span><span>Audio starts without a click</span></li>
+                  <li class="add"><span class="dn" aria-hidden="true">11</span><span class="dm"
+                      aria-hidden="true">+</span><span>Start and stop the output with <span class="nowrap"><kbd>Cmd/Ctrl</kbd> +
+                        <kbd>Shift</kbd> + <kbd>O</kbd></span></span></li>
+                  <li class="add"><span class="dn" aria-hidden="true">12</span><span class="dm"
+                      aria-hidden="true">+</span><span>OBS or TouchDesigner on another computer can pick it up</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="grid output">
+              <div class="how">
+                <h3 class="h3">How it works</h3>
+                <p>The desktop app renders every frame once, shares it as a GPU texture through a Syphon server on
+                  macOS or a Spout sender on Windows, and shows that same frame in the interface. What you see is
+                  exactly what your VJ software gets: no screen capture, no extra latency, and it follows every run,
+                  slot change and XY pad move.</p>
+              </div>
+              <div class="targets">
+                <p class="visually-hidden">Works with</p>
+                <span aria-hidden="true">targets = [</span>
+                <ul>
+                  <li class="ts">"Resolume"</li>
+                  <li class="ts">"MadMapper"</li>
+                  <li class="ts">"VDMX"</li>
+                  <li class="ts">"TouchDesigner"</li>
+                  <li class="ts">"OBS"</li>
+                  <li class="ts">"Millumin"</li>
+                </ul>
+                <span aria-hidden="true">]</span> <span class="tc"><span aria-hidden="true">// </span>and anything
+                  that speaks Syphon or Spout</span>
+              </div>
+              <p class="fine">Tested at 1080p and 4K, a steady 60 fps into Resolume on an Apple Silicon Mac. Spout on
+                Windows is new, so <a href="https://github.com/dxviie/HYDRACTRL/issues">tell us</a> how it runs.</p>
+              <p class="fine">Both versions keep your scenes on your computer. Move them between the two with bank
+                export and import <span class="nowrap">(<kbd>Alt/⌥</kbd> + <kbd>X</kbd> / <kbd>I</kbd>)</span>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="download" class="pane" aria-labelledby="download-title">
+      <div class="wrap">
+        <div class="sheet">
+          <div class="tabs" aria-hidden="true"><span class="tab">download.sh</span></div>
+          <div class="col pane-body">
+            <h2 class="h2" id="download-title"><span class="ln" aria-hidden="true">1</span><span class="pfx pfx-short"
+                aria-hidden="true"># </span>HYDRACTRL Desktop</h2>
+            <p class="lede"><span class="ln" aria-hidden="true">2</span>Free, for macOS and Windows. Your settings and
+              scenes carry over when you install a newer version.</p>
+            <p class="mobile-note">You're on a phone or tablet. Open this page on your Mac or PC to install the desktop
+              app, or <a href="/app">play in the browser</a> right here.</p>
+
+            <p class="prompt"><span class="prompt-cmd" aria-hidden="true"><span class="ps">$ </span>download
+                --latest</span><span class="prompt-cmt"><span aria-hidden="true"># </span><span
+                  id="release-info">Always the latest release from <a
+                    href="https://github.com/dxviie/HYDRACTRL/releases">GitHub</a>.</span></span></p>
+
+            <div class="dls">
+              <a class="dl" data-download="mac-arm64"
+                href="https://github.com/dxviie/HYDRACTRL/releases/latest/download/HYDRACTRL-mac-arm64.dmg"
+                data-umami-event="download" data-umami-event-platform="mac-arm64">
+                <span class="dl-os">macOS</span>
+                <span class="dl-detail">Apple Silicon (M1 and later)</span>
+                <span class="dl-flag"><span class="dl-this"><span aria-hidden="true">&lt;- </span>this
+                    computer</span></span>
+                <span class="dl-meta" data-download-meta>DMG</span>
+                <span class="dl-arrow" aria-hidden="true">↓</span>
+                <span class="dl-soon">coming soon</span>
+              </a>
+              <a class="dl" data-download="mac-x64"
+                href="https://github.com/dxviie/HYDRACTRL/releases/latest/download/HYDRACTRL-mac-x64.dmg"
+                data-umami-event="download" data-umami-event-platform="mac-x64">
+                <span class="dl-os">macOS</span>
+                <span class="dl-detail">Intel</span>
+                <span class="dl-flag"><span class="dl-this"><span aria-hidden="true">&lt;- </span>this
+                    computer</span></span>
+                <span class="dl-meta" data-download-meta>DMG</span>
+                <span class="dl-arrow" aria-hidden="true">↓</span>
+                <span class="dl-soon">coming soon</span>
+              </a>
+              <a class="dl" data-download="win-x64"
+                href="https://github.com/dxviie/HYDRACTRL/releases/latest/download/HYDRACTRL-win-x64-setup.exe"
+                data-umami-event="download" data-umami-event-platform="win-x64">
+                <span class="dl-os">Windows</span>
+                <span class="dl-detail">64-bit installer</span>
+                <span class="dl-flag"><span class="dl-this"><span aria-hidden="true">&lt;- </span>this
+                    computer</span></span>
+                <span class="dl-meta" data-download-meta>EXE</span>
+                <span class="dl-arrow" aria-hidden="true">↓</span>
+                <span class="dl-soon">coming soon</span>
+              </a>
+            </div>
+
+            <div class="grid dl-notes">
+              <p><strong>Which Mac do I have?</strong> Apple menu → About This Mac. "Chip: Apple M…" means Apple
+                Silicon, "Processor: Intel" means Intel.</p>
+              <p><strong>Linux?</strong> Syphon and Spout don't exist there, so use the <a href="/app">browser
+                  version</a>, or <a href="https://github.com/dxviie/HYDRACTRL/blob/main/desktop/README.md#develop">run
+                  the desktop app from source</a>.</p>
+            </div>
+
+            <details class="fold">
+              <summary><span class="fold-mark" aria-hidden="true"></span><span class="fold-dots"
+                  aria-hidden="true">{…}</span><span class="lc">Opening the app for the first time</span></summary>
+              <div class="grid fold-body">
+                <div>
+                  <h3>macOS</h3>
+                  <ol>
+                    <li>Open the DMG and drag HYDRACTRL into Applications.</li>
+                    <li>Open it. The app is signed and notarized by Apple, so macOS only checks once that you
+                      meant to open an app from the internet. Click <em>Open</em>.</li>
+                    <li>Allow microphone access when asked, for audio-reactive sketches.</li>
+                    <li>The Syphon server is called <code>HYDRACTRL</code>.</li>
+                  </ol>
+                </div>
+                <div>
+                  <h3>Windows</h3>
+                  <ol>
+                    <li>Run the installer. The Windows build isn't code-signed yet, so SmartScreen may warn about
+                      an unrecognized app.</li>
+                    <li>Click <em>More info</em>, then <em>Run anyway</em>.</li>
+                    <li>HYDRACTRL shows up in the Start menu. The Spout sender is called <code>HYDRACTRL</code>.</li>
+                  </ol>
+                </div>
+              </div>
+            </details>
+
+            <p class="fine dl-more">Release notes are in the <a
+                href="https://github.com/dxviie/HYDRACTRL/blob/main/CHANGELOG.md">changelog</a>, every version is on the
+              <a href="https://github.com/dxviie/HYDRACTRL/releases">releases page</a>, and the <a
+                href="https://github.com/dxviie/HYDRACTRL/blob/main/desktop/README.md">desktop README</a> explains how to
+              build it yourself.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="shortcuts" class="pane" aria-labelledby="shortcuts-title">
+      <div class="wrap">
+        <div class="sheet">
+          <div class="tabs" aria-hidden="true"><span class="tab">keymap.json</span></div>
+          <div class="col pane-body">
+            <h2 class="h2" id="shortcuts-title"><span class="ln" aria-hidden="true">1</span><span class="pfx"
+                aria-hidden="true">// </span>Keyboard shortcuts</h2>
+            <dl class="grid keys">
+              <div class="key">
+                <dt><kbd>Ctrl/⌘</kbd> + <kbd>Enter</kbd></dt>
+                <dd>Run the code</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Ctrl/⌘</kbd> + <kbd>S</kbd></dt>
+                <dd>Save to the active slot</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Ctrl/⌘</kbd> + <kbd>`</kbd></dt>
+                <dd>Hide or show the interface</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Esc</kbd></dt>
+                <dd>Bring back a hidden interface</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Ctrl/⌘</kbd> + <kbd>Y</kbd></dt>
+                <dd>Toggle auto-run</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Alt/⌥</kbd> + <kbd>U</kbd></dt>
+                <dd>Copy the sketch as a link</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Alt/⌥</kbd> + <kbd>0–9</kbd> / <kbd>A–F</kbd></dt>
+                <dd>Select slot 1 to 16 of the bank</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Alt/⌥</kbd> + <kbd>←</kbd> / <kbd>→</kbd></dt>
+                <dd>Previous or next bank (without MIDI)</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Alt/⌥</kbd> + <kbd>X</kbd></dt>
+                <dd>Export the banks</dd>
+              </div>
+              <div class="key">
+                <dt><kbd>Alt/⌥</kbd> + <kbd>I</kbd></dt>
+                <dd>Import banks</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="resources" class="pane" aria-label="Learn hydra, and credits">
+      <div class="wrap">
+        <div class="sheet">
+          <div class="tabs" aria-hidden="true"><span class="tab">README.md</span></div>
+          <div class="col pane-body grid readme">
+            <div>
+              <h2 class="h2"><span class="ln" aria-hidden="true">1</span><span class="pfx pfx-short" aria-hidden="true"># </span>New
+                to hydra?</h2>
+              <ul class="md-list">
+                <li><a href="https://hydra.ojack.xyz/docs/">hydra documentation</a> <span class="fine">The official
+                    guide.</span></li>
+                <li><a href="https://hydra.ojack.xyz/functions/">Function reference</a> <span class="fine">Every hydra
+                    function, with examples.</span></li>
+                <li><a href="https://hydra.ojack.xyz/garden/">hydra internet garden</a> <span class="fine">The
+                    community's projects, tutorials and code.</span></li>
+                <li><a href="https://hydra-book.glitch.me/">hydra book</a> <span class="fine">A thorough guide by <a
+                      href="https://naotohieda.com/">Naoto Hieda</a>.</span></li>
+              </ul>
+            </div>
+            <div>
+              <h2 class="h2"><span class="pfx pfx-short" aria-hidden="true"># </span>Built with</h2>
+              <ul class="md-list">
+                <li><a href="https://hydra.ojack.xyz/">hydra</a> by <a href="https://ojack.xyz/">Olivia Jack</a></li>
+                <li><a href="https://codemirror.net/">CodeMirror 6</a>, <a href="https://bun.sh/">Bun</a> and the Web
+                  MIDI API</li>
+                <li><a href="https://www.electronjs.org/">Electron</a> and <a
+                    href="https://github.com/naporin0624/electron-texture-bridge">texture-bridge</a> for Syphon and Spout
+                </li>
+                <li><a href="https://github.com/tonsky/FiraCode">Fira Code</a> by Nikita Prokopov in the editor and <a
+                    href="https://www.ibm.com/plex/">IBM Plex Mono</a> in the interface</li>
+                <li>This page in <a href="https://github.com/evilmartians/mono">Martian Mono</a> by Evil Martians and
+                  Fira Code</li>
+                <li>Random scene banks from sketches collected by <a href="https://fentonia.com/">Jamie Faye Fenton</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="roadmap" class="pane" aria-labelledby="roadmap-title">
+      <div class="wrap">
+        <div class="sheet">
+          <div class="tabs" aria-hidden="true"><span class="tab">TODO.md</span></div>
+          <div class="col pane-body grid roadmap">
+            <div class="roadmap-plans">
+              <h2 class="h2" id="roadmap-title"><span class="ln" aria-hidden="true">1</span><span class="pfx pfx-short"
+                  aria-hidden="true"># </span>Roadmap</h2>
+              <p class="lede"><span class="ln" aria-hidden="true">2</span>What I'd like to add next, in no particular
+                order.</p>
+              <ul class="todo">
+                <li><strong>Better MIDI support</strong> <span class="fine">More controllers than the Korg
+                    nanoPAD2.</span></li>
+                <li><strong>HY5 integration</strong> <span class="fine">p5 and hydra in one sketch.</span></li>
+                <li><strong>OSC support</strong> <span class="fine">Control HYDRACTRL from other apps.</span></li>
+                <li><strong>Improved auto-complete</strong> <span class="fine">Better suggestions while you
+                    code.</span></li>
+                <li><strong>Hydra extensions browser</strong> <span class="fine">Find hydra extensions and add them to a
+                    sketch.</span></li>
+                <li><strong>Community page</strong> <span class="fine">Share what you make and play what others
+                    made.</span></li>
+                <li class="todo-yours"><strong>Your idea?</strong> <span class="fine"><a
+                      href="https://github.com/dxviie/HYDRACTRL/issues/new">Request a feature on GitHub</a>, or give
+                    an <a href="https://github.com/dxviie/HYDRACTRL/issues">open issue</a> a thumbs-up.</span></li>
+              </ul>
+            </div>
+            <div class="roadmap-news">
+              <h3 class="h3">Release news</h3>
+              <p>Leave your email and I'll write when a new version is out. Only release news, nothing else. Reply to
+                any of them to get off the list.</p>
+              <div class="form-box">
+                <iframe
+                  data-tally-src="https://tally.so/embed/ODpzzR?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1&source=landing"
+                  loading="lazy" width="100%" height="140" title="Sign up for release news"></iframe>
+                <noscript><a href="https://tally.so/r/ODpzzR">Sign up for release news</a></noscript>
+              </div>
+              <p class="fine">On GitHub? <a href="https://github.com/dxviie/HYDRACTRL">Watch the repository</a> and pick
+                <em>Custom → Releases</em>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="pane" aria-labelledby="contact-title">
+      <div class="wrap">
+        <div class="sheet">
+          <div class="tabs" aria-hidden="true"><span class="tab">say-hi.txt</span></div>
+          <div class="col pane-body grid contact">
+            <div class="contact-intro">
+              <h2 class="h2" id="contact-title"><span class="ln" aria-hidden="true">1</span>Say hi</h2>
+              <p class="lede">Hi, I'm <a href="https://www.d17e.dev">David</a>, a developer and VJ. HYDRACTRL is a
+                one-person project that I build out of love for hydra.</p>
+              <p>I wanted to play hydra in my own live sets, with scenes to recall, a nanoPAD2 to switch them and an
+                editor that knows hydra. Nothing did all of that, so I built it. <a
+                  href="https://d17e.dev/blog/how-i-ended-up-building-hydractrl/">How I ended up building
+                  HYDRACTRL</a> has the long version.</p>
+              <p>Ideas, questions, a show you played with it? Write me here. I read every message.</p>
+              <p>Found a bug? <a href="https://github.com/dxviie/HYDRACTRL/issues">Open an issue on GitHub</a>. Made
+                something? Copy it as a link with <span class="nowrap"><kbd>Alt/⌥</kbd> + <kbd>U</kbd></span> and
+                paste it in.</p>
+              <p class="cmt sig"><span aria-hidden="true">// </span>David, <a href="https://www.d17e.dev">D17E</a></p>
+            </div>
+            <div class="contact-form form-box">
+              <iframe
+                data-tally-src="https://tally.so/embed/3Erq04?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1&source=landing"
+                loading="lazy" width="100%" height="350" title="Contact form"></iframe>
+              <noscript><a href="https://tally.so/r/3Erq04">Open the contact form</a></noscript>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <div class="sheet foot-sheet">
+        <div class="col">
+          <p class="tildes" aria-hidden="true">~
+~
+~</p>
+          <p>HYDRACTRL is made by <a href="https://www.d17e.dev">D17E</a> on top of <a
+              href="https://hydra.ojack.xyz/">hydra</a> by <a href="https://ojack.xyz/">Olivia Jack</a>. <a
+              href="https://github.com/dxviie/HYDRACTRL/blob/main/LICENSE">GNU AGPL v3</a>.</p>
+          <nav aria-label="Project links">
+            <a href="/app">Open the app</a>
+            <a href="https://github.com/dxviie/HYDRACTRL">GitHub</a>
+            <a href="https://github.com/dxviie/HYDRACTRL/releases">Releases</a>
+            <a href="https://github.com/dxviie/HYDRACTRL/blob/main/CHANGELOG.md">Changelog</a>
+          </nav>
         </div>
       </div>
     </div>
-    <!-- Stats panel is created directly in JavaScript -->
+  </footer>
+
+  <div class="status" id="now-playing" hidden>
+    <div class="wrap status-inner">
+      <button type="button" class="status-mode" data-backdrop-toggle aria-pressed="false"
+        aria-label="Live, pause the background" data-state="playing"><span class="when-playing">Live</span><span
+          class="when-paused">Paused</span></button>
+      <span class="status-file"><span data-backdrop-name>tide.js</span><span data-backdrop-modified hidden>
+          [+]</span></span>
+      <span class="status-scene">scene <span data-backdrop-index>1</span>/<span
+          data-backdrop-count>4</span></span>
+      <a class="status-open" href="/app" data-backdrop-open data-umami-event="open-backdrop-sketch"
+        aria-label="Open in HYDRACTRL, the background sketch"><span class="lc">Open</span><span
+          class="status-long">&nbsp;in HYDRACTRL</span><span aria-hidden="true">&nbsp;-&gt;</span></a>
+    </div>
   </div>
-  <script src="/assets/index.js" type="module"></script>
 </body>
 
 </html>

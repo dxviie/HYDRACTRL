@@ -2,14 +2,19 @@
  * UrlSharePlugin - share sketches as URLs (GitHub issue #5).
  *
  * Alt/Opt+U copies a link with the current sketch encoded in the URL fragment
- * (e.g. https://host/#sketch=...). Opening such a link loads and runs the
+ * (e.g. https://host/app#sketch=...). Opening such a link loads and runs the
  * sketch WITHOUT touching localStorage slots — nothing is persisted unless
  * the user explicitly saves.
  *
  * The codec functions are pure and exported for tests.
  */
 
+import { HOSTED_APP_URL } from "../../project.js";
+
 const SKETCH_PARAM = "sketch";
+
+/** Hosts only this computer can open: the desktop app and local servers. */
+const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
 /**
  * Encode sketch code into a URL-safe base64 string.
@@ -55,11 +60,18 @@ export function readSketchFromHash(hash) {
   return decodeSketch(encoded);
 }
 
-/** Build a shareable URL for the given code, based on the current location. */
+/**
+ * Build a shareable URL for the given code, based on the current location.
+ * A link to this computer (the desktop app, `bun dev`) would not open
+ * anywhere else, so those point at the hosted browser version instead.
+ */
 export function buildShareUrl(code, location) {
   const encoded = encodeSketch(code);
   if (!encoded) return null;
-  return `${location.origin}${location.pathname}#${SKETCH_PARAM}=${encoded}`;
+  const base = LOCAL_HOSTNAMES.has(location.hostname)
+    ? HOSTED_APP_URL
+    : `${location.origin}${location.pathname}`;
+  return `${base}#${SKETCH_PARAM}=${encoded}`;
 }
 
 async function copyToClipboard(text) {
