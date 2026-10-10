@@ -16,7 +16,7 @@
     "media": "bun run build && bun scripts/media/capture.js",
     "preview": "bun run build && bun src/index.ts",
     "lint": "biome check src/ scripts/ desktop/src/ desktop/scripts/",
-    "format": "biome format --write src/ scripts/",
+    "format": "biome format --write src/ scripts/ desktop/src/ desktop/scripts/",
     "test": "bun test",
     "release:prepare": "bun scripts/release.js prepare",
     "release:check": "bun scripts/release.js check",

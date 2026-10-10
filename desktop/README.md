@@ -33,7 +33,8 @@ The app is an Electron shell around the regular HYDRACTRL server:
   switches back once the output runs.
 
 Everything the web version does still works: MIDI, the breakout window,
-`s0.initCam()`, `s0.initScreen()`, local assets served from the same server.
+`s0.initCam()` and `s0.initScreen()`. Your own images and videos come from the
+media folder (see [Images and videos](#images-and-videos)).
 
 ## Install and run
 
@@ -48,14 +49,11 @@ it yourself (below):
 | Mac with an Intel processor | `HYDRACTRL-mac-x64.dmg` |
 | Windows 10 or 11, 64-bit | `HYDRACTRL-win-x64-setup.exe` |
 
-The builds aren't signed with an Apple or Windows certificate yet, so the
-first launch needs one confirmation:
-
-- **macOS**: drag HYDRACTRL into Applications and open it. When macOS says it
-  can't verify the app, open System Settings → Privacy & Security, scroll down
-  and click *Open Anyway*.
-- **Windows**: when SmartScreen warns about an unrecognized app, click
-  *More info*, then *Run anyway*.
+- **macOS**: drag HYDRACTRL into Applications and open it. The app is
+  signed and notarized by Apple, so macOS only asks once whether you meant to
+  open an app from the internet.
+- **Windows**: the installer isn't code-signed yet. When SmartScreen warns
+  about an unrecognized app, click *More info*, then *Run anyway*.
 
 To update, install the new version over the old one; settings and scenes
 stay. The app's version is in its About box and in the interface's About
@@ -125,12 +123,12 @@ file in its media folder.
   import (`Alt/⌥+X` and `Alt/⌥+I`).
 - **The server is local by default.** It listens on `127.0.0.1` on port 3000,
   or the next free port if 3000 is taken by something else; the settings
-  window shows the address. Sketches can still load local assets from
-  `http://localhost:3000/...` as documented in the main README.
-- **A running `bun dev` is reused.** In a repository checkout the app attaches
-  to a server that is already running on port 3000 instead of starting its
-  own, which is handy while developing. That server has no media folder, so
-  the app turns down dropped files until you stop it.
+  window shows the address. Your own images and videos go in the media
+  folder, which the server serves at `/media/`.
+- **A running `bun dev` is reused.** The app attaches to a HYDRACTRL server
+  that is already running on its port (3000 by default) instead of starting
+  its own, which is handy while developing. That server has no media folder,
+  so the app turns down dropped files until you stop it.
 - **Display sleep is blocked** while the output runs.
 - **Linux** runs the interface but has no shared output: neither Syphon nor
   Spout exist there.
@@ -166,12 +164,14 @@ headless Linux machine run it as `xvfb-run -a node scripts/smoke.mjs --software-
 desktop/
   src/main/        Electron main process
     index.js         wiring: single instance, lifecycle, IPC, menu, broadcast
+    ipc.js           the IPC handlers the windows call
     server.js        find or spawn the HYDRACTRL server, restart with backoff
     output.js        Syphon/Spout bridge lifecycle and status
     media.js         copy dropped images and videos into the media folder
     settings.js      defaults, validation, atomic JSON store
     security.js      permissions, navigation and popup policy
-    windows.js       main + settings windows, bounds persistence, crash recovery
+    windows.js       main + settings windows, crash recovery
+    windowState.js   main window bounds, kept on a connected screen
     menu.js          application menu template
     config.js        dev vs packaged paths and server command
     log.js           rotating file logger
@@ -201,9 +201,11 @@ The output files carry no version (`HYDRACTRL-mac-arm64.dmg`,
 `releases/latest/download/<file>`; keep `src/site/downloads.js` in step if you
 change `artifactName` (a test checks it).
 
-Builds are unsigned by default. To sign on macOS, provide a Developer ID
-certificate through `CSC_LINK` / `CSC_KEY_PASSWORD`; the build is notarized
-when Apple credentials are in the environment too: an App Store Connect API
+Release builds of the macOS app are signed and notarized by the Release
+workflow; local builds and the Windows installer are unsigned. To sign on
+macOS, provide a Developer ID certificate through `CSC_LINK` /
+`CSC_KEY_PASSWORD`; the build is notarized when Apple credentials are in the
+environment too: an App Store Connect API
 key (`APPLE_API_KEY`, the path to the `.p8` file, with `APPLE_API_KEY_ID` and
 `APPLE_API_ISSUER`) or an Apple ID (`APPLE_ID`,
 `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`). Without a certificate, sign ad
@@ -225,6 +227,9 @@ installer as artifacts. The `Release` workflow runs it for version tags and
 publishes the result as a GitHub release; see [RELEASING.md](../RELEASING.md).
 
 ## Roadmap
+
+The project's roadmap is on [the website](https://hydractrl.d17e.dev/#roadmap).
+Next for the desktop app itself:
 
 - **NDI output**, next to Syphon and Spout, through a CPU readback of the same
   frames.

@@ -82,18 +82,20 @@ The Release workflow also refuses to publish when one of them was not built.
 
 ## Signing and notarization
 
-Builds are unsigned unless you add signing credentials. Unsigned macOS builds
-are signed ad hoc, which is enough for Apple Silicon to run them; on first
-launch people confirm the app once (macOS: System Settings → Privacy &
-Security → *Open Anyway*; Windows: *More info* → *Run anyway*). The landing
-page and the release notes explain this.
+The macOS app is signed with a Developer ID certificate and notarized by
+Apple; the credentials are in the repository secrets below. The Windows
+installer isn't signed yet, so on first launch Windows users click *More
+info* → *Run anyway* when SmartScreen warns. Builds without credentials, such
+as pull request builds, are unsigned; their macOS apps are signed ad hoc,
+which is enough for Apple Silicon to run them once people click *Open
+Anyway* in System Settings → Privacy & Security.
 
 Signing credentials go in repository secrets (Settings → Secrets and
 variables → Actions). Release builds and *Desktop app* runs with *Sign*
-checked use them; pull request builds never do. Once a platform is signed,
-the release notes leave out its first-launch hint; update the *Opening the
-app for the first time* notes on the landing page (`public/index.html`) as
-well.
+checked use them; pull request builds never do. The release notes add a
+first-launch hint for each platform whose secrets are missing. When that
+changes, update the *Opening the app for the first time* notes on the
+landing page (`public/index.html`) and the desktop README as well.
 
 ### macOS
 

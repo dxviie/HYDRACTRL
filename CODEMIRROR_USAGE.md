@@ -1,90 +1,42 @@
-# CodeMirror Editor for HYDRACTRL
+# The code editor
 
-This document explains how to use the new CodeMirror editor implementation.
+HYDRACTRL's editor is CodeMirror 6, set up in one module,
+`src/utils/CodeMirrorEditor.js`. `src/client/index.js` creates it once with
+`createCodeMirrorEditor(container, code)` for the Sketch and Setup tabs.
 
-## Installation
+## What it adds to CodeMirror
 
-1. Install the required dependencies:
+- **Hydra completions**: `hydraCompletions` suggests every hydra function with
+  its parameters and description, from `src/data/hydra-functions.json` (the
+  same data as the built-in docs panel), plus a few p5 names. Completions open
+  as you type, or with `Ctrl/⌘ + Space`.
+- **Running**: `Ctrl/⌘ + Enter` never inserts a newline in the editor. The
+  global key handler in `src/client/index.js` runs the code, and
+  `editor.flash()` lights it up for a moment (`src/utils/runFlash.js`).
+- **Themes**: each interface theme has its own editor colours. `themeMapping`
+  maps the theme class on `<body>` to a CodeMirror theme (One Dark, Solarized
+  Dark, Monokai, or the Light and Pop 90s colours in
+  `src/utils/editorThemes.js`), and the editor follows when the class
+  changes. `hydraTheme` is the base styling they share (Fira Code, sizes).
+- **File drops**: in the desktop app, images and videos dropped on the editor
+  go to the media folder, and `editor.insertLines()` writes the line that
+  loads them where it can't split a statement (`src/utils/editorInsert.js`).
 
-```bash
-bun install
-```
+## The editor object
 
-## Configuration
+| Method | Does |
+| --- | --- |
+| `getCode()` / `setCode(code)` | Read or replace the whole document |
+| `focus()` | Focus the editor |
+| `flash()` | The run flash (skipped when the system asks for reduced motion) |
+| `handleFileDrops(handler)` | Take dropped files instead of pasting them; returns a function that stops it |
+| `insertLines(pos, lines)` | Insert whole lines near `pos` |
+| `updateTheme()` | Re-read the theme class on `<body>` |
+| `element` | The editor's DOM element |
 
-Three editor implementations are available:
+## Changing it
 
-1. **Original Syntax Editor** - The original custom implementation
-2. **Full CodeMirror Editor** - A feature-rich CodeMirror 6 implementation with syntax highlighting
-3. **Basic CodeMirror Editor** - A minimal CodeMirror 6 implementation without syntax highlighting
-
-To select which editor to use, open `src/client/index.js` and uncomment the desired import:
-
-```javascript
-// Import editor implementations - uncomment one to use it
-// import { createSyntaxEditor } from '../utils/SyntaxHighlightEditor.js'; // Original editor
-import { createCodeMirrorEditor } from '../utils/CodeMirrorEditor.js'; // Full CodeMirror editor
-// import { createBasicCodeMirrorEditor } from '../utils/BasicCodeMirrorEditor.js'; // Basic CodeMirror editor
-```
-
-Also, update the `initEditor` function to use the appropriate editor creation function:
-
-```javascript
-// Create the hydra editor
-const editor = createCodeMirrorEditor(editorContent, DEFAULT_CODE);
-// Alternative options:
-// const editor = createSyntaxEditor(editorContent, DEFAULT_CODE); // Original syntax editor
-// const editor = createBasicCodeMirrorEditor(editorContent, DEFAULT_CODE); // Basic CM editor
-```
-
-## Customization
-
-Both CodeMirror implementations can be customized by editing their respective files:
-
-- Full version: `src/utils/CodeMirrorEditor.js`
-- Basic version: `src/utils/BasicCodeMirrorEditor.js`
-
-### Theme
-
-You can customize the editor theme by modifying the `hydraTheme` variable in each file. For example:
-
-```javascript
-const hydraTheme = EditorView.theme({
-  "&": {
-    backgroundColor: "rgba(40, 42, 54, 0.7)",
-    height: "100%",
-    fontSize: "14px",
-  },
-  // Add more styling here
-});
-```
-
-### Extensions
-
-In the full version, you can add more CodeMirror extensions to enhance functionality. For example:
-
-```javascript
-extensions: [
-  lineNumbers(),
-  highlightActiveLineGutter(),
-  keymap.of([
-    indentWithTab,
-    ...defaultKeymap
-  ]),
-  // Add more extensions here
-]
-```
-
-## Troubleshooting
-
-If you encounter issues:
-
-1. Make sure all dependencies are installed: `bun install`
-2. Check browser console for errors
-3. Try the basic implementation if the full one has issues
-4. Revert to the original editor if needed
-
-## Additional Resources
-
-- [CodeMirror 6 Documentation](https://codemirror.net/docs/)
-- [CodeMirror 6 Examples](https://codemirror.net/examples/)
+Add CodeMirror extensions to the `extensions` list in
+`createCodeMirrorEditor`. Keep the `ctrlEnterKeymap` first, so `Ctrl/⌘ +
+Enter` stays a run and never becomes a newline. See the
+[CodeMirror 6 documentation](https://codemirror.net/docs/) for the API.

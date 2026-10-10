@@ -8,7 +8,7 @@
 
 A performance wrapper around [hydra](https://hydra.ojack.xyz/) for live visuals — for the moments where you don't necessarily want to be coding.
 
-**[Open it in your browser](https://hydractrl.d17e.dev/app)** · **[Download the desktop app](https://hydractrl.d17e.dev/#download)** · [Website](https://hydractrl.d17e.dev/) · [Changelog](./CHANGELOG.md) · [Plugin docs](./docs/PLUGINS.md)
+**[Open it in your browser](https://hydractrl.d17e.dev/app)** · **[Download the desktop app](https://hydractrl.d17e.dev/#download)** · [Website](https://hydractrl.d17e.dev/) · [Roadmap](https://hydractrl.d17e.dev/#roadmap) · [Changelog](./CHANGELOG.md) · [Plugin docs](./docs/PLUGINS.md)
 
 ## Browser or desktop
 
@@ -67,9 +67,12 @@ for how it works and how to build it.
 # Install dependencies
 bun install
 
-# Start development server with hot reload
+# Build the bundles and start the server (it restarts when server code changes)
 bun dev
 ```
+
+After changing the interface or the landing page (`src/client`, `src/site`),
+run `bun run build` and reload the page.
 
 Then open http://localhost:3000 in your browser. A local server opens straight
 into the interface (at `/` and `/app`); the landing page of the hosted site is
@@ -88,9 +91,10 @@ with `bun run build:production`:
 | `/output` | `public/output.html` | The chrome-less render head |
 
 The landing page plays a few hydra sketches in the background
-(`src/site/sketches.js`), at reduced resolution and frame rate, paused for
-people who prefer reduced motion. Links shared before the landing page
-existed (`/#sketch=...`) are forwarded to `/app`.
+(`src/sketches.js`, which are also the interface's starter scenes), at reduced
+resolution and frame rate, paused for people who prefer reduced motion. Links
+shared before the landing page existed (`/#sketch=...`) are forwarded to
+`/app`.
 
 ## Building a Standalone Executable
 
@@ -191,8 +195,9 @@ New features are built as plugins on a small plugin system with an event bus,
 quota-safe storage and error isolation — a broken plugin can't take down a live
 set. Much of the app itself runs as built-in plugins (see
 `src/client/plugins/`): URL sketch sharing, the audio watchdog, the info
-panel, auto-run, slot advance on save, the breakout view, output sync, the
-MIDI device UI and the mobile UI.
+panel, the feedback panel, auto-run, slot advance on save, the breakout view,
+output sync, the desktop app's output, mirror and media drop, the MIDI device
+UI and the mobile UI.
 
 Want to implement your own? **[Read the plugin documentation](./docs/PLUGINS.md)** —
 it covers the plugin shape, the context object you get, and the events you can
@@ -207,8 +212,9 @@ bun test       # unit tests (enforced in CI)
 bun run build  # build the interface and landing page bundles
 ```
 
-Contributions are welcome — bug reports and ideas live in
-[GitHub issues](https://github.com/dxviie/HYDRACTRL/issues).
+Contributions are welcome. Bug reports and feature requests go in
+[GitHub issues](https://github.com/dxviie/HYDRACTRL/issues); what's planned is
+on the [roadmap](https://hydractrl.d17e.dev/#roadmap).
 
 ## Versions and releases
 

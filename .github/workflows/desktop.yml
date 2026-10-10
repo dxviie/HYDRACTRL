@@ -3,9 +3,11 @@ name: Desktop app
 # Builds the packaged desktop app for macOS (Apple Silicon and Intel) and
 # Windows and checks that each build starts, and smoke-tests a Linux directory
 # build. Runs for pull requests that touch the app, on demand, and from the
-# Release workflow, which asks for signed builds. Builds are unsigned (ad-hoc
-# signed on macOS) unless signing credentials are configured as repository
-# secrets; see RELEASING.md.
+# Release workflow, which asks for signed builds. A build is signed (and on
+# macOS notarized) only when it asks to be, through the Release workflow or
+# the Sign option of a manual run, and the credentials are in the repository
+# secrets; otherwise it is unsigned (ad-hoc signed on macOS). Pull request
+# builds never sign. See RELEASING.md.
 on:
   workflow_dispatch:
     inputs:
