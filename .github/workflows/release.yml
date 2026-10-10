@@ -1,21 +1,29 @@
 name: Release
 
-# Publishes a GitHub release when a version tag (v1.2.3) is pushed. It checks
-# the tag against package.json, desktop/package.json and CHANGELOG.md, builds
-# the desktop app for every platform, and attaches the installers, their
-# checksums and the changelog notes. The landing page's download buttons
-# point at releases/latest/download/<file>, so they pick the new release up
-# the moment it is published. See RELEASING.md.
+# Publishes a GitHub release when a version tag (v1.2.3) is pushed, or when
+# it is run from the Actions tab on main with a version, which needs no git
+# and works from a phone: that run tags the commit it built when it
+# publishes. It checks the tag against package.json, desktop/package.json and
+# CHANGELOG.md, builds the desktop app for every platform, and attaches the
+# installers, their checksums and the changelog notes. The landing page's
+# download buttons point at releases/latest/download/<file>, so they pick the
+# new release up the moment it is published. See RELEASING.md.
 on:
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, as in package.json and CHANGELOG.md (1.2.3)
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.version || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -24,6 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
     steps:
       - uses: actions/checkout@v6
 
@@ -38,9 +47,29 @@ jobs:
       # fail the step
       - name: Check the tag against both package.json files and CHANGELOG.md
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          version=$(bun scripts/release.js check "$GITHUB_REF_NAME")
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+              echo "::error::Run the release from main, not $GITHUB_REF_NAME"
+              exit 1
+            fi
+            tag="v${INPUT_VERSION#v}"
+            # The tag can only exist already on this very commit (a re-run)
+            if git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+              git fetch --quiet origin "refs/tags/$tag:refs/tags/$tag"
+              if [ "$(git rev-parse "$tag^{commit}")" != "$GITHUB_SHA" ]; then
+                echo "::error::$tag already exists on another commit"
+                exit 1
+              fi
+            fi
+          else
+            tag="$GITHUB_REF_NAME"
+          fi
+          version=$(bun scripts/release.js check "$tag")
           echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Lint
         run: bun run lint
@@ -97,25 +126,30 @@ jobs:
           bun scripts/release.js notes "$VERSION" $flags > notes.md
           cat notes.md
 
+      # A pushed tag already exists. A run from the Actions tab creates it
+      # here, on the commit it built ($GITHUB_SHA); a tag made with the
+      # workflow's token doesn't start this workflow again.
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.check.outputs.version }}
+          TAG: ${{ needs.check.outputs.tag }}
         run: |
           prerelease=""
           case "$VERSION" in *-*) prerelease="--prerelease" ;; esac
-          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+          if gh release view "$TAG" > /dev/null 2>&1; then
             # A release made on GitHub for this tag, or a draft that a failed
             # upload left behind: attach the files and the notes, and publish
-            gh release upload "$GITHUB_REF_NAME" dist/* --clobber
-            gh release edit "$GITHUB_REF_NAME" \
+            gh release upload "$TAG" dist/* --clobber
+            gh release edit "$TAG" \
+              --target "$GITHUB_SHA" \
               --title "HYDRACTRL $VERSION" \
               --notes-file notes.md \
               --draft=false \
               $prerelease
           else
-            gh release create "$GITHUB_REF_NAME" dist/* \
-              --verify-tag \
+            gh release create "$TAG" dist/* \
+              --target "$GITHUB_SHA" \
               --title "HYDRACTRL $VERSION" \
               --notes-file notes.md \
               $prerelease

@@ -36,9 +36,13 @@ desktop downloads contain.
    git push origin v1.3.0
    ```
 
-5. The **Release** workflow takes it from there, in about 15 minutes. It
-   checks the tag against both versions and the changelog, runs the linter and
-   the tests, builds the desktop app on macOS (Apple Silicon and Intel) and
+   Or, without git (from a phone, say): Actions → Release → *Run workflow*
+   on `main`, with `1.3.0` as the version. That run tags the commit it built
+   when it publishes, so a run that fails leaves no tag behind.
+
+5. The **Release** workflow takes it from there, in about 15 minutes (longer
+   while Apple notarizes). It checks the tag against both versions and the
+   changelog, runs the linter and the tests, builds the desktop app on macOS (Apple Silicon and Intel) and
    Windows, checks that every build starts, and publishes a GitHub release
    with the installers, `SHA256SUMS.txt` and the changelog notes plus a
    downloads table.
@@ -54,7 +58,8 @@ the release is published. No change to the site is needed.
 
 - **The workflow fails before publishing**: fix the problem on `main`, then
   move the tag: `git tag -d v1.3.0 && git push --delete origin v1.3.0`, tag
-  the fixed commit and push again.
+  the fixed commit and push again. A run from the Actions tab made no tag
+  yet: fix the problem and run it again.
 - **A published release is broken**: publish a patch release rather than
   swapping files in an existing one; people may already have downloaded it.
 - **The tag is wrong or a check fails**: the workflow lists every problem it
