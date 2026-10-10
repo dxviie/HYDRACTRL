@@ -8,37 +8,7 @@ version and the desktop app share one version number; see
 
 ## [Unreleased]
 
-### Added
-
-- When you run a sketch with Ctrl/⌘ + Enter or the Run button, its code
-  flashes for a moment in the interface theme's own colour, the way hydra's
-  editor does. Auto-run leaves it alone, and so does a system set to reduce
-  motion.
-
-### Changed
-
-- **The desktop app renders each sketch once.** While the Syphon or Spout
-  output runs, the interface shows the output's own frames instead of
-  rendering the sketch a second time, so what you see is exactly what
-  Resolume, MadMapper or OBS receive, letterboxed to the output's shape,
-  and the GPU renders every frame once instead of twice. The interface
-  draws on its own again whenever the output is stopped or restarting.
-  - Sketches run on the output itself, and their errors still show in the
-    editor. A sketch with an error never reaches the output: it keeps
-    playing the last sketch that worked.
-  - XY pad moves reach the output every frame instead of every other one.
-  - Slot thumbnails are taken from the output's frames.
-- The macOS builds are a DMG alone. A ZIP of the same app was built next to
-  each one, which nothing offered or used, and doubled the size of every
-  macOS build.
-- The landing page is set like a hydra session now, with the sketch playing
-  behind it shown as code you can edit and run, and each section below as an
-  editor tab.
-- The icons are a white hydra on black now, like the one in the landing
-  page's top bar: the browser tab, the installed web app, the home screen
-  and the desktop app.
-
-## [1.2.0] - 2026-09-27
+## [1.2.0] - 2026-10-10
 
 HYDRACTRL Desktop, the standalone app with Syphon and Spout output, and a new
 home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
@@ -50,6 +20,12 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
   (macOS) or Spout (Windows) source for Resolume, MadMapper, VDMX,
   TouchDesigner, OBS and anything else that speaks either
   ([#6](https://github.com/dxviie/HYDRACTRL/issues/6)).
+  - Each sketch renders once, on the output, and the interface shows the
+    output's own frames: what you see is exactly what Resolume, MadMapper or
+    OBS receive, letterboxed to the output's shape. While the output is
+    stopped, the interface renders on its own.
+  - A sketch with an error never reaches the output. The error shows in the
+    editor and the output keeps playing the last sketch that worked.
   - An Output menu and settings window: resolution presets up to 4K or a
     custom size, 24 to 120 fps, sender name, preview window, alpha channel,
     start at launch and optional network access.
@@ -59,14 +35,21 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
     copies them into its media folder and adds the line that loads each
     one, such as `s1.initVideo("/media/clip.mp4")`. Choose the folder in
     the settings window; files already in it stay where they are.
+  - The macOS app is signed and notarized by Apple, so it opens like any
+    other app.
 - A chrome-less `/output` page that mirrors the interface live over a
   WebSocket, for OBS browser sources, TouchDesigner's Web Render TOP or a
   second browser window.
 - Desktop builds for every release, attached to the GitHub release and
   linked from the landing page.
-- A landing page at hydractrl.d17e.dev: the browser version, the desktop
-  downloads and a hydra sketch playing in the background that you can open
-  in the app.
+- A landing page at hydractrl.d17e.dev, set like a hydra session: the sketch
+  playing behind it is code you can edit and run, and opens in the app with
+  one click. It has the desktop downloads, a roadmap and a sign-up for an
+  email when a new version is out.
+- When you run a sketch with Ctrl/⌘ + Enter or the Run button, its code
+  flashes for a moment in the interface theme's own colour, the way hydra's
+  editor does. Auto-run leaves it alone, and so does a system set to reduce
+  motion.
 - The version number in the About panel, the server's startup banner and
   `/api/capabilities`.
 - The server honours the `PORT` and `HOST` environment variables.
@@ -91,8 +74,6 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
   with the old address still open their sketch.
 - Sketch links copied in the desktop app or on a local server point at the
   browser version, so anyone can open them.
-- The GitHub Page (dxviie.github.io/HYDRACTRL) redirects to
-  hydractrl.d17e.dev.
 - New starter scenes: Tide, Chained, Pulse and Mint, the sketches behind the
   landing page, replace the two old ones when you start with no saved scenes.
   Pulse follows the XY pad. Scenes you already have are left alone.
@@ -100,9 +81,9 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
   keeps its jaws shut and stays in control, one howls with its eyes closed
   and one rages. The chains wrap round the body and bite into it. The
   starter scenes that load the logo show the new one.
-- New icons, a deep violet hydra on near-black: the favicon, the home screen
-  icons, the logo in the landing page header and the desktop app, whose icon
-  now has rounded corners like the other apps in the Dock.
+- New icons, a white hydra on black: the favicon, the home screen icons, the
+  logo in the landing page header and the desktop app, whose icon now has
+  rounded corners like the other apps in the Dock.
 - The code editor uses [Fira Code](https://github.com/tonsky/FiraCode), with
   its ligatures, and the rest of the interface IBM Plex Mono. Both are
   bundled, so they work offline and in the desktop app.
@@ -121,6 +102,11 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
   replaces the Slot Size slider in the system panel; the size you set there
   carries over.
 
+### Removed
+
+- The old project page at dxviie.github.io/HYDRACTRL. The project lives at
+  [hydractrl.d17e.dev](https://hydractrl.d17e.dev/) now.
+
 ### Fixed
 
 - Running a sketch that plays a video again no longer leaves the previous
@@ -130,6 +116,8 @@ home for the project at [hydractrl.d17e.dev](https://hydractrl.d17e.dev/).
 - On touch screens, the first tap resumes suspended audio for `a.fft`.
 - The docs panel fits the window, so its last functions and its resize
   corner stay within reach on shorter screens.
+- `Alt/⌥ + X` and `Alt/⌥ + I` export and import banks on a Mac too, where
+  Option turned them into other characters.
 
 ## [1.1.0] - 2026-07-06
 
