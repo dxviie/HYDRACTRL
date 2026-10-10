@@ -143,6 +143,11 @@ describe("releaseNotes", () => {
       windowsSigned: true,
     });
     expect(signed).not.toContain("not signed yet");
+    expect(signed).not.toContain("not code-signed yet");
+    // A notarized macOS app needs no hint; the Windows installer still does
+    const macOnly = releaseNotes({ changelog: CHANGELOG, version: "1.1.0", macSigned: true });
+    expect(macOnly).not.toContain("Open Anyway");
+    expect(macOnly).toContain("The Windows installer is not code-signed yet: choose *More info*");
     const webOnly = releaseNotes({ changelog: CHANGELOG, version: "1.0.0", downloads: false });
     expect(webOnly).toBe("The first public version.\n");
     expect(() => releaseNotes({ changelog: CHANGELOG, version: "2.0.0" })).toThrow();

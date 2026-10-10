@@ -182,16 +182,19 @@ export function releaseNotes({
     "",
     `The browser version needs no download: [hydractrl.d17e.dev/app](${HOSTED_APP_URL}).`,
   ];
-  const hints = [];
-  if (!macSigned) {
-    hints.push(
-      "on **macOS**, open the app once, then click *Open Anyway* in System Settings → Privacy & Security",
+  const macHint =
+    "open the app once, then click *Open Anyway* in System Settings → Privacy & Security";
+  const windowsHint = "choose *More info* → *Run anyway* when SmartScreen warns";
+  if (!macSigned && !windowsSigned) {
+    lines.push(
+      "",
+      `These builds are not signed yet: on **macOS**, ${macHint}; on **Windows**, ${windowsHint}.`,
     );
+  } else if (!macSigned) {
+    lines.push("", `The macOS app is not signed yet: ${macHint}.`);
+  } else if (!windowsSigned) {
+    lines.push("", `The Windows installer is not code-signed yet: ${windowsHint}.`);
   }
-  if (!windowsSigned) {
-    hints.push("on **Windows**, choose *More info* → *Run anyway* when SmartScreen warns");
-  }
-  if (hints.length > 0) lines.push("", `These builds are not signed yet: ${hints.join("; ")}.`);
   lines.push("", "SHA-256 checksums for every file are in `SHA256SUMS.txt`.");
   return `${lines.join("\n")}\n`;
 }
