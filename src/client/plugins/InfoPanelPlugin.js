@@ -16,7 +16,7 @@ const STARTUP_KEY = "hydractrl-show-info-on-startup";
 
 /** Keyboard shortcut reference shown in the panel. Exported for reuse/tests. */
 export const KEYBOARD_SHORTCUTS = [
-  { keys: "Ctrl/⌘ + `", action: "Toggle UI visibility" },
+  { keys: "Ctrl/⌘ + `", action: "Hide UI, then code overlay on/off, then show UI" },
   { keys: "Esc", action: "Bring back hidden UI" },
   { keys: "Alt/⌥ + U", action: "Copy sketch as shareable URL" },
   { keys: "Ctrl/⌘ + Enter", action: "Run code" },

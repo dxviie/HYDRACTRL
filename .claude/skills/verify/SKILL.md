@@ -74,6 +74,12 @@ const browser = await chromium.launch({
 - Slot advance: enable `moveToNextSlotCheckbox`, call
   `slotsPanel.saveToActiveSlot()` + `window.moveToNextSlot(info)`, active
   slot moves after ~500ms.
+- Code overlay: `Control+Backquote` hides the UI, a second press shows
+  `#hydra-canvas .hydractrl-code-overlay` (and on any open `/output` page:
+  `window.hydractrlOutput.codeOverlay()`), a third brings the UI back. The
+  system panel's CODE OVERLAY section (expand with `.stats-toggle`) has
+  `#code-overlay-visible`, `.code-overlay-blend` and `.code-overlay-opacity`,
+  kept in `hydractrl-code-overlay`.
 - Touch: panels drag by their title bars, the editor, doc and slots panels
   resize by the grip in their corner, and with the UI hidden (`body.ui-hidden`) a tap
   anywhere brings it back without clicking what reappears under the finger.

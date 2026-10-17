@@ -103,6 +103,21 @@ describe("buildMenuTemplate", () => {
     ]);
   });
 
+  test("switches the code overlay on the output", () => {
+    const { actions, calls } = noopActions();
+    const template = buildMenuTemplate({
+      platform: "darwin",
+      appName: "HYDRACTRL",
+      state: makeState({ settings: { codeOverlay: { visible: true } } }),
+      actions,
+    });
+    const item = find(find(template, "Output").submenu, "Show Code on Output");
+    expect(item.type).toBe("checkbox");
+    expect(item.checked).toBe(true);
+    item.click({ checked: false });
+    expect(calls).toEqual([["setCodeOverlay", false]]);
+  });
+
   test("custom sizes and frame rates show as checked custom entries", () => {
     const template = buildMenuTemplate({
       platform: "win32",

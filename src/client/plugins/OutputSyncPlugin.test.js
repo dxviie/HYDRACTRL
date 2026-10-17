@@ -183,6 +183,34 @@ describe("createOutputSyncPlugin", () => {
     });
   });
 
+  test("sends the code overlay's settings on connect and whenever they change", async () => {
+    const fake = createFakeSocket();
+    const { ctx } = createCtx();
+    plugin = createOutputSyncPlugin({
+      url: "ws://test/ws/output",
+      detect: async () => true,
+      socketFactory: fake.factory,
+    }).setup(ctx);
+    await flush();
+
+    ctx.events.emit("overlay:changed", { visible: true, blendMode: "difference", opacity: 0.8 });
+    fake.open();
+    expect(fake.sent).toContainEqual({
+      type: "overlay",
+      visible: true,
+      blendMode: "difference",
+      opacity: 0.8,
+    });
+
+    ctx.events.emit("overlay:changed", { visible: false, blendMode: "difference", opacity: 0.8 });
+    expect(fake.sent.at(-1)).toEqual({
+      type: "overlay",
+      visible: false,
+      blendMode: "difference",
+      opacity: 0.8,
+    });
+  });
+
   test("samples the XY pad every frame while the output's frames are shown", async () => {
     const intervals = spyOn(globalThis, "setInterval");
     try {

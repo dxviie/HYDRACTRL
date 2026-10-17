@@ -117,6 +117,17 @@ describe("parseIncomingMessage", () => {
     expect(parseIncomingMessage({ type: "result", id: "r1", success: "yes" })).toBe(null);
     expect(parseIncomingMessage({ type: "result", success: true })).toBe(null);
   });
+
+  test("parses the code overlay's settings", () => {
+    expect(
+      parseIncomingMessage({ type: "overlay", visible: true, blendMode: "difference", opacity: 2 }),
+    ).toEqual({ type: "overlay", visible: true, blendMode: "difference", opacity: 1 });
+    expect(
+      parseIncomingMessage({ type: "overlay", visible: false, blendMode: "url(x)", opacity: "1" }),
+    ).toEqual({ type: "overlay", visible: false });
+    expect(parseIncomingMessage({ type: "overlay", visible: "yes" })).toBe(null);
+    expect(parseIncomingMessage({ type: "overlay" })).toBe(null);
+  });
 });
 
 describe("createOutputHub", () => {
@@ -157,6 +168,22 @@ describe("createOutputHub", () => {
 
     expect(late[0]).toEqual(SKETCH);
     expect(late[1]).toEqual({ type: "state", nanoX: 0.2, nanoY: 0.9 });
+  });
+
+  test("fans the code overlay out to outputs and replays it to a late one", () => {
+    const hub = createOutputHub();
+    join(hub, "c1", "controller");
+    const output = join(hub, "o1", "output");
+    const overlay = { type: "overlay", visible: true, blendMode: "screen", opacity: 0.5 } as const;
+
+    expect(hub.message("c1", overlay)).toBe(true);
+    expect(output.at(-1)).toEqual(overlay);
+    expect(hub.message("o1", { type: "overlay", visible: false })).toBe(false);
+
+    hub.message("c1", SKETCH);
+    const late = join(hub, "o-late", "output");
+    expect(late).toEqual([SKETCH, overlay]);
+    expect(hub.getLastOverlay()).toEqual(overlay);
   });
 
   test("tells controllers how many outputs are connected", () => {

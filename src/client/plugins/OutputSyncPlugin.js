@@ -3,7 +3,8 @@
  *
  * Every successful run on the main instance (the core emits `sketch:run`) is
  * published to the server's output socket, together with the XY-pad values
- * (`nanoX`/`nanoY`) whenever they change. Render heads load `/output` and
+ * (`nanoX`/`nanoY`) whenever they change and the code overlay's settings
+ * (`overlay:changed`, from the code overlay plugin). Render heads load `/output` and
  * mirror whatever is played here: the companion output app (Syphon/Spout/NDI),
  * an OBS browser source, a TouchDesigner Web Render TOP, another browser...
  *
@@ -55,6 +56,7 @@ export function createOutputSyncPlugin(options = {}) {
       let pollTimer = null;
       let outputCount = 0;
       let lastSentState = null;
+      let overlay = null;
       let pollMs = STATE_POLL_MS;
       let disposed = false;
 
@@ -86,6 +88,11 @@ export function createOutputSyncPlugin(options = {}) {
         }
       }
 
+      function pushOverlay() {
+        if (!socket || !overlay) return false;
+        return socket.send({ type: "overlay", ...overlay });
+      }
+
       function handleMessage(message) {
         if (message.type === "outputs") {
           const count = Number(message.count) || 0;
@@ -107,6 +114,13 @@ export function createOutputSyncPlugin(options = {}) {
         pushSketch(sketch);
       });
 
+      const offOverlay = ctx.events.on("overlay:changed", (settings) => {
+        if (!settings || typeof settings.visible !== "boolean") return;
+        const { visible, blendMode, opacity } = settings;
+        overlay = { visible, blendMode, opacity };
+        pushOverlay();
+      });
+
       function schedulePoll() {
         if (pollTimer !== null) clearInterval(pollTimer);
         pollTimer = setInterval(() => pushState(false), pollMs);
@@ -125,6 +139,7 @@ export function createOutputSyncPlugin(options = {}) {
             link.send({ type: "hello", role: "controller" });
             pushSketch(currentSketch());
             pushState(true);
+            pushOverlay();
           },
           onMessage: handleMessage,
           onClose: () => {
@@ -152,6 +167,7 @@ export function createOutputSyncPlugin(options = {}) {
         dispose() {
           disposed = true;
           offRun();
+          offOverlay();
           offMirror();
           if (pollTimer !== null) clearInterval(pollTimer);
           pollTimer = null;

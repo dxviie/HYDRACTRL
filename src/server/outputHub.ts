@@ -6,13 +6,15 @@
  * The hub is transport-agnostic. The server registers each socket with a send
  * function; the hub owns the roles, validates messages, and remembers the last
  * sketch and XY-pad state so an output that connects late is brought up to
- * date immediately. Apart from calling the registered send functions it has
+ * date immediately (the code overlay's settings too). Apart from calling the
+ * registered send functions it has
  * no side effects, so it is unit tested without a network.
  *
  * Protocol (JSON text frames):
  *   client -> hub   { type: "hello", role: "controller" | "output", primary? }
  *   controller -> hub { type: "sketch", setup, main, runId? } fan-out to outputs
  *   controller -> hub { type: "state", nanoX?, nanoY? }      fan-out to outputs
+ *   controller -> hub { type: "overlay", visible, blendMode?, opacity? } fan-out to outputs
  *   controller -> hub { type: "run", id, setup, main }       to primary outputs only
  *   output -> hub   { type: "result", id, success, message? } to the controller that asked
  *   output -> hub   { type: "error", message }               fan-out to controllers
@@ -67,6 +69,14 @@ export interface StateMessage {
   nanoY?: number;
 }
 
+/** The code overlay's settings (see src/client/core/codeOverlay.js). */
+export interface OverlayMessage {
+  type: "overlay";
+  visible: boolean;
+  blendMode?: string;
+  opacity?: number;
+}
+
 export interface ErrorMessage {
   type: "error";
   message: string;
@@ -76,6 +86,7 @@ export type IncomingMessage =
   | HelloMessage
   | SketchMessage
   | StateMessage
+  | OverlayMessage
   | RunMessage
   | ResultMessage
   | ErrorMessage;
@@ -101,6 +112,7 @@ export interface OutputErrorMessage {
 export type OutgoingMessage =
   | SketchMessage
   | StateMessage
+  | OverlayMessage
   | RunMessage
   | ResultMessage
   | NoOutputResultMessage
@@ -130,6 +142,9 @@ export const NO_OUTPUT_MESSAGE = "The output isn't connected";
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
+
+/** A CSS blend mode's shape; the output page only applies the ones it knows. */
+const BLEND_MODE_PATTERN = /^[a-z-]{1,32}$/;
 
 function isRunId(value: unknown): value is string {
   return typeof value === "string" && value.length > 0 && value.length <= MAX_RUN_ID_LENGTH;
@@ -196,6 +211,17 @@ export function parseIncomingMessage(raw: unknown): IncomingMessage | null {
       if (state.nanoX === undefined && state.nanoY === undefined) return null;
       return state;
     }
+    case "overlay": {
+      if (typeof message.visible !== "boolean") return null;
+      const overlay: OverlayMessage = { type: "overlay", visible: message.visible };
+      if (typeof message.blendMode === "string" && BLEND_MODE_PATTERN.test(message.blendMode)) {
+        overlay.blendMode = message.blendMode;
+      }
+      if (isFiniteNumber(message.opacity)) {
+        overlay.opacity = Math.min(1, Math.max(0, message.opacity));
+      }
+      return overlay;
+    }
     case "error":
       if (typeof message.message !== "string") return null;
       return { type: "error", message: message.message.slice(0, MAX_ERROR_LENGTH) };
@@ -213,6 +239,7 @@ export function createOutputHub({ log = () => {} }: OutputHubOptions = {}) {
   const clients = new Map<string, HubClient>();
   let lastSketch: SketchMessage | null = null;
   let lastState: StateMessage | null = null;
+  let lastOverlay: OverlayMessage | null = null;
   /** Runs sent to the primary outputs: run id -> id of the controller that asked. */
   const pendingRuns = new Map<string, string>();
 
@@ -322,6 +349,7 @@ export function createOutputHub({ log = () => {} }: OutputHubOptions = {}) {
             if (client.primary) client.hasSketch = true;
           }
           if (lastState) deliver(client, lastState);
+          if (lastOverlay) deliver(client, lastOverlay);
           announceOutputs();
         } else {
           deliver(client, outputsStatus());
@@ -365,6 +393,11 @@ export function createOutputHub({ log = () => {} }: OutputHubOptions = {}) {
         lastState = { ...(lastState ?? { type: "state" }), ...parsed };
         broadcast("output", parsed);
         return true;
+      case "overlay":
+        if (client.role !== "controller") return false;
+        lastOverlay = parsed;
+        broadcast("output", parsed);
+        return true;
       case "error":
         if (client.role !== "output") return false;
         broadcast("controller", { type: "output-error", message: parsed.message, outputId: id });
@@ -384,6 +417,7 @@ export function createOutputHub({ log = () => {} }: OutputHubOptions = {}) {
     pendingRunCount: () => pendingRuns.size,
     getLastSketch: () => lastSketch,
     getLastState: () => lastState,
+    getLastOverlay: () => lastOverlay,
   };
 }
 

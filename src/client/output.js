@@ -2,10 +2,12 @@
  * HYDRACTRL output page (/output): a chrome-less render head.
  *
  * Runs one full-window hydra instance and mirrors whatever the HYDRACTRL UI
- * plays, received over the server's output socket: the sketch on every run
- * and the XY-pad values. Meant to be captured by the companion output app
- * (Syphon/Spout/NDI), an OBS browser source, a TouchDesigner Web Render TOP,
- * or simply opened on a second screen.
+ * plays, received over the server's output socket: the sketch on every run,
+ * the XY-pad values, and the code overlay, which draws the code of the
+ * sketch playing here over the visuals when the interface turns it on.
+ * Meant to be captured by the companion output app (Syphon/Spout/NDI), an
+ * OBS browser source, a TouchDesigner Web Render TOP, or simply opened on a
+ * second screen.
  *
  * A `#sketch=` fragment (the Alt/Opt+U share-link format) runs immediately on
  * load, so the page also works standalone or on a static host.
@@ -16,6 +18,7 @@
  * last sketch that worked on screen when one fails (see core/primaryRunner.js).
  */
 import { createReconnectingSocket } from "./core/ReconnectingSocket.js";
+import { createCodeOverlayView, normalizeCodeOverlay } from "./core/codeOverlay.js";
 import { buildOutputSocketUrl, detectOutputServer } from "./core/outputProtocol.js";
 import { createPrimaryRunner } from "./core/primaryRunner.js";
 import { executeSketch } from "./core/sketchRunner.js";
@@ -93,9 +96,20 @@ async function init() {
     const primary = new URLSearchParams(window.location.search).has("primary");
     const primaryRunner = primary ? createPrimaryRunner({ hydra }) : null;
 
-    function showRunning() {
+    // Part of the page, so the frames the desktop app shares carry it
+    const codeOverlay = createCodeOverlayView(document.getElementById("hydra-canvas"));
+    let overlaySettings = normalizeCodeOverlay(null);
+
+    function applyOverlay(message) {
+      overlaySettings = normalizeCodeOverlay(message, overlaySettings);
+      codeOverlay.setStyle(overlaySettings);
+      codeOverlay.setShown(overlaySettings.visible);
+    }
+
+    function showRunning(sketch) {
       hasRunSketch = true;
       clearStatus();
+      codeOverlay.setCode(sketch.main);
       console.log("[output] sketch running");
     }
 
@@ -106,7 +120,7 @@ async function init() {
         : await executeSketch(hydra, sketch);
       if (result.skipped) return result;
       if (result.success) {
-        showRunning();
+        showRunning(sketch);
       } else {
         console.error("[output] sketch failed:", result.message);
         if (socket) socket.send({ type: "error", message: result.message });
@@ -116,13 +130,14 @@ async function init() {
 
     /** A run for this output alone (primary only): the interface waits for its result. */
     async function runForInterface(message) {
+      const sketch = { setup: message.setup, main: message.main };
       let result;
       try {
-        result = await primaryRunner.run(message.id, { setup: message.setup, main: message.main });
+        result = await primaryRunner.run(message.id, sketch);
       } catch (error) {
         result = { success: false, message: error?.message || String(error) };
       }
-      if (result.success) showRunning();
+      if (result.success) showRunning(sketch);
       else console.error("[output] sketch failed:", result.message);
       const reply = { type: "result", id: message.id, success: result.success };
       if (!result.success) reply.message = result.message;
@@ -150,6 +165,8 @@ async function init() {
         } else if (message.type === "state") {
           if (typeof message.nanoX === "number") window.nanoX = message.nanoX;
           if (typeof message.nanoY === "number") window.nanoY = message.nanoY;
+        } else if (message.type === "overlay") {
+          applyOverlay(message);
         }
       },
       onClose: () => {
@@ -164,6 +181,7 @@ async function init() {
       run,
       primary,
       lastSketch: () => primaryRunner?.getLastGood() ?? null,
+      codeOverlay: () => ({ ...overlaySettings, shown: codeOverlay.isShown() }),
     };
 
     if (await detectOutputServer()) {

@@ -8,6 +8,21 @@ version and the desktop app share one version number; see
 
 ## [Unreleased]
 
+### Added
+
+- **Code overlay**: show the running sketch's code over the visuals, the way
+  hydra's own editor does, with a blend mode and an opacity of its own. While
+  it's on, every output draws it: the desktop app's Syphon/Spout output,
+  `/output` pages and the breakout window. The interface draws it while its
+  UI is hidden.
+  - Switch it on and pick the blend mode and opacity in the system panel,
+    under CODE OVERLAY, or in the desktop app with **Output › Show Code on
+    Output**.
+  - `Ctrl/⌘ + `` ` `` now cycles through three states: the first press hides
+    the UI, the second shows or hides the code, the third brings the UI back.
+    Hiding or showing the UI never changes what the outputs show, and `Esc`
+    still brings the UI back straight away.
+
 ## [1.2.0] - 2026-10-10
 
 HYDRACTRL Desktop, the standalone app with Syphon and Spout output, and a new

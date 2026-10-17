@@ -78,6 +78,7 @@ The **Output** menu (and the settings window, `Cmd/Ctrl+,`) controls:
 | Sender name | The name other apps see. Changing it restarts the output. |
 | Preview window | A window with the exact frames being shared. Off by default. |
 | Include alpha | Per-pixel alpha for overlay compositing. Off by default. |
+| Show Code on Output | Draws the running sketch's code over the visuals on the output (Output menu only). Set its blend mode and opacity in the interface's system panel, under CODE OVERLAY. Off by default. |
 | Start output at launch | On by default. |
 | Allow network access | Lets OBS or TouchDesigner on another computer reach the server and its `/output` page. Off by default; applies on the next launch. |
 
