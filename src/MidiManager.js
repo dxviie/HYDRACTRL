@@ -514,7 +514,7 @@ export function createMidiManager(slotsPanel) {
 
     // The scene the pad belongs to: the current one, unless the nanoPAD2
     // moved to another scene without its scene button's message reaching us
-    // (it is SysEx, which doesn't always arrive, in the desktop app say)
+    // (it is SysEx, which a browser can garble: Chromium 152 did on macOS)
     const scene = sceneForNote(midiMapping, currentScene, note);
     if (scene < 0 || !slotsPanel) {
       console.debug(`No mapping found for MIDI note ${note} in bank ${currentScene}`);
