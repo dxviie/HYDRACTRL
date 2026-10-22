@@ -117,6 +117,18 @@ export function fitCodeOverlay({ lines, columns }, width, height) {
   return { fontSize: Math.floor(fontSize * 10) / 10, margin };
 }
 
+/**
+ * The sizes (px) of the scenes and slots for a view this tall, in whole
+ * pixels so their edges stay sharp: the scenes' blips stand in a column
+ * right of the pads, four blips as tall as two pads, so a pad is two blips
+ * and the gap between them. `line` is the width of an outline.
+ */
+export function fitSlots(height) {
+  const blip = Math.max(4, Math.round(height * 0.008));
+  const gap = Math.max(2, Math.round(height * 0.0047));
+  return { blip, gap, pad: 2 * blip + gap, line: Math.max(1, Math.round(height / 540)) };
+}
+
 /** How long the code stays lit when it runs, before it fades back (ms). */
 export const FLASH_MS = 160;
 /** Lines kept free above and below the code: the status tag and a new line. */
@@ -263,26 +275,23 @@ function overlayCss(fontUrl) {
   border-bottom: 0.22em solid transparent;
   border-left: 0.36em solid ${EDITED};
 }
+/* One grid: the pads in two rows of eight, each two rows of the grid tall,
+   and the scenes' blips one per row in the column on their right */
 .hco-slots {
   position: absolute;
   top: var(--hco-margin);
   right: var(--hco-margin);
-  display: flex;
-  flex-direction: column;
-  gap: 0.45em;
-  padding: 0.5em;
+  display: grid;
+  grid-template-columns: repeat(8, var(--hco-pad)) var(--hco-blip);
+  grid-template-rows: repeat(4, var(--hco-blip));
+  gap: var(--hco-gap);
+  padding: calc(2 * var(--hco-gap));
   background-color: ${SLAB};
-  font-size: 1.9vh;
 }
-.hco-scenes {
-  display: flex;
-  gap: 0.3em;
-}
-.hco-scene {
-  width: 0.55em;
-  height: 0.55em;
+.hco-scene,
+.hco-cell {
   box-sizing: border-box;
-  border: 0.1em solid rgba(255, 255, 255, 0.5);
+  border: var(--hco-line) solid rgba(255, 255, 255, 0.45);
 }
 .hco-scene.hco-filled {
   border-color: transparent;
@@ -292,22 +301,12 @@ function overlayCss(fontUrl) {
   border-color: #fff;
   background-color: #fff;
 }
-.hco-grid {
-  display: grid;
-  grid-template-columns: repeat(8, 1.1em);
-  grid-auto-rows: 1.1em;
-  gap: 0.25em;
-}
-.hco-cell {
-  box-sizing: border-box;
-  border: 0.1em solid rgba(255, 255, 255, 0.4);
-}
 .hco-cell.hco-saved {
   border-color: transparent;
   background-color: rgba(255, 255, 255, 0.75);
 }
 .hco-cell.hco-active {
-  border: 0.18em solid #fff;
+  border: calc(2 * var(--hco-line)) solid #fff;
 }
 .hco-cell.hco-active.hco-saved {
   background-color: #a64dff;
@@ -361,13 +360,17 @@ export function createCodeOverlayView(container, { doc = container.ownerDocument
   code.append(clear, tag, lines);
 
   const slotsBlock = create("div", "hco-slots");
-  const scenes = create("div", "hco-scenes");
-  const dots = Array.from({ length: 4 }, () => create("span", "hco-scene"));
-  scenes.append(...dots);
-  const grid = create("div", "hco-grid");
-  const cells = Array.from({ length: 16 }, () => create("span", "hco-cell"));
-  grid.append(...cells);
-  slotsBlock.append(scenes, grid);
+  const cells = Array.from({ length: 16 }, (_, index) => {
+    const cell = create("span", "hco-cell");
+    cell.style.gridArea = `${Math.floor(index / 8) * 2 + 1} / ${(index % 8) + 1} / span 2`;
+    return cell;
+  });
+  const dots = Array.from({ length: 4 }, (_, index) => {
+    const dot = create("span", "hco-scene");
+    dot.style.gridArea = `${index + 1} / 9`;
+    return dot;
+  });
+  slotsBlock.append(...cells, ...dots);
 
   root.append(code, slotsBlock);
   container.appendChild(root);
@@ -394,6 +397,9 @@ export function createCodeOverlayView(container, { doc = container.ownerDocument
     );
     root.style.setProperty("--hco-size", `${fontSize}px`);
     root.style.setProperty("--hco-margin", `${margin}px`);
+    for (const [name, size] of Object.entries(fitSlots(height))) {
+      root.style.setProperty(`--hco-${name}`, `${size}px`);
+    }
     gap = margin / 2;
     clearSlots();
   }

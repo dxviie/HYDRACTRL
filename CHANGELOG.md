@@ -15,8 +15,9 @@ version and the desktop app share one version number; see
   strings and numbers apart. Marks replace the words: a filled square while
   the code on screen runs, a hollow one once it is edited, and two small tabs
   while you edit Setup; the cursor is a block. The scenes and slots moved to
-  the top right corner, clear of hydra's audio bins, and lines beside them
-  wrap short of them.
+  the top right corner, clear of hydra's audio bins, as one tight grid: the
+  four scenes stand in a column right of the pads, as tall as the two rows
+  of pads. Lines beside them wrap short of them.
 
 ## [1.2.1] - 2026-10-22
 
