@@ -8,6 +8,13 @@ version and the desktop app share one version number; see
 
 ## [Unreleased]
 
+### Fixed
+
+- The nanoPAD2's scene button works in the desktop app on macOS. The app ran
+  on Chromium 152 (Electron 44), whose Web MIDI on macOS loses the start and
+  end of SysEx messages, which is how the nanoPAD2 reports its scene. It now
+  runs on Electron 45 (Chromium 156), where that is fixed.
+
 ## [1.2.0] - 2026-10-10
 
 HYDRACTRL Desktop, the standalone app with Syphon and Spout output, and a new
