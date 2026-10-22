@@ -19,6 +19,14 @@ version and the desktop app share one version number; see
   four scenes stand in a column right of the pads, as tall as the two rows
   of pads. Lines beside them wrap short of them.
 
+### Fixed
+
+- The slots panel's clear button now works in the desktop app: it
+  asks what to clear (this scene, all scenes or only the thumbnails) in a
+  dialog of its own, where it used the browser's prompt, which the desktop
+  app can't show. Clearing only the thumbnails now clears all of them, and a
+  cleared scene's slots no longer keep the outline of the code they held.
+
 ## [1.2.1] - 2026-10-22
 
 Show your code to the audience: a live code overlay on the Syphon and Spout
