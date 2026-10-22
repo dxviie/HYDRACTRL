@@ -6,7 +6,8 @@ package. Open it, and your set shows up as a video source in Resolume,
 MadMapper, VDMX, TouchDesigner, OBS and anything else that speaks Syphon or
 Spout, with zero GPU copies and no latency worth mentioning.
 
-Verified on a Mac Studio M4 Max at 1080p and 4K, steady 60 fps into Resolume.
+Verified on a Mac Studio M4 Max at 1080p and 4K, steady 60 fps into Resolume,
+and on Windows with Spout into Resolume on a Dell XPS laptop.
 
 ## How it works
 
@@ -234,5 +235,3 @@ Next for the desktop app itself:
 
 - **NDI output**, next to Syphon and Spout, through a CPU readback of the same
   frames.
-- **Windows verification**: the Spout path uses the same code as Syphon but
-  has not been exercised on real hardware yet.
