@@ -74,6 +74,25 @@ const browser = await chromium.launch({
 - Slot advance: enable `moveToNextSlotCheckbox`, call
   `slotsPanel.saveToActiveSlot()` + `window.moveToNextSlot(info)`, active
   slot moves after ~500ms.
+- Code overlay: `Control+Backquote` hides the UI, a second press shows
+  `#hydra-canvas .hydractrl-code-overlay` (and on any open `/output` page:
+  `window.hydractrlOutput.codeOverlay()`), a third brings the UI back. The
+  system panel's CODE OVERLAY section (expand with `.stats-toggle`) has
+  `#code-overlay-visible`, `#code-overlay-slots`, `.code-overlay-blend` and
+  `.code-overlay-opacity`, kept in `hydractrl-code-overlay`. With it on, an
+  `/output` page follows typing: `.hco-tag` reads RUNNING or EDITED, edited
+  lines get `.hco-changed`, `.hco-caret` is the cursor, Ctrl+Enter adds
+  `.hco-flash` for 160ms, and `.hco-slots` shows the scenes and slots. Keep
+  the interface page in front while typing (`page.bringToFront()`): Chromium
+  runs a background tab's timers once a second, which slows the updates.
+- MIDI without a device: in `addInitScript`, replace
+  `navigator.requestMIDIAccess` with one resolving to
+  `{ inputs: new Map([[id, input]]), outputs: new Map() }`, where `input` is
+  `{ id, name: "nanoPAD2 PAD", type: "input", state: "connected", onmidimessage: null }`,
+  then call `input.onmidimessage({ data: new Uint8Array(bytes) })`. Pads are
+  note-ons, notes 36 to 51 on scene 1, 52 to 67 on scene 2 and so on; the
+  scene button is the SysEx `[240, 66, 64, 0, 1, 18, 0, 95, 79, scene, 247]`
+  (scene 0 to 3). Check `slotsPanel.getBank()` and `getActiveSlotIndex()`.
 - Touch: panels drag by their title bars, the editor, doc and slots panels
   resize by the grip in their corner, and with the UI hidden (`body.ui-hidden`) a tap
   anywhere brings it back without clicking what reappears under the finger.

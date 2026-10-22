@@ -1,6 +1,6 @@
 {
   "name": "hydractrl",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
   "scripts": {
     "dev": "bun run build:client && bun --watch src/index.ts",

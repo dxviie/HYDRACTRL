@@ -117,6 +117,58 @@ describe("parseIncomingMessage", () => {
     expect(parseIncomingMessage({ type: "result", id: "r1", success: "yes" })).toBe(null);
     expect(parseIncomingMessage({ type: "result", success: true })).toBe(null);
   });
+
+  test("parses the code overlay's settings", () => {
+    expect(
+      parseIncomingMessage({ type: "overlay", visible: true, blendMode: "difference", opacity: 2 }),
+    ).toEqual({ type: "overlay", visible: true, blendMode: "difference", opacity: 1 });
+    expect(
+      parseIncomingMessage({ type: "overlay", visible: false, blendMode: "url(x)", opacity: "1" }),
+    ).toEqual({ type: "overlay", visible: false });
+    expect(parseIncomingMessage({ type: "overlay", visible: "yes" })).toBe(null);
+    expect(parseIncomingMessage({ type: "overlay" })).toBe(null);
+    expect(parseIncomingMessage({ type: "overlay", visible: true, slots: false })).toEqual({
+      type: "overlay",
+      visible: true,
+      slots: false,
+    });
+  });
+
+  test("parses what the code overlay shows of the editor", () => {
+    expect(
+      parseIncomingMessage({
+        type: "editor",
+        tab: "setup",
+        code: "osc()",
+        anchor: 99,
+        head: "2",
+        dirty: true,
+        changed: [0, -1, 2.5, "3", 4],
+        removed: "nope",
+      }),
+    ).toEqual({
+      type: "editor",
+      tab: "setup",
+      code: "osc()",
+      anchor: 5,
+      head: -1,
+      dirty: true,
+      changed: [0, 4],
+      removed: [],
+    });
+    expect(parseIncomingMessage({ type: "editor", code: 1 })).toBe(null);
+    expect(parseIncomingMessage({ type: "editor", code: "x".repeat(MAX_SKETCH_LENGTH + 1) })).toBe(
+      null,
+    );
+  });
+
+  test("parses the scenes and slots, and the flash", () => {
+    expect(
+      parseIncomingMessage({ type: "slots", scene: 1, slot: 3, scenes: [true, 1], slots: [] }),
+    ).toEqual({ type: "slots", scene: 1, slot: 3, scenes: [true, false], slots: [] });
+    expect(parseIncomingMessage({ type: "slots", scene: -1, slot: 0 })).toBe(null);
+    expect(parseIncomingMessage({ type: "flash", extra: 1 })).toEqual({ type: "flash" });
+  });
 });
 
 describe("createOutputHub", () => {
@@ -157,6 +209,54 @@ describe("createOutputHub", () => {
 
     expect(late[0]).toEqual(SKETCH);
     expect(late[1]).toEqual({ type: "state", nanoX: 0.2, nanoY: 0.9 });
+  });
+
+  test("fans the code overlay out to outputs and replays it to a late one", () => {
+    const hub = createOutputHub();
+    join(hub, "c1", "controller");
+    const output = join(hub, "o1", "output");
+    const overlay = { type: "overlay", visible: true, blendMode: "screen", opacity: 0.5 } as const;
+
+    expect(hub.message("c1", overlay)).toBe(true);
+    expect(output.at(-1)).toEqual(overlay);
+    expect(hub.message("o1", { type: "overlay", visible: false })).toBe(false);
+
+    hub.message("c1", SKETCH);
+    const late = join(hub, "o-late", "output");
+    expect(late).toEqual([SKETCH, overlay]);
+    expect(hub.getLastOverlay()).toEqual(overlay);
+  });
+
+  test("fans the editor, the slots and the flash out, and replays all but the flash", () => {
+    const hub = createOutputHub();
+    join(hub, "c1", "controller");
+    const output = join(hub, "o1", "output");
+    const editor = {
+      type: "editor",
+      tab: "main",
+      code: "osc(7).out()",
+      anchor: 6,
+      head: 6,
+      dirty: true,
+      changed: [0],
+      removed: [],
+    } as const;
+    const slots = {
+      type: "slots",
+      scene: 0,
+      slot: 2,
+      scenes: [true, false, false, false],
+      slots: [true, true, true],
+    } as const;
+
+    expect(hub.message("c1", editor)).toBe(true);
+    expect(hub.message("c1", slots)).toBe(true);
+    expect(hub.message("c1", { type: "flash" })).toBe(true);
+    expect(output.slice(-3)).toEqual([editor, slots, { type: "flash" }]);
+    expect(hub.message("o1", { type: "flash" })).toBe(false);
+
+    const late = join(hub, "o-late", "output");
+    expect(late).toEqual([editor, slots]);
   });
 
   test("tells controllers how many outputs are connected", () => {

@@ -15,9 +15,11 @@ import { createSafeStorage } from "./core/Storage.js";
 import { notify, notifyError } from "./core/notify.js";
 import { createRenderLoop } from "./core/renderLoop.js";
 import { executeSketch } from "./core/sketchRunner.js";
+import { nextUiAction } from "./core/uiCycle.js";
 import { createAudioWatchdogPlugin } from "./plugins/AudioWatchdogPlugin.js";
 import { createAutoRunPlugin } from "./plugins/AutoRunPlugin.js";
 import { createBreakoutPlugin } from "./plugins/BreakoutPlugin.js";
+import { createCodeOverlayPlugin } from "./plugins/CodeOverlayPlugin.js";
 import { createDesktopMediaPlugin } from "./plugins/DesktopMediaPlugin.js";
 import { createDesktopMirrorPlugin } from "./plugins/DesktopMirrorPlugin.js";
 import { createDesktopOutputPlugin } from "./plugins/DesktopOutputPlugin.js";
@@ -58,6 +60,9 @@ const DEFAULT_CODE = sketchSource(SKETCHES[0]);
 // desktop app runs them on its Syphon/Spout output and shows that output's
 // frames); null runs them on the main instance itself
 let mainSketchRunner = null;
+
+// The last sketch that ran on the main instance, { setup, main }
+let runningSketch = null;
 
 // The XY pad's values, for sketches that use them. The pad and MIDI take
 // over on computers and tablets; on phones they stay centred instead of undefined.
@@ -214,7 +219,11 @@ function initEditor() {
       }
     },
     focus: () => editor.focus(),
-    flash: () => editor.flash(),
+    // The code lights up to show it ran; the code overlay flashes with it
+    flash: () => {
+      editor.flash();
+      events.emit("editor:flash");
+    },
     // Add the raw editor object for direct access if needed
     _editor: editor,
   };
@@ -369,6 +378,7 @@ async function runCode(editor, hydra) {
     // Let plugins react to a successful run on the main instance
     // (the output-sync plugin mirrors it to external render heads)
     if (hydra === window.mainHydra) {
+      runningSketch = sketch;
       events.emit("sketch:run", result.runId ? { ...sketch, runId: result.runId } : sketch);
     }
     return true;
@@ -381,6 +391,12 @@ async function runCode(editor, hydra) {
 
 // Whether this page load has told a touch-screen user how to bring back the UI
 let hiddenUiHintShown = false;
+
+// A plugin's extra step for Ctrl/⌘+` while the UI is hidden (the code overlay
+// plugin shows or hides the code over the visuals), and whether it was taken
+// since the UI was last hidden (see core/uiCycle.js)
+let hiddenUiStep = null;
+let hiddenUiStepTaken = false;
 
 // Show or hide the editor and all panels. Uses the visibility property to
 // preserve layout. This is the single source of truth for UI visibility —
@@ -404,6 +420,7 @@ function setUiVisibility(visible) {
 
   document.body.classList.toggle("ui-hidden", !visible);
   storage.set("hydractrl-ui-visible", visible ? "true" : "false");
+  hiddenUiStepTaken = false;
   events.emit("ui:visibility", { visible });
 
   // Without a keyboard there is no Esc to press, so say it once
@@ -428,6 +445,22 @@ function setUiVisibility(visible) {
 function toggleEditor() {
   const isVisible = storage.get("hydractrl-ui-visible") !== "false";
   setUiVisibility(!isVisible);
+}
+
+// Ctrl/⌘+`: hide the UI, take a plugin's step, bring the UI back
+function cycleUi() {
+  const visible = storage.get("hydractrl-ui-visible") !== "false";
+  const action = nextUiAction({
+    visible,
+    hasStep: hiddenUiStep !== null,
+    stepTaken: hiddenUiStepTaken,
+  });
+  if (action === "step") {
+    hiddenUiStepTaken = true;
+    hiddenUiStep();
+  } else {
+    setUiVisibility(action === "show");
+  }
 }
 
 // Save code to local storage
@@ -637,12 +670,13 @@ async function init() {
 
       // (Ctrl/⌘+Y auto-run toggle lives in the AutoRunPlugin)
 
-      // Ctrl/Cmd+` (backtick) to toggle editor visibility.
-      // Match on the physical key (e.code) so this works on international
-      // keyboard layouts where "`" needs a modifier or doesn't exist (issue #7).
+      // Ctrl/Cmd+` (backtick) to hide the UI, then show or hide the code over
+      // the visuals, then bring the UI back. Match on the physical key (e.code)
+      // so this works on international keyboard layouts where "`" needs a
+      // modifier or doesn't exist (issue #7).
       if (e.code === "Backquote" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        toggleEditor();
+        cycleUi();
       }
 
       // Escape always brings the UI back when it is hidden, so there is a
@@ -803,6 +837,8 @@ async function init() {
     const slotsPanel = createSlotsPanel(editor, hydra, runCode, isMobile, {
       // Don't let slot 0 overwrite a sketch that was loaded from the URL
       keepEditorContent: urlSketch !== null,
+      // For the code overlay's scenes and slots indicator
+      onChange: (state) => events.emit("slots:changed", state),
     });
 
     if (!isMobile) {
@@ -866,6 +902,13 @@ async function init() {
       setSketchRunner: (runner) => {
         mainSketchRunner = typeof runner === "function" ? runner : null;
       },
+      // The last sketch that ran on the main instance, { setup, main }, or null
+      getRunningSketch: () => (runningSketch ? { ...runningSketch } : null),
+      // Add a step to Ctrl/⌘+` while the UI is hidden: the first press after
+      // hiding calls step() instead of bringing the UI back; null removes it
+      setUiCycleStep: (step) => {
+        hiddenUiStep = typeof step === "function" ? step : null;
+      },
       events,
       storage,
       notify,
@@ -890,6 +933,7 @@ async function init() {
     pluginHost.register(createDesktopOutputPlugin());
     pluginHost.register(createDesktopMirrorPlugin());
     pluginHost.register(createDesktopMediaPlugin());
+    pluginHost.register(createCodeOverlayPlugin());
     pluginHost.register(createMidiUiPlugin());
     pluginHost.register(createMobileUiPlugin());
     pluginHost.init();

@@ -80,6 +80,13 @@ export function buildMenuTemplate({ platform, appName, state, actions }) {
       { label: "Frame Rate", submenu: frameRateItems },
       { type: "separator" },
       {
+        // The interface sets its blend mode and opacity (system panel)
+        label: "Show Code on Output",
+        type: "checkbox",
+        checked: settings.codeOverlay.visible,
+        click: (item) => actions.setCodeOverlay(item.checked),
+      },
+      {
         label: "Show Preview Window",
         type: "checkbox",
         checked: settings.output.preview,

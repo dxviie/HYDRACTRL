@@ -286,6 +286,7 @@ function main() {
     setPreview: (preview) => updateSettings({ output: { preview } }),
     setIncludeAlpha: (includeAlpha) => updateSettings({ output: { includeAlpha } }),
     setAutoStart: (autoStart) => updateSettings({ output: { autoStart } }),
+    setCodeOverlay: (visible) => updateSettings({ codeOverlay: { visible } }),
     openSettings: (section) => windows?.openSettings(section),
     openOutputPage,
     copyServerUrl,

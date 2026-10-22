@@ -35,6 +35,7 @@ for how it works and how to build it.
 - **Setup code tab** — code that runs before each sketch, for audio settings and globals
 - **Audio reactivity** — Hydra's `a.fft` data out of the box, guarded by an audio watchdog that logs dropouts and auto-resumes suspended audio
 - **Built-in Hydra documentation** — always at hand while coding
+- **Code overlay** — show your code over the visuals as you type it, on the outputs too (the desktop app's Syphon/Spout output, `/output` pages, the breakout window): with the cursor, a RUNNING/EDITED tag, marks on the lines not run yet, the run flash and the scenes and slots, in its own blend mode and opacity
 - **Breakout view** — send visuals to a second window at a precise size for projections or recordings ([OBS](https://obsproject.com/) and [NDI](https://ndi.video/) work great)
 - **Desktop app with Syphon/Spout output** — share your visuals with Resolume, MadMapper, VDMX, TouchDesigner or OBS as a GPU texture, plus a chrome-less `/output` page for OBS and TouchDesigner browser sources (see below)
 - **Your own images and videos** — drop them on the editor in the desktop app, which copies them into its media folder and writes the line that loads them (see below)
@@ -46,7 +47,7 @@ for how it works and how to build it.
 
 | Shortcut | Function |
 | --- | --- |
-| `Ctrl/⌘ + `` ` `` | Toggle UI visibility (works on any keyboard layout) |
+| `Ctrl/⌘ + `` ` `` | Hide the UI; pressed again, show or hide the code over the visuals; a third time, bring the UI back (works on any keyboard layout) |
 | `Esc` | Bring back the hidden UI |
 | `Ctrl/⌘ + Enter` | Run the current code |
 | `Ctrl/⌘ + S` | Save code to the active slot |

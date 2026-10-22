@@ -2,6 +2,7 @@
  * Simple Stats Panel
  * A minimal, draggable FPS counter that doesn't rely on complex component architecture
  */
+import { BLEND_MODES, blendModeLabel } from "./client/core/codeOverlay.js";
 import { FEEDBACK_FORM_ID } from "./project.js";
 import { trackPointerDrag } from "./utils/Draggable.js";
 import { loadPanelPosition, savePanelPosition } from "./utils/PanelStorage.js";
@@ -634,6 +635,119 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   displaySection.appendChild(displayTitle);
   displaySection.appendChild(breakoutRow);
 
+  // Code overlay section: the CodeOverlayPlugin wires and fills these controls
+  const codeOverlaySection = document.createElement("div");
+  codeOverlaySection.className = "stats-code-overlay";
+  codeOverlaySection.style.marginTop = "6px";
+  codeOverlaySection.style.paddingTop = "6px";
+  codeOverlaySection.style.borderTop = "1px solid var(--color-bg-tertiary)";
+  codeOverlaySection.style.display = "none"; // Initially hidden
+  codeOverlaySection.style.flexDirection = "column";
+  codeOverlaySection.style.gap = "4px";
+
+  const codeOverlayTitle = document.createElement("div");
+  codeOverlayTitle.style.fontSize = "11px";
+  codeOverlayTitle.style.color = "var(--color-text-secondary)";
+  codeOverlayTitle.style.fontWeight = "600";
+  codeOverlayTitle.style.letterSpacing = "0.08em";
+  codeOverlayTitle.textContent = "CODE OVERLAY";
+
+  const codeOverlayOption = document.createElement("div");
+  codeOverlayOption.style.display = "flex";
+  codeOverlayOption.style.alignItems = "center";
+  codeOverlayOption.style.gap = "8px";
+  codeOverlayOption.style.marginTop = "2px";
+
+  const codeOverlayCheckbox = document.createElement("input");
+  codeOverlayCheckbox.type = "checkbox";
+  codeOverlayCheckbox.id = "code-overlay-visible";
+  codeOverlayCheckbox.style.cursor = "pointer";
+
+  const codeOverlayLabel = document.createElement("label");
+  codeOverlayLabel.htmlFor = "code-overlay-visible";
+  codeOverlayLabel.textContent = "Show code over the visuals";
+  codeOverlayLabel.style.fontSize = "11px";
+  codeOverlayLabel.style.color = "var(--color-text-primary)";
+  codeOverlayLabel.style.cursor = "pointer";
+  codeOverlayOption.title =
+    "On every output, and here while the interface is hidden. " +
+    "With the interface hidden, Ctrl/⌘+` switches it too.";
+
+  codeOverlayOption.appendChild(codeOverlayCheckbox);
+  codeOverlayOption.appendChild(codeOverlayLabel);
+
+  const slotsOverlayOption = document.createElement("div");
+  slotsOverlayOption.style.display = "flex";
+  slotsOverlayOption.style.alignItems = "center";
+  slotsOverlayOption.style.gap = "8px";
+  slotsOverlayOption.title = "Which slots hold a saved sketch, and the active one, in a corner";
+
+  const slotsOverlayCheckbox = document.createElement("input");
+  slotsOverlayCheckbox.type = "checkbox";
+  slotsOverlayCheckbox.id = "code-overlay-slots";
+  slotsOverlayCheckbox.style.cursor = "pointer";
+
+  const slotsOverlayLabel = document.createElement("label");
+  slotsOverlayLabel.htmlFor = "code-overlay-slots";
+  slotsOverlayLabel.textContent = "With scenes and slots";
+  slotsOverlayLabel.style.fontSize = "11px";
+  slotsOverlayLabel.style.color = "var(--color-text-primary)";
+  slotsOverlayLabel.style.cursor = "pointer";
+
+  slotsOverlayOption.appendChild(slotsOverlayCheckbox);
+  slotsOverlayOption.appendChild(slotsOverlayLabel);
+
+  const blendSelect = document.createElement("select");
+  blendSelect.className = "code-overlay-blend";
+  blendSelect.title = "How the code blends with the visuals";
+  for (const mode of BLEND_MODES) {
+    const option = document.createElement("option");
+    option.value = mode;
+    option.textContent = `Blend: ${blendModeLabel(mode)}`;
+    blendSelect.appendChild(option);
+  }
+
+  const codeOpacityRow = document.createElement("div");
+  codeOpacityRow.style.display = "flex";
+  codeOpacityRow.style.alignItems = "center";
+  codeOpacityRow.style.gap = "8px";
+  codeOpacityRow.style.width = "100%";
+
+  const codeOpacitySlider = document.createElement("input");
+  codeOpacitySlider.type = "range";
+  codeOpacitySlider.className = "code-overlay-opacity";
+  codeOpacitySlider.min = "0";
+  codeOpacitySlider.max = "100";
+  codeOpacitySlider.step = "5";
+  codeOpacitySlider.value = "100";
+  codeOpacitySlider.title = "Code overlay opacity";
+  codeOpacitySlider.style.width = "100%";
+  codeOpacitySlider.style.margin = "0";
+
+  const codeOpacityValue = document.createElement("span");
+  codeOpacityValue.style.fontSize = "11px";
+  codeOpacityValue.style.color = "var(--color-text-primary)";
+  codeOpacityValue.style.minWidth = "32px";
+  codeOpacityValue.style.textAlign = "right";
+
+  /** Show an opacity (0 to 100) on the slider and next to it. */
+  function showCodeOpacity(percent) {
+    codeOpacitySlider.value = String(percent);
+    codeOpacityValue.textContent = `${codeOpacitySlider.value}%`;
+    updateRangeProgress(codeOpacitySlider);
+  }
+  showCodeOpacity(100);
+  codeOpacitySlider.addEventListener("input", () => showCodeOpacity(codeOpacitySlider.value));
+
+  codeOpacityRow.appendChild(codeOpacitySlider);
+  codeOpacityRow.appendChild(codeOpacityValue);
+
+  codeOverlaySection.appendChild(codeOverlayTitle);
+  codeOverlaySection.appendChild(codeOverlayOption);
+  codeOverlaySection.appendChild(slotsOverlayOption);
+  codeOverlaySection.appendChild(blendSelect);
+  codeOverlaySection.appendChild(codeOpacityRow);
+
   // Create the FPS metric
   const fpsMetric = document.createElement("div");
   fpsMetric.className = "stats-metric";
@@ -819,6 +933,7 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   content.appendChild(themeSection);
   content.appendChild(midiSection);
   if (breakout) content.appendChild(displaySection);
+  content.appendChild(codeOverlaySection);
   content.appendChild(slotsSection);
   content.appendChild(footerSection);
 
@@ -891,6 +1006,7 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
     themeSection.style.display = isExpanded ? "flex" : "none";
     midiSection.style.display = isExpanded ? "flex" : "none";
     displaySection.style.display = isExpanded ? "flex" : "none";
+    codeOverlaySection.style.display = isExpanded ? "flex" : "none";
     slotsSection.style.display = isExpanded ? "flex" : "none";
     toggle.textContent = isExpanded ? "▼" : "▲";
   });
@@ -986,6 +1102,14 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
           sizeSelect: sizeSelect,
         }
       : undefined,
+    codeOverlay: {
+      section: codeOverlaySection,
+      checkbox: codeOverlayCheckbox,
+      slotsCheckbox: slotsOverlayCheckbox,
+      blendSelect,
+      opacitySlider: codeOpacitySlider,
+      showOpacity: showCodeOpacity,
+    },
     slots: {
       section: slotsSection,
       moveToNextSlotCheckbox: moveToNextSlotCheckbox,

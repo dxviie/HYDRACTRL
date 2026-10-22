@@ -183,6 +183,79 @@ describe("createOutputSyncPlugin", () => {
     });
   });
 
+  test("sends the code overlay's settings on connect and whenever they change", async () => {
+    const fake = createFakeSocket();
+    const { ctx } = createCtx();
+    plugin = createOutputSyncPlugin({
+      url: "ws://test/ws/output",
+      detect: async () => true,
+      socketFactory: fake.factory,
+    }).setup(ctx);
+    await flush();
+
+    ctx.events.emit("overlay:changed", {
+      visible: true,
+      slots: true,
+      blendMode: "difference",
+      opacity: 0.8,
+    });
+    fake.open();
+    expect(fake.sent).toContainEqual({
+      type: "overlay",
+      visible: true,
+      slots: true,
+      blendMode: "difference",
+      opacity: 0.8,
+    });
+
+    ctx.events.emit("overlay:changed", {
+      visible: false,
+      slots: true,
+      blendMode: "difference",
+      opacity: 0.8,
+    });
+    expect(fake.sent.at(-1)).toEqual({
+      type: "overlay",
+      visible: false,
+      slots: true,
+      blendMode: "difference",
+      opacity: 0.8,
+    });
+  });
+
+  test("passes on the editor, the slots and the flash, and catches up on connect", async () => {
+    const fake = createFakeSocket();
+    const { ctx } = createCtx();
+    plugin = createOutputSyncPlugin({
+      url: "ws://test/ws/output",
+      detect: async () => true,
+      socketFactory: fake.factory,
+    }).setup(ctx);
+    await flush();
+
+    const snapshot = {
+      tab: "main",
+      code: "osc(3).out()",
+      anchor: 4,
+      head: 4,
+      dirty: true,
+      changed: [0],
+      removed: [],
+    };
+    const slots = { scene: 0, slot: 1, scenes: [true], slots: [true, true] };
+    ctx.events.emit("overlay:editor", snapshot);
+    ctx.events.emit("overlay:slots", slots);
+    // A flash before connecting is old news by then
+    ctx.events.emit("overlay:flash");
+    fake.open();
+    expect(fake.sent).toContainEqual({ type: "editor", ...snapshot });
+    expect(fake.sent).toContainEqual({ type: "slots", ...slots });
+    expect(fake.sent).not.toContainEqual({ type: "flash" });
+
+    ctx.events.emit("overlay:flash");
+    expect(fake.sent.at(-1)).toEqual({ type: "flash" });
+  });
+
   test("samples the XY pad every frame while the output's frames are shown", async () => {
     const intervals = spyOn(globalThis, "setInterval");
     try {

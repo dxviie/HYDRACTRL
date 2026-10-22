@@ -3,7 +3,10 @@
  *
  * Every successful run on the main instance (the core emits `sketch:run`) is
  * published to the server's output socket, together with the XY-pad values
- * (`nanoX`/`nanoY`) whenever they change. Render heads load `/output` and
+ * (`nanoX`/`nanoY`) whenever they change, and what the code overlay plugin
+ * has for the outputs: its settings (`overlay:changed`), the editor as you
+ * type (`overlay:editor`), the scenes and slots (`overlay:slots`) and the
+ * flash of a run (`overlay:flash`). Render heads load `/output` and
  * mirror whatever is played here: the companion output app (Syphon/Spout/NDI),
  * an OBS browser source, a TouchDesigner Web Render TOP, another browser...
  *
@@ -55,6 +58,9 @@ export function createOutputSyncPlugin(options = {}) {
       let pollTimer = null;
       let outputCount = 0;
       let lastSentState = null;
+      let overlay = null;
+      let editorSnapshot = null;
+      let slots = null;
       let pollMs = STATE_POLL_MS;
       let disposed = false;
 
@@ -86,6 +92,21 @@ export function createOutputSyncPlugin(options = {}) {
         }
       }
 
+      function pushOverlay() {
+        if (!socket || !overlay) return false;
+        return socket.send({ type: "overlay", ...overlay });
+      }
+
+      function pushEditor() {
+        if (!socket || !editorSnapshot) return false;
+        return socket.send({ type: "editor", ...editorSnapshot });
+      }
+
+      function pushSlots() {
+        if (!socket || !slots) return false;
+        return socket.send({ type: "slots", ...slots });
+      }
+
       function handleMessage(message) {
         if (message.type === "outputs") {
           const count = Number(message.count) || 0;
@@ -107,6 +128,29 @@ export function createOutputSyncPlugin(options = {}) {
         pushSketch(sketch);
       });
 
+      const offOverlay = ctx.events.on("overlay:changed", (settings) => {
+        if (!settings || typeof settings.visible !== "boolean") return;
+        const { visible, slots: showSlots, blendMode, opacity } = settings;
+        overlay = { visible, slots: showSlots, blendMode, opacity };
+        pushOverlay();
+      });
+
+      const offEditor = ctx.events.on("overlay:editor", (snapshot) => {
+        if (!snapshot || typeof snapshot.code !== "string") return;
+        editorSnapshot = snapshot;
+        pushEditor();
+      });
+
+      const offSlots = ctx.events.on("overlay:slots", (state) => {
+        if (!state) return;
+        slots = state;
+        pushSlots();
+      });
+
+      const offFlash = ctx.events.on("overlay:flash", () => {
+        socket?.send({ type: "flash" });
+      });
+
       function schedulePoll() {
         if (pollTimer !== null) clearInterval(pollTimer);
         pollTimer = setInterval(() => pushState(false), pollMs);
@@ -125,6 +169,9 @@ export function createOutputSyncPlugin(options = {}) {
             link.send({ type: "hello", role: "controller" });
             pushSketch(currentSketch());
             pushState(true);
+            pushOverlay();
+            pushEditor();
+            pushSlots();
           },
           onMessage: handleMessage,
           onClose: () => {
@@ -152,6 +199,10 @@ export function createOutputSyncPlugin(options = {}) {
         dispose() {
           disposed = true;
           offRun();
+          offOverlay();
+          offEditor();
+          offSlots();
+          offFlash();
           offMirror();
           if (pollTimer !== null) clearInterval(pollTimer);
           pollTimer = null;

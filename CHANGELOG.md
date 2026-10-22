@@ -8,6 +8,46 @@ version and the desktop app share one version number; see
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-10-22
+
+Show your code to the audience: a live code overlay on the Syphon and Spout
+output, and the nanoPAD2's scene button working in the desktop app.
+
+### Added
+
+- **Code overlay**: your code over the visuals as you type it, the way
+  hydra's own editor shows it, so the audience can follow along. It goes out
+  on the desktop app's Syphon/Spout output, on `/output` pages and in the
+  breakout window, and the interface shows it too while its UI is hidden.
+  - It follows the editor about 15 times a second, cursor and selection
+    included, without costing the visuals a frame, and shows the Setup tab
+    while you edit that.
+  - A tag says whether the code on screen is RUNNING or EDITED since it last
+    ran, a mark in the margin shows each line that differs from what runs,
+    and the code flashes when it runs, like it does in the editor.
+  - Optionally, a corner shows your scenes and slots: which slots hold a
+    saved sketch, which scenes have any, and which slot is active.
+  - It has a blend mode and an opacity of its own. Switch it on and set it up
+    in the system panel, under CODE OVERLAY, or in the desktop app with
+    **Output › Show Code on Output**.
+
+### Changed
+
+- `Ctrl/⌘ + `` ` `` now cycles through three states: the first press hides
+  the UI, the second shows or hides the code overlay, the third brings the UI
+  back. Hiding or showing the UI never changes what the outputs show, and
+  `Esc` still brings the UI back straight away.
+- The desktop app runs on Electron 45 (Chromium 156).
+
+### Fixed
+
+- The nanoPAD2's scene button works in the desktop app on macOS. The app ran
+  on Chromium 152 (Electron 44), whose Web MIDI on macOS loses the start and
+  end of SysEx messages, which is how the nanoPAD2 reports its scene.
+- Should a scene change on the nanoPAD2 ever go unnoticed, its pads still
+  work: each scene's pads play their own notes, so the first pad you press on
+  another scene switches to that scene and selects its slot.
+
 ## [1.2.0] - 2026-10-10
 
 HYDRACTRL Desktop, the standalone app with Syphon and Spout output, and a new
@@ -170,7 +210,8 @@ The first public version.
 - A standalone executable (`bun run build:exe:full`) that also serves local
   images and videos to sketches.
 
-[Unreleased]: https://github.com/dxviie/HYDRACTRL/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/dxviie/HYDRACTRL/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/dxviie/HYDRACTRL/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/dxviie/HYDRACTRL/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/dxviie/HYDRACTRL/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/dxviie/HYDRACTRL/releases/tag/v1.0.0

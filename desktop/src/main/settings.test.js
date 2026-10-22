@@ -71,6 +71,28 @@ describe("validateSettings", () => {
     expect(changedKeys(validateSettings({}), custom)).toEqual(["media.folder"]);
   });
 
+  test("keeps the code overlay to known blend modes and an opacity from 0 to 1", () => {
+    const custom = validateSettings({
+      codeOverlay: { visible: true, slots: false, blendMode: "difference", opacity: 0.456 },
+    });
+    expect(custom.codeOverlay).toEqual({
+      visible: true,
+      slots: false,
+      blendMode: "difference",
+      opacity: 0.46,
+    });
+    expect(validateSettings({ codeOverlay: { opacity: 3 } }).codeOverlay.opacity).toBe(1);
+    expect(validateSettings({ codeOverlay: { opacity: -1 } }).codeOverlay.opacity).toBe(0);
+    const garbage = validateSettings(
+      { codeOverlay: { visible: "on", blendMode: "url(x)", opacity: "0.5" } },
+      custom,
+    );
+    expect(garbage.codeOverlay).toEqual(custom.codeOverlay);
+    expect(
+      changedKeys(custom, validateSettings({ codeOverlay: { visible: false } }, custom)),
+    ).toEqual(["codeOverlay.visible"]);
+  });
+
   test("drops unknown keys", () => {
     const next = validateSettings({ output: { evil: true }, extra: 1 });
     expect(next.output.evil).toBeUndefined();

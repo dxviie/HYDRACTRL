@@ -362,6 +362,33 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     return false;
   }
 
+  /**
+   * The scenes (banks) and slots at a glance: the active scene and slot,
+   * which scenes hold saved sketches, and which slots of the active scene do.
+   */
+  function getState() {
+    return {
+      scene: currentBank,
+      slot: activeSlotIndex,
+      scenes: [0, 1, 2, 3].map(bankHasContent),
+      slots: Array.from({ length: 16 }, (_, i) =>
+        Boolean(localStorage.getItem(getStorageKey(currentBank, i))),
+      ),
+    };
+  }
+
+  // Tell options.onChange about a new state. Every change of content ends in
+  // updateBankDots, and every change of slot goes through setActiveSlot.
+  let lastState = "";
+  function notifyChange() {
+    if (typeof options.onChange !== "function") return;
+    const state = getState();
+    const key = JSON.stringify(state);
+    if (key === lastState) return;
+    lastState = key;
+    options.onChange(state);
+  }
+
   // Function to update the dots to reflect which banks have content
   function updateBankDots() {
     for (let i = 0; i < 4; i++) {
@@ -379,10 +406,11 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
         bankDots[i].style.transform = "scale(1)";
       }
     }
+    notifyChange();
   }
 
-  // Function to switch bank
-  function switchBank(bankIndex) {
+  // Function to switch bank, landing on `slot` (the first one unless told)
+  function switchBank(bankIndex, slot = 0) {
     if (bankIndex === currentBank) return;
 
     // Save current bank index
@@ -397,8 +425,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     // Load all thumbnails for the new bank
     loadAllSlotsForCurrentBank();
 
-    // Set the first slot as active
-    setActiveSlot(0);
+    // Set the slot as active
+    setActiveSlot(slot);
   }
 
   // Function to update active slot styling
@@ -421,6 +449,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
 
     // Update active slot index
     activeSlotIndex = index;
+    notifyChange();
 
     // Add active styling to new active slot
     slotElements[activeSlotIndex].style.border = "2px solid var(--color-perf-medium)";
@@ -1388,6 +1417,7 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     loadSlot,
     getActiveSlotIndex: () => activeSlotIndex,
     getBank: () => currentBank,
+    getState,
     setActiveSlot,
     clearAllSlots,
     switchBank,

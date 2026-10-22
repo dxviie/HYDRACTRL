@@ -17,6 +17,29 @@ export const RESOLUTION_PRESETS = Object.freeze([
 
 export const FRAME_RATES = Object.freeze([24, 25, 30, 50, 60, 120]);
 
+/**
+ * The code overlay's blend modes (CSS mix-blend-mode), the same list as the
+ * interface's (BLEND_MODES in src/client/core/codeOverlay.js, kept equal by a test).
+ */
+export const BLEND_MODES = Object.freeze([
+  "normal",
+  "difference",
+  "exclusion",
+  "screen",
+  "overlay",
+  "multiply",
+  "soft-light",
+  "hard-light",
+  "color-dodge",
+  "color-burn",
+  "lighten",
+  "darken",
+  "hue",
+  "saturation",
+  "color",
+  "luminosity",
+]);
+
 export const LIMITS = Object.freeze({
   minSize: 16,
   maxSize: 8192,
@@ -46,12 +69,27 @@ export const DEFAULT_SETTINGS = Object.freeze({
     // Where dropped images and videos go; empty means the app's own folder
     folder: "",
   }),
+  // The sketch's code drawn over the visuals on the output; the interface
+  // edits it, the Output menu switches it on and off
+  codeOverlay: Object.freeze({
+    visible: false,
+    // The scenes and slots indicator, while the overlay is on
+    slots: true,
+    blendMode: "normal",
+    opacity: 1,
+  }),
 });
 
 function clampInt(value, min, max, fallback) {
   const number = typeof value === "number" ? value : Number.parseInt(String(value), 10);
   if (!Number.isFinite(number)) return fallback;
   return Math.min(max, Math.max(min, Math.round(number)));
+}
+
+/** A number between 0 and 1, to two decimals. */
+function clampUnit(value, fallback) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.round(Math.min(1, Math.max(0, value)) * 100) / 100;
 }
 
 function toBool(value, fallback) {
@@ -97,6 +135,7 @@ export function validateSettings(input, base = DEFAULT_SETTINGS) {
   const output = raw.output && typeof raw.output === "object" ? raw.output : {};
   const server = raw.server && typeof raw.server === "object" ? raw.server : {};
   const media = raw.media && typeof raw.media === "object" ? raw.media : {};
+  const codeOverlay = raw.codeOverlay && typeof raw.codeOverlay === "object" ? raw.codeOverlay : {};
   return {
     output: {
       autoStart: toBool(output.autoStart, base.output.autoStart),
@@ -118,6 +157,14 @@ export function validateSettings(input, base = DEFAULT_SETTINGS) {
     },
     media: {
       folder: toFolder(media.folder, base.media.folder),
+    },
+    codeOverlay: {
+      visible: toBool(codeOverlay.visible, base.codeOverlay.visible),
+      slots: toBool(codeOverlay.slots, base.codeOverlay.slots),
+      blendMode: BLEND_MODES.includes(codeOverlay.blendMode)
+        ? codeOverlay.blendMode
+        : base.codeOverlay.blendMode,
+      opacity: clampUnit(codeOverlay.opacity, base.codeOverlay.opacity),
     },
   };
 }

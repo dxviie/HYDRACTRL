@@ -13,6 +13,7 @@ implementations:
 | `FeedbackPlugin` | `feedback` | The feedback panel: the site's contact form (Tally) in a sandboxed frame, with the version, app, OS and browser as hidden fields. |
 | `AutoRunPlugin` | `auto-run` | Re-runs the sketch after typing pauses; Ctrl/⌘+Y toggle and toolbar checkbox. |
 | `SlotAdvancePlugin` | `slot-advance` | "Move to next slot on save" behavior, wrapping across banks. |
+| `CodeOverlayPlugin` | `code-overlay` | The editor's code over the visuals as you type, with a RUNNING/EDITED tag, marks on the lines not run yet, the run flash and the scenes and slots: on every output, here while the UI is hidden, switched by the second Ctrl/⌘+` press and set in the system panel. |
 | `BreakoutPlugin` | `breakout-view` | Opens the visualization in a separate window at a chosen resolution. |
 | `OutputSyncPlugin` | `output-sync` | Mirrors every run and the XY-pad values to external outputs (`/output` pages) over the server's WebSocket. |
 | `DesktopOutputPlugin` | `desktop-output` | Inside the desktop app: Syphon/Spout output status, Start/Stop and a settings shortcut in the stats panel. No-op in a browser. |
@@ -64,6 +65,8 @@ export function createMyPlugin() {
 | `runCode()` | Run the current editor code on the main and breakout instances. |
 | `runCodeOn(instance)` | Run the current editor code on one specific hydra instance only. |
 | `renderLoop` | The main instance's animation loop: `stop()`, `start()`, `isRunning()`. |
+| `getRunningSketch()` | The last sketch that ran on the main instance, `{ setup, main }`, or `null`. |
+| `setUiCycleStep(step)` | Add a step to Ctrl/⌘+` while the UI is hidden: the first press after hiding calls `step()` instead of bringing the UI back (the code overlay plugin switches the code with it). `null` removes it. |
 | `setSketchRunner(runner)` | Run the main instance's sketches somewhere else: `runner({ setup, main })` resolves to `{ success, message?, runId? }`. `null` runs them on the main instance again. The desktop mirror plugin uses it. |
 | `events` | App-wide event bus: `on(event, fn)`, `once`, `off`, `emit(event, payload)`. |
 | `storage` | Quota-safe localStorage wrapper: `get`, `set`, `remove`, `getJSON`, `setJSON`, `keys(prefix)`. Never throws. |
@@ -79,6 +82,12 @@ export function createMyPlugin() {
 | `plugins:ready` | `{ ids }` | All plugins finished setup. |
 | `plugin:activated` / `plugin:error` / `plugin:removed` | `{ id, ... }` | Plugin lifecycle changes. |
 | `ui:visibility` | `{ visible }` | The UI is hidden/shown (Ctrl/⌘+`, Esc). |
+| `overlay:changed` | `{ visible, slots, blendMode, opacity }` | The code overlay's settings changed, or were loaded (code overlay plugin; the output sync plugin sends them to the outputs, as it does the three below). |
+| `overlay:editor` | `{ tab, code, anchor, head, dirty, changed, removed }` | What the code overlay shows of the editor changed: at most every 66ms while you type, and only while it is on (see `src/client/core/editorSnapshot.js`). |
+| `overlay:slots` | `{ scene, slot, scenes, slots }` | The scenes and slots the code overlay shows changed. |
+| `overlay:flash` | — | The code overlay flashed with the editor. |
+| `editor:flash` | — | The editor lit its code up to show a run (Run button, Ctrl/⌘+Enter). |
+| `slots:changed` | `{ scene, slot, scenes, slots }` | The active scene or slot changed, or which slots hold a sketch (the slots panel; `scenes` and `slots` are booleans). |
 | `sketch:shared` | `{ url }` | A sketch link was copied (URL share plugin). |
 | `sketch:loaded-from-url` | `{}` | A sketch was loaded from a `#sketch=` URL. |
 | `audio:suspended` / `audio:flatline` / `audio:recovered` | `{ at }` | Audio watchdog state changes. |
