@@ -34,10 +34,13 @@ version and the desktop app share one version number; see
 
 ### Fixed
 
-- The nanoPAD2's pads keep working after you switch scenes on it, in the
-  desktop app too, where the scene button's message doesn't always reach
-  HYDRACTRL. Each scene's pads play their own notes, so the first pad you
-  press on another scene now switches to that scene and selects its slot.
+- The nanoPAD2's scene button works in the desktop app on macOS. The app ran
+  on Chromium 152 (Electron 44), whose Web MIDI on macOS loses the start and
+  end of SysEx messages, which is how the nanoPAD2 reports its scene. It now
+  runs on Electron 45 (Chromium 156), where that is fixed.
+- Should a scene change on the nanoPAD2 ever go unnoticed, its pads still
+  work: each scene's pads play their own notes, so the first pad you press on
+  another scene switches to that scene and selects its slot.
 
 ## [1.2.0] - 2026-10-10
 
