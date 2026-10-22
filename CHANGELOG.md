@@ -8,6 +8,16 @@ version and the desktop app share one version number; see
 
 ## [Unreleased]
 
+### Changed
+
+- **Code overlay**: a quieter, squarer look. The code is set in Fira Code
+  with its ligatures, as in the editor, with subtle colors that set comments,
+  strings and numbers apart. Marks replace the words: a filled square while
+  the code on screen runs, a hollow one once it is edited, and two small tabs
+  while you edit Setup; the cursor is a block. The scenes and slots moved to
+  the top right corner, clear of hydra's audio bins, and lines beside them
+  wrap short of them.
+
 ## [1.2.1] - 2026-10-22
 
 Show your code to the audience: a live code overlay on the Syphon and Spout

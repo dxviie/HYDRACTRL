@@ -1,20 +1,23 @@
 /**
  * The code overlay: the editor's code drawn over the visuals as you type, the
- * way hydra's own editor shows it, with a blend mode and an opacity of its
- * own. A tag says whether that code is running or edited since it last ran,
- * a mark in the margin shows each line that differs, the cursor and the
- * selection show where you are, and the code flashes when it runs. A small
- * indicator in the corner shows the scenes and slots: which hold a saved
- * sketch, and which is active. Every output draws it (the /output page, so
- * the desktop app's Syphon/Spout output too, and the breakout window), and
- * the interface draws it while its UI is hidden (plugins/CodeOverlayPlugin.js).
+ * way hydra's own editor shows it, in Fira Code with its ligatures, its
+ * comments, strings and numbers set apart, and with a blend mode and an
+ * opacity of its own. No words, only marks: a square above the code is
+ * filled while that code runs and hollow once it is edited since, a bar in
+ * the margin shows each line that differs, a block cursor and the selection
+ * show where you are, and the code flashes when it runs. A small indicator
+ * in the top right corner (hydra's audio bins take the bottom right) shows
+ * the scenes and slots: which hold a saved sketch, and which is active.
+ * Every output draws it (the /output page, so the desktop app's Syphon/Spout
+ * output too, and the breakout window), and the interface draws it while its
+ * UI is hidden (plugins/CodeOverlayPlugin.js).
  *
  * The settings are pure data, `{ visible, slots, blendMode, opacity }`, and
  * so is what the overlay shows (core/editorSnapshot.js); both go to the
  * outputs over the output socket (src/server/outputHub.ts). The view is
  * plain DOM, so the frames an output shares carry it.
  */
-import { lineSegments } from "./editorSnapshot.js";
+import { codeTokens, lineSegments } from "./editorSnapshot.js";
 
 /** CSS mix-blend-mode values; the desktop app's settings keep the same list. */
 export const BLEND_MODES = Object.freeze([
@@ -124,6 +127,8 @@ const FONT_URL = "/assets/fonts/fira-code-latin-wght.woff2";
 const EDITED = "#ffc94d";
 const RUNNING = "#7dffb3";
 const FLASH = "rgba(144, 0, 255, 0.85)";
+/** The slabs behind the code, the marks and the scenes and slots */
+const SLAB = "rgba(0, 0, 0, 0.7)";
 
 function overlayCss(fontUrl) {
   return `
@@ -144,8 +149,8 @@ function overlayCss(fontUrl) {
   color: #fff;
   font-family: "HYDRACTRL Overlay Code", "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas,
     monospace;
-  font-weight: 450;
-  font-variant-ligatures: none;
+  font-weight: 500;
+  font-variant-ligatures: contextual;
 }
 .hydractrl-code-overlay[hidden],
 .hydractrl-code-overlay [hidden] {
@@ -162,48 +167,91 @@ function overlayCss(fontUrl) {
   overflow-wrap: anywhere;
   tab-size: ${TAB_WIDTH};
 }
+.hco-clear { float: right; }
 .hco-tag {
-  margin-bottom: 0.35em;
+  margin-bottom: 0.25em;
   font-size: 0.72em;
-  letter-spacing: 0.08em;
+  line-height: 1;
 }
-.hco-tag.hco-running { color: ${RUNNING}; }
-.hco-tag.hco-edited { color: ${EDITED}; }
-.hco-tab { margin-right: 0.6em; color: #fff; }
+.hco-marks {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.3em;
+  background-color: ${SLAB};
+  transition: background-color 0.35s ease-out;
+}
+.hco-state {
+  width: 0.7em;
+  height: 0.7em;
+  box-sizing: border-box;
+}
+.hco-running .hco-state { background-color: ${RUNNING}; }
+.hco-edited .hco-state { border: 0.14em solid ${EDITED}; }
+.hco-tabs {
+  display: flex;
+  gap: 0.14em;
+}
+.hco-tabs span {
+  width: 0.5em;
+  height: 0.7em;
+  box-sizing: border-box;
+  border: 0.1em solid rgba(255, 255, 255, 0.6);
+}
+.hco-tabs span + span {
+  border-color: #fff;
+  background-color: #fff;
+}
 .hco-line {
   position: relative;
   min-height: ${LINE_HEIGHT}em;
 }
 .hco-ink {
   padding: 0 ${LINE_PADDING}em;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: ${SLAB};
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
   transition: background-color 0.35s ease-out;
 }
-.hco-flash .hco-ink {
+.hco-flash .hco-ink,
+.hco-flash .hco-marks {
   background-color: ${FLASH};
   transition: none;
 }
+.hco-comment { color: #8f8f8f; }
+.hco-string { color: #bfe3ff; }
+.hco-number { color: #ffd8a8; }
+.hco-keyword { color: #dcc6ff; }
+.hco-punctuation { color: #c4c4c4; }
 .hco-selected {
   background-color: rgba(110, 150, 255, 0.6);
 }
+/* A block that turns the character under it inside out, as tall as the
+   backdrop: Fira Code rises 1em above the baseline and drops 0.31em below */
 .hco-caret {
+  position: relative;
   display: inline-block;
   width: 0;
-  height: 1.15em;
-  margin: 0 -0.06em;
-  border-left: 0.12em solid #fff;
-  vertical-align: -0.22em;
+  height: 1.31em;
+  vertical-align: -0.31em;
+}
+.hco-caret::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1ch;
+  background-color: #fff;
+  mix-blend-mode: difference;
 }
 .hco-changed::before {
   content: "";
   position: absolute;
-  left: -0.6em;
-  top: 0.12em;
-  bottom: 0.12em;
-  width: 0.22em;
-  border-radius: 0.11em;
+  left: -0.55em;
+  top: 0.1em;
+  bottom: 0.1em;
+  width: 0.25em;
   background-color: ${EDITED};
 }
 .hco-removed::after {
@@ -217,58 +265,49 @@ function overlayCss(fontUrl) {
 }
 .hco-slots {
   position: absolute;
+  top: var(--hco-margin);
   right: var(--hco-margin);
-  bottom: var(--hco-margin);
   display: flex;
   flex-direction: column;
-  gap: 0.5em;
-  padding: 0.6em 0.7em 0.7em;
-  border-radius: 0.35em;
-  background-color: rgba(0, 0, 0, 0.6);
+  gap: 0.45em;
+  padding: 0.5em;
+  background-color: ${SLAB};
   font-size: 1.9vh;
-  line-height: 1;
-  letter-spacing: 0.08em;
 }
 .hco-scenes {
   display: flex;
-  align-items: center;
-  gap: 0.45em;
-  font-size: 0.85em;
+  gap: 0.3em;
 }
-.hco-scene-label { margin-right: 0.3em; }
-.hco-dot {
-  width: 0.65em;
-  height: 0.65em;
+.hco-scene {
+  width: 0.55em;
+  height: 0.55em;
   box-sizing: border-box;
-  border-radius: 50%;
-  border: 0.1em solid rgba(255, 255, 255, 0.6);
+  border: 0.1em solid rgba(255, 255, 255, 0.5);
 }
-.hco-dot.hco-filled {
+.hco-scene.hco-filled {
   border-color: transparent;
-  background-color: rgba(255, 255, 255, 0.55);
+  background-color: rgba(255, 255, 255, 0.45);
 }
-.hco-dot.hco-current {
+.hco-scene.hco-current {
   border-color: #fff;
   background-color: #fff;
-  transform: scale(1.3);
 }
 .hco-grid {
   display: grid;
-  grid-template-columns: repeat(8, 1.15em);
-  gap: 0.3em;
+  grid-template-columns: repeat(8, 1.1em);
+  grid-auto-rows: 1.1em;
+  gap: 0.25em;
 }
 .hco-cell {
-  height: 1.15em;
   box-sizing: border-box;
-  border-radius: 0.2em;
-  border: 0.1em solid rgba(255, 255, 255, 0.45);
+  border: 0.1em solid rgba(255, 255, 255, 0.4);
 }
 .hco-cell.hco-saved {
   border-color: transparent;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.75);
 }
 .hco-cell.hco-active {
-  border: 0.16em solid #fff;
+  border: 0.18em solid #fff;
 }
 .hco-cell.hco-active.hco-saved {
   background-color: #a64dff;
@@ -309,15 +348,22 @@ export function createCodeOverlayView(container, { doc = container.ownerDocument
   root.setAttribute("aria-hidden", "true");
   root.hidden = true;
   const code = create("div", "hco-code");
+  // Room for the scenes and slots: lines beside them wrap short of them
+  const clear = create("div", "hco-clear");
   const tag = create("div", "hco-tag");
+  const marks = create("span", "hco-marks");
+  // Shown while the Setup tab is: the second of two tabs
+  const tabs = create("span", "hco-tabs");
+  tabs.append(create("span"), create("span"));
+  marks.append(tabs, create("span", "hco-state"));
+  tag.append(marks);
   const lines = create("div", "hco-lines");
-  code.append(tag, lines);
+  code.append(clear, tag, lines);
 
   const slotsBlock = create("div", "hco-slots");
   const scenes = create("div", "hco-scenes");
-  const sceneLabel = create("span", "hco-scene-label");
-  const dots = Array.from({ length: 4 }, () => create("span", "hco-dot"));
-  scenes.append(sceneLabel, ...dots);
+  const dots = Array.from({ length: 4 }, () => create("span", "hco-scene"));
+  scenes.append(...dots);
   const grid = create("div", "hco-grid");
   const cells = Array.from({ length: 16 }, () => create("span", "hco-cell"));
   grid.append(...cells);
@@ -334,6 +380,8 @@ export function createCodeOverlayView(container, { doc = container.ownerDocument
   let codeStale = false;
   let slotsStale = false;
   let flashTimer = null;
+  // Between the code and the scenes and slots (px)
+  let gap = 0;
 
   function layout() {
     const width = view?.innerWidth || container.clientWidth || 1280;
@@ -346,46 +394,52 @@ export function createCodeOverlayView(container, { doc = container.ownerDocument
     );
     root.style.setProperty("--hco-size", `${fontSize}px`);
     root.style.setProperty("--hco-margin", `${margin}px`);
+    gap = margin / 2;
+    clearSlots();
   }
 
-  function renderTag() {
-    tag.className = `hco-tag ${snapshot.dirty ? "hco-edited" : "hco-running"}`;
-    const status = create("span", "hco-ink");
-    status.textContent = snapshot.dirty ? "○ EDITED · NOT RUNNING" : "● RUNNING";
-    if (snapshot.tab === "setup") {
-      const label = create("span", "hco-ink hco-tab");
-      label.textContent = "SETUP";
-      tag.replaceChildren(label, status);
-    } else {
-      tag.replaceChildren(status);
-    }
+  function clearSlots() {
+    clear.hidden = slotsBlock.hidden;
+    if (clear.hidden) return;
+    clear.style.width = `${slotsBlock.offsetWidth + gap}px`;
+    clear.style.height = `${slotsBlock.offsetHeight}px`;
   }
 
   function renderCode() {
     codeStale = false;
     code.hidden = snapshot === null;
     if (!snapshot) return;
-    renderTag();
+    // Running or edited since, and which tab
+    tag.className = `hco-tag ${snapshot.dirty ? "hco-edited" : "hco-running"}`;
+    tabs.hidden = snapshot.tab !== "setup";
     const changed = new Set(snapshot.changed);
     const removed = new Set(snapshot.removed);
+    const tokens = codeTokens(snapshot.code);
     const texts = snapshot.code.split("\n");
     const fragment = doc.createDocumentFragment();
     let from = 0;
+    let first = 0;
     texts.forEach((text, index) => {
       const line = create("div", "hco-line");
       if (changed.has(index)) line.classList.add("hco-changed");
       if (removed.has(index)) line.classList.add("hco-removed");
-      const segments = lineSegments(text, from, snapshot);
+      // The tokens on this line
+      const to = from + text.length;
+      while (first < tokens.length && tokens[first].to <= from) first++;
+      let last = first;
+      while (last < tokens.length && tokens[last].from < to) last++;
+      const segments = lineSegments(text, from, snapshot, tokens.slice(first, last));
       if (segments.length > 0) {
         // A backdrop behind each line with text in it, none behind blank ones
         const ink = create("span", text.trim() === "" ? "hco-blank" : "hco-ink");
         for (const segment of segments) {
           if (segment.caret) {
             ink.append(create("span", "hco-caret"));
-          } else if (segment.selected) {
-            const selected = create("span", "hco-selected");
-            selected.textContent = segment.text;
-            ink.append(selected);
+          } else if (segment.selected || segment.kind) {
+            const span = create("span", segment.kind ? `hco-${segment.kind}` : "");
+            if (segment.selected) span.classList.add("hco-selected");
+            span.textContent = segment.text;
+            ink.append(span);
           } else {
             ink.append(segment.text);
           }
@@ -403,8 +457,8 @@ export function createCodeOverlayView(container, { doc = container.ownerDocument
   function renderSlots() {
     slotsStale = false;
     slotsBlock.hidden = !slotsShown || slots === null;
+    clearSlots();
     if (slotsBlock.hidden) return;
-    sceneLabel.textContent = `SCENE ${slots.scene + 1}`;
     dots.forEach((dot, index) => {
       dot.classList.toggle("hco-filled", slots.scenes[index]);
       dot.classList.toggle("hco-current", index === slots.scene);

@@ -80,7 +80,7 @@ const browser = await chromium.launch({
   system panel's CODE OVERLAY section (expand with `.stats-toggle`) has
   `#code-overlay-visible`, `#code-overlay-slots`, `.code-overlay-blend` and
   `.code-overlay-opacity`, kept in `hydractrl-code-overlay`. With it on, an
-  `/output` page follows typing: `.hco-tag` reads RUNNING or EDITED, edited
+  `/output` page follows typing: `.hco-tag` has `hco-running` or `hco-edited`, edited
   lines get `.hco-changed`, `.hco-caret` is the cursor, Ctrl+Enter adds
   `.hco-flash` for 160ms, and `.hco-slots` shows the scenes and slots. Keep
   the interface page in front while typing (`page.bringToFront()`): Chromium

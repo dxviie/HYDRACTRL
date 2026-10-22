@@ -5,12 +5,12 @@
  * core/codeOverlay.js). While it is on, every output draws the editor's code
  * as it is being typed: the /output pages, so the desktop app's Syphon/Spout
  * output too (the output sync plugin sends them what to draw), and the
- * breakout window. A tag says whether that code runs or was edited since,
+ * breakout window. A mark shows whether that code runs or was edited since,
  * marks show the lines that differ from what runs, the cursor shows where
  * you type, the code flashes when the editor does (a run from the Run button
- * or Ctrl/⌘+Enter), and a corner shows the scenes and slots. The interface
- * draws it while its UI is hidden; in the desktop app it shows the output's
- * own frames then, which carry it already.
+ * or Ctrl/⌘+Enter), and the top right corner shows the scenes and slots. The
+ * interface draws it while its UI is hidden; in the desktop app it shows the
+ * output's own frames then, which carry it already.
  *
  * The editor is read a few times a second at most (EDITOR_UPDATE_MS), and
  * only while the overlay is on, so typing never costs the visuals a frame.

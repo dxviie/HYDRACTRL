@@ -198,12 +198,45 @@ export function normalizeSlotsState(raw) {
   };
 }
 
+const KEYWORDS = new Set(
+  `async await break case catch class const continue default delete do else export extends
+  finally for function if import in instanceof let new of return static switch this throw try
+  typeof var void while yield`.split(/\s+/),
+);
+/** Colored like numbers, as the editor does */
+const ATOMS = new Set(["true", "false", "null", "undefined", "NaN", "Infinity"]);
+// Comments, strings, numbers, words, and runs of punctuation and operators
+const TOKEN =
+  /(\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$))|("(?:\\.|[^"\\\n])*"?|'(?:\\.|[^'\\\n])*'?|`(?:\\[\s\S]|[^`\\])*`?)|(\b0[xX][\da-fA-F]+|(?:\b\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)|([A-Za-z_$][\w$]*)|((?:\.(?!\d)|\/(?![/*])|[()[\]{},;:?=+\-*%<>!&|^~])+)/g;
+
+/**
+ * The parts of the code the overlay colors, in order and not overlapping:
+ * `{ from, to, kind }`, kind being "comment", "string", "number", "keyword"
+ * or "punctuation". Everything else (names, calls, spaces) stays plain. A
+ * quick scan rather than a parse: enough to tell comments from code.
+ */
+export function codeTokens(code) {
+  const tokens = [];
+  for (const match of String(code ?? "").matchAll(TOKEN)) {
+    const [text, comment, string, number, word] = match;
+    let kind = "punctuation";
+    if (comment) kind = "comment";
+    else if (string) kind = "string";
+    else if (number || ATOMS.has(word)) kind = "number";
+    else if (word) kind = KEYWORDS.has(word) ? "keyword" : null;
+    if (kind) tokens.push({ from: match.index, to: match.index + text.length, kind });
+  }
+  return tokens;
+}
+
 /**
  * How to draw one line of a snapshot that starts at offset `from` of its
  * code: its text cut where the selection starts and ends, each piece marked
- * selected or not, with `{ caret: true }` where the cursor is.
+ * selected or not, with `{ caret: true }` where the cursor is. With the
+ * code's tokens (codeTokens), it is cut where they start and end too, and a
+ * piece inside one has its `kind`.
  */
-export function lineSegments(text, from, { anchor, head }) {
+export function lineSegments(text, from, { anchor, head }, tokens = []) {
   const to = from + text.length;
   const hasCursor = head >= 0;
   const selFrom = hasCursor && anchor >= 0 ? Math.min(anchor, head) : -1;
@@ -212,18 +245,27 @@ export function lineSegments(text, from, { anchor, head }) {
   for (const point of [selFrom, selTo]) {
     if (point > from && point < to) cuts.add(point - from);
   }
+  for (const token of tokens) {
+    for (const point of [token.from, token.to]) {
+      if (point > from && point < to) cuts.add(point - from);
+    }
+  }
   const caretAt = hasCursor && head >= from && head <= to ? head - from : -1;
   if (caretAt >= 0) cuts.add(caretAt);
   const points = [...cuts].sort((x, y) => x - y);
 
   const segments = [];
+  let t = 0;
   for (let k = 0; k < points.length; k++) {
     const at = points[k];
     if (at === caretAt) segments.push({ caret: true });
     const next = points[k + 1];
     if (next === undefined || next === at) continue;
     const selected = selFrom < selTo && from + at >= selFrom && from + next <= selTo;
-    segments.push({ text: text.slice(at, next), selected });
+    const segment = { text: text.slice(at, next), selected };
+    while (t < tokens.length && tokens[t].to <= from + at) t++;
+    if (t < tokens.length && tokens[t].from <= from + at) segment.kind = tokens[t].kind;
+    segments.push(segment);
   }
   return segments;
 }
