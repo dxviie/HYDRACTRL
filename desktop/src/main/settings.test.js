@@ -73,9 +73,14 @@ describe("validateSettings", () => {
 
   test("keeps the code overlay to known blend modes and an opacity from 0 to 1", () => {
     const custom = validateSettings({
-      codeOverlay: { visible: true, blendMode: "difference", opacity: 0.456 },
+      codeOverlay: { visible: true, slots: false, blendMode: "difference", opacity: 0.456 },
     });
-    expect(custom.codeOverlay).toEqual({ visible: true, blendMode: "difference", opacity: 0.46 });
+    expect(custom.codeOverlay).toEqual({
+      visible: true,
+      slots: false,
+      blendMode: "difference",
+      opacity: 0.46,
+    });
     expect(validateSettings({ codeOverlay: { opacity: 3 } }).codeOverlay.opacity).toBe(1);
     expect(validateSettings({ codeOverlay: { opacity: -1 } }).codeOverlay.opacity).toBe(0);
     const garbage = validateSettings(

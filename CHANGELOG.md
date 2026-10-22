@@ -10,11 +10,20 @@ version and the desktop app share one version number; see
 
 ### Added
 
-- **Code overlay**: show the running sketch's code over the visuals, the way
+- **Code overlay**: show your code over the visuals as you type it, the way
   hydra's own editor does, with a blend mode and an opacity of its own. While
   it's on, every output draws it: the desktop app's Syphon/Spout output,
   `/output` pages and the breakout window. The interface draws it while its
   UI is hidden.
+  - It follows the editor about 15 times a second, cursor and selection
+    included, so the audience can follow along without costing the visuals
+    a frame. It shows the Setup tab while you edit that.
+  - A tag says whether the code on screen is RUNNING or EDITED since it last
+    ran, and a mark in the margin shows each line that differs from what
+    runs. The code flashes when it runs, like it does in the editor.
+  - A corner shows the scenes and slots: which slots hold a saved sketch,
+    which scenes have any, and which slot is active. Turn it off with "With
+    scenes and slots".
   - Switch it on and pick the blend mode and opacity in the system panel,
     under CODE OVERLAY, or in the desktop app with **Output › Show Code on
     Output**.

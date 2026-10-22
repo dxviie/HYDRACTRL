@@ -14,7 +14,11 @@
  *   client -> hub   { type: "hello", role: "controller" | "output", primary? }
  *   controller -> hub { type: "sketch", setup, main, runId? } fan-out to outputs
  *   controller -> hub { type: "state", nanoX?, nanoY? }      fan-out to outputs
- *   controller -> hub { type: "overlay", visible, blendMode?, opacity? } fan-out to outputs
+ *   controller -> hub { type: "overlay", visible, slots?, blendMode?, opacity? } fan-out to outputs
+ *   controller -> hub { type: "editor", tab, code, anchor, head, dirty, changed, removed }
+ *                                                            fan-out to outputs
+ *   controller -> hub { type: "slots", scene, slot, scenes, slots } fan-out to outputs
+ *   controller -> hub { type: "flash" }                       fan-out to outputs
  *   controller -> hub { type: "run", id, setup, main }       to primary outputs only
  *   output -> hub   { type: "result", id, success, message? } to the controller that asked
  *   output -> hub   { type: "error", message }               fan-out to controllers
@@ -73,8 +77,39 @@ export interface StateMessage {
 export interface OverlayMessage {
   type: "overlay";
   visible: boolean;
+  /** The scenes and slots indicator. */
+  slots?: boolean;
   blendMode?: string;
   opacity?: number;
+}
+
+/** What the code overlay shows of the editor (see src/client/core/editorSnapshot.js). */
+export interface EditorMessage {
+  type: "editor";
+  tab: "main" | "setup";
+  code: string;
+  /** The cursor, as offsets into `code`; -1 for none. */
+  anchor: number;
+  head: number;
+  /** The code differs from the sketch that runs. */
+  dirty: boolean;
+  /** Lines that differ from the sketch that runs, and where lines were taken out. */
+  changed: number[];
+  removed: number[];
+}
+
+/** The scenes and slots for the code overlay's indicator. */
+export interface SlotsMessage {
+  type: "slots";
+  scene: number;
+  slot: number;
+  scenes: boolean[];
+  slots: boolean[];
+}
+
+/** The code just ran: the code overlay flashes. */
+export interface FlashMessage {
+  type: "flash";
 }
 
 export interface ErrorMessage {
@@ -87,6 +122,9 @@ export type IncomingMessage =
   | SketchMessage
   | StateMessage
   | OverlayMessage
+  | EditorMessage
+  | SlotsMessage
+  | FlashMessage
   | RunMessage
   | ResultMessage
   | ErrorMessage;
@@ -113,6 +151,9 @@ export type OutgoingMessage =
   | SketchMessage
   | StateMessage
   | OverlayMessage
+  | EditorMessage
+  | SlotsMessage
+  | FlashMessage
   | RunMessage
   | ResultMessage
   | NoOutputResultMessage
@@ -143,8 +184,35 @@ function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
 
+/** Upper bound for the line numbers an editor message marks. */
+export const MAX_MARKED_LINES = 10_000;
+/** Upper bound for the scenes and the slots of a scene. */
+const MAX_SLOTS = 64;
+
 /** A CSS blend mode's shape; the output page only applies the ones it knows. */
 const BLEND_MODE_PATTERN = /^[a-z-]{1,32}$/;
+
+function isIndex(value: unknown, below: number): value is number {
+  return Number.isInteger(value) && (value as number) >= 0 && (value as number) < below;
+}
+
+/** A cursor offset into code of this length, or -1 for none. */
+function toOffset(value: unknown, length: number): number {
+  if (!isFiniteNumber(value) || value < 0) return -1;
+  return Math.min(Math.round(value), length);
+}
+
+function toLineNumbers(value: unknown): number[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .slice(0, MAX_MARKED_LINES)
+    .filter((line): line is number => isIndex(line, Number.MAX_SAFE_INTEGER));
+}
+
+function toFlags(value: unknown): boolean[] {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, MAX_SLOTS).map((flag) => flag === true);
+}
 
 function isRunId(value: unknown): value is string {
   return typeof value === "string" && value.length > 0 && value.length <= MAX_RUN_ID_LENGTH;
@@ -214,6 +282,7 @@ export function parseIncomingMessage(raw: unknown): IncomingMessage | null {
     case "overlay": {
       if (typeof message.visible !== "boolean") return null;
       const overlay: OverlayMessage = { type: "overlay", visible: message.visible };
+      if (typeof message.slots === "boolean") overlay.slots = message.slots;
       if (typeof message.blendMode === "string" && BLEND_MODE_PATTERN.test(message.blendMode)) {
         overlay.blendMode = message.blendMode;
       }
@@ -222,6 +291,30 @@ export function parseIncomingMessage(raw: unknown): IncomingMessage | null {
       }
       return overlay;
     }
+    case "editor": {
+      if (typeof message.code !== "string" || message.code.length > MAX_SKETCH_LENGTH) return null;
+      return {
+        type: "editor",
+        tab: message.tab === "setup" ? "setup" : "main",
+        code: message.code,
+        anchor: toOffset(message.anchor, message.code.length),
+        head: toOffset(message.head, message.code.length),
+        dirty: message.dirty === true,
+        changed: toLineNumbers(message.changed),
+        removed: toLineNumbers(message.removed),
+      };
+    }
+    case "slots":
+      if (!isIndex(message.scene, MAX_SLOTS) || !isIndex(message.slot, MAX_SLOTS)) return null;
+      return {
+        type: "slots",
+        scene: message.scene,
+        slot: message.slot,
+        scenes: toFlags(message.scenes),
+        slots: toFlags(message.slots),
+      };
+    case "flash":
+      return { type: "flash" };
     case "error":
       if (typeof message.message !== "string") return null;
       return { type: "error", message: message.message.slice(0, MAX_ERROR_LENGTH) };
@@ -240,6 +333,8 @@ export function createOutputHub({ log = () => {} }: OutputHubOptions = {}) {
   let lastSketch: SketchMessage | null = null;
   let lastState: StateMessage | null = null;
   let lastOverlay: OverlayMessage | null = null;
+  let lastEditor: EditorMessage | null = null;
+  let lastSlots: SlotsMessage | null = null;
   /** Runs sent to the primary outputs: run id -> id of the controller that asked. */
   const pendingRuns = new Map<string, string>();
 
@@ -350,6 +445,8 @@ export function createOutputHub({ log = () => {} }: OutputHubOptions = {}) {
           }
           if (lastState) deliver(client, lastState);
           if (lastOverlay) deliver(client, lastOverlay);
+          if (lastEditor) deliver(client, lastEditor);
+          if (lastSlots) deliver(client, lastSlots);
           announceOutputs();
         } else {
           deliver(client, outputsStatus());
@@ -394,8 +491,13 @@ export function createOutputHub({ log = () => {} }: OutputHubOptions = {}) {
         broadcast("output", parsed);
         return true;
       case "overlay":
+      case "editor":
+      case "slots":
+      case "flash":
         if (client.role !== "controller") return false;
-        lastOverlay = parsed;
+        if (parsed.type === "overlay") lastOverlay = parsed;
+        else if (parsed.type === "editor") lastEditor = parsed;
+        else if (parsed.type === "slots") lastSlots = parsed;
         broadcast("output", parsed);
         return true;
       case "error":
@@ -418,6 +520,7 @@ export function createOutputHub({ log = () => {} }: OutputHubOptions = {}) {
     getLastSketch: () => lastSketch,
     getLastState: () => lastState,
     getLastOverlay: () => lastOverlay,
+    getLastEditor: () => lastEditor,
   };
 }
 

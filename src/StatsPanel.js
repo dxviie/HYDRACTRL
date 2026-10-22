@@ -676,6 +676,27 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   codeOverlayOption.appendChild(codeOverlayCheckbox);
   codeOverlayOption.appendChild(codeOverlayLabel);
 
+  const slotsOverlayOption = document.createElement("div");
+  slotsOverlayOption.style.display = "flex";
+  slotsOverlayOption.style.alignItems = "center";
+  slotsOverlayOption.style.gap = "8px";
+  slotsOverlayOption.title = "Which slots hold a saved sketch, and the active one, in a corner";
+
+  const slotsOverlayCheckbox = document.createElement("input");
+  slotsOverlayCheckbox.type = "checkbox";
+  slotsOverlayCheckbox.id = "code-overlay-slots";
+  slotsOverlayCheckbox.style.cursor = "pointer";
+
+  const slotsOverlayLabel = document.createElement("label");
+  slotsOverlayLabel.htmlFor = "code-overlay-slots";
+  slotsOverlayLabel.textContent = "With scenes and slots";
+  slotsOverlayLabel.style.fontSize = "11px";
+  slotsOverlayLabel.style.color = "var(--color-text-primary)";
+  slotsOverlayLabel.style.cursor = "pointer";
+
+  slotsOverlayOption.appendChild(slotsOverlayCheckbox);
+  slotsOverlayOption.appendChild(slotsOverlayLabel);
+
   const blendSelect = document.createElement("select");
   blendSelect.className = "code-overlay-blend";
   blendSelect.title = "How the code blends with the visuals";
@@ -723,6 +744,7 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
 
   codeOverlaySection.appendChild(codeOverlayTitle);
   codeOverlaySection.appendChild(codeOverlayOption);
+  codeOverlaySection.appendChild(slotsOverlayOption);
   codeOverlaySection.appendChild(blendSelect);
   codeOverlaySection.appendChild(codeOpacityRow);
 
@@ -1083,6 +1105,7 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
     codeOverlay: {
       section: codeOverlaySection,
       checkbox: codeOverlayCheckbox,
+      slotsCheckbox: slotsOverlayCheckbox,
       blendSelect,
       opacitySlider: codeOpacitySlider,
       showOpacity: showCodeOpacity,

@@ -3,8 +3,9 @@
  *
  * Runs one full-window hydra instance and mirrors whatever the HYDRACTRL UI
  * plays, received over the server's output socket: the sketch on every run,
- * the XY-pad values, and the code overlay, which draws the code of the
- * sketch playing here over the visuals when the interface turns it on.
+ * the XY-pad values, and the code overlay, which draws the editor's code
+ * over the visuals as it is being typed, with the scenes and slots, when the
+ * interface turns it on.
  * Meant to be captured by the companion output app (Syphon/Spout/NDI), an
  * OBS browser source, a TouchDesigner Web Render TOP, or simply opened on a
  * second screen.
@@ -19,6 +20,11 @@
  */
 import { createReconnectingSocket } from "./core/ReconnectingSocket.js";
 import { createCodeOverlayView, normalizeCodeOverlay } from "./core/codeOverlay.js";
+import {
+  normalizeEditorSnapshot,
+  normalizeSlotsState,
+  runningSnapshot,
+} from "./core/editorSnapshot.js";
 import { buildOutputSocketUrl, detectOutputServer } from "./core/outputProtocol.js";
 import { createPrimaryRunner } from "./core/primaryRunner.js";
 import { executeSketch } from "./core/sketchRunner.js";
@@ -99,17 +105,20 @@ async function init() {
     // Part of the page, so the frames the desktop app shares carry it
     const codeOverlay = createCodeOverlayView(document.getElementById("hydra-canvas"));
     let overlaySettings = normalizeCodeOverlay(null);
+    // Until the interface sends the editor, the overlay shows the code that runs here
+    let followsEditor = false;
 
     function applyOverlay(message) {
       overlaySettings = normalizeCodeOverlay(message, overlaySettings);
       codeOverlay.setStyle(overlaySettings);
+      codeOverlay.setSlotsShown(overlaySettings.slots);
       codeOverlay.setShown(overlaySettings.visible);
     }
 
     function showRunning(sketch) {
       hasRunSketch = true;
       clearStatus();
-      codeOverlay.setCode(sketch.main);
+      if (!followsEditor) codeOverlay.setEditor(runningSnapshot(sketch.main));
       console.log("[output] sketch running");
     }
 
@@ -167,6 +176,13 @@ async function init() {
           if (typeof message.nanoY === "number") window.nanoY = message.nanoY;
         } else if (message.type === "overlay") {
           applyOverlay(message);
+        } else if (message.type === "editor") {
+          followsEditor = true;
+          codeOverlay.setEditor(normalizeEditorSnapshot(message));
+        } else if (message.type === "slots") {
+          codeOverlay.setSlots(normalizeSlotsState(message));
+        } else if (message.type === "flash") {
+          codeOverlay.flash();
         }
       },
       onClose: () => {

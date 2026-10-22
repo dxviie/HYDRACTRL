@@ -61,6 +61,9 @@ const DEFAULT_CODE = sketchSource(SKETCHES[0]);
 // frames); null runs them on the main instance itself
 let mainSketchRunner = null;
 
+// The last sketch that ran on the main instance, { setup, main }
+let runningSketch = null;
+
 // The XY pad's values, for sketches that use them. The pad and MIDI take
 // over on computers and tablets; on phones they stay centred instead of undefined.
 window.nanoX ??= 0.5;
@@ -216,7 +219,11 @@ function initEditor() {
       }
     },
     focus: () => editor.focus(),
-    flash: () => editor.flash(),
+    // The code lights up to show it ran; the code overlay flashes with it
+    flash: () => {
+      editor.flash();
+      events.emit("editor:flash");
+    },
     // Add the raw editor object for direct access if needed
     _editor: editor,
   };
@@ -371,6 +378,7 @@ async function runCode(editor, hydra) {
     // Let plugins react to a successful run on the main instance
     // (the output-sync plugin mirrors it to external render heads)
     if (hydra === window.mainHydra) {
+      runningSketch = sketch;
       events.emit("sketch:run", result.runId ? { ...sketch, runId: result.runId } : sketch);
     }
     return true;
@@ -829,6 +837,8 @@ async function init() {
     const slotsPanel = createSlotsPanel(editor, hydra, runCode, isMobile, {
       // Don't let slot 0 overwrite a sketch that was loaded from the URL
       keepEditorContent: urlSketch !== null,
+      // For the code overlay's scenes and slots indicator
+      onChange: (state) => events.emit("slots:changed", state),
     });
 
     if (!isMobile) {
@@ -892,6 +902,8 @@ async function init() {
       setSketchRunner: (runner) => {
         mainSketchRunner = typeof runner === "function" ? runner : null;
       },
+      // The last sketch that ran on the main instance, { setup, main }, or null
+      getRunningSketch: () => (runningSketch ? { ...runningSketch } : null),
       // Add a step to Ctrl/⌘+` while the UI is hidden: the first press after
       // hiding calls step() instead of bringing the UI back; null removes it
       setUiCycleStep: (step) => {

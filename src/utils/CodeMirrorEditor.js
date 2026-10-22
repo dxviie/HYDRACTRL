@@ -256,6 +256,19 @@ function watchFileDrops(view, handler) {
  * @returns {Object} Editor object with API methods
  */
 export function createCodeMirrorEditor(container, initialCode = "") {
+  // Called whenever the code or the cursor changes (see onUpdate below)
+  const updateListeners = new Set();
+  const notifyUpdates = EditorView.updateListener.of((update) => {
+    if (!update.docChanged && !update.selectionSet) return;
+    for (const listener of updateListeners) {
+      try {
+        listener();
+      } catch (error) {
+        console.error("Editor update listener failed:", error);
+      }
+    }
+  });
+
   // Custom key handler for Ctrl+Enter
   // We need to use a combination of approaches to ensure it's captured
 
@@ -323,6 +336,7 @@ export function createCodeMirrorEditor(container, initialCode = "") {
       EditorView.lineWrapping,
       EditorState.tabSize.of(2),
       runFlash(), // The code lights up for a moment when it runs
+      notifyUpdates,
       preventCtrlEnterHandler, // Add our custom handler
       // Add autocompletion with custom Hydra completions
       autocompletion({
@@ -369,6 +383,17 @@ export function createCodeMirrorEditor(container, initialCode = "") {
       });
     },
     focus: () => view.focus(),
+    // The cursor, as offsets into the code: { anchor, head }
+    getSelection: () => {
+      const { anchor, head } = view.state.selection.main;
+      return { anchor, head };
+    },
+    // Call `listener` whenever the code or the cursor changes. Returns a
+    // function that stops it.
+    onUpdate: (listener) => {
+      updateListeners.add(listener);
+      return () => updateListeners.delete(listener);
+    },
     // Light the code up for a moment, to show it ran (not with reduced motion)
     flash: () => {
       if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;

@@ -73,6 +73,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
   // edits it, the Output menu switches it on and off
   codeOverlay: Object.freeze({
     visible: false,
+    // The scenes and slots indicator, while the overlay is on
+    slots: true,
     blendMode: "normal",
     opacity: 1,
   }),
@@ -158,6 +160,7 @@ export function validateSettings(input, base = DEFAULT_SETTINGS) {
     },
     codeOverlay: {
       visible: toBool(codeOverlay.visible, base.codeOverlay.visible),
+      slots: toBool(codeOverlay.slots, base.codeOverlay.slots),
       blendMode: BLEND_MODES.includes(codeOverlay.blendMode)
         ? codeOverlay.blendMode
         : base.codeOverlay.blendMode,
