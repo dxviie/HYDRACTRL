@@ -1,7 +1,7 @@
 {
   "name": "hydractrl-desktop",
   "productName": "HYDRACTRL",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "HYDRACTRL desktop: the hydra live-coding performance tool with Syphon and Spout output",
   "private": true,
   "type": "module",
