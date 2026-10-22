@@ -409,8 +409,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     notifyChange();
   }
 
-  // Function to switch bank
-  function switchBank(bankIndex) {
+  // Function to switch bank, landing on `slot` (the first one unless told)
+  function switchBank(bankIndex, slot = 0) {
     if (bankIndex === currentBank) return;
 
     // Save current bank index
@@ -425,8 +425,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     // Load all thumbnails for the new bank
     loadAllSlotsForCurrentBank();
 
-    // Set the first slot as active
-    setActiveSlot(0);
+    // Set the slot as active
+    setActiveSlot(slot);
   }
 
   // Function to update active slot styling

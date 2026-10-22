@@ -32,6 +32,13 @@ version and the desktop app share one version number; see
     Hiding or showing the UI never changes what the outputs show, and `Esc`
     still brings the UI back straight away.
 
+### Fixed
+
+- The nanoPAD2's pads keep working after you switch scenes on it, in the
+  desktop app too, where the scene button's message doesn't always reach
+  HYDRACTRL. Each scene's pads play their own notes, so the first pad you
+  press on another scene now switches to that scene and selects its slot.
+
 ## [1.2.0] - 2026-10-10
 
 HYDRACTRL Desktop, the standalone app with Syphon and Spout output, and a new

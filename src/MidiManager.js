@@ -10,6 +10,22 @@ let isConnected = false;
 let xyPadPanel = null;
 const xyPadValues = { x: 0, y: 0 };
 
+/**
+ * The scene a pad's note belongs to: the current scene when its mapping has
+ * the note, else the first scene whose mapping does, or -1 when none does.
+ * Each nanoPAD2 scene plays its own notes, so the pads tell which scene the
+ * controller is on even when its scene button's message never arrives.
+ */
+export function sceneForNote(mapping, currentScene, note) {
+  const has = (scene) =>
+    Array.isArray(mapping[scene]) && mapping[scene].some((m) => m.note === note);
+  if (has(currentScene)) return currentScene;
+  for (let scene = 0; scene < mapping.length; scene++) {
+    if (has(scene)) return scene;
+  }
+  return -1;
+}
+
 export function createMidiManager(slotsPanel) {
   // Initialize global XY pad values
   window.nanoX = 0.5;
@@ -314,8 +330,9 @@ export function createMidiManager(slotsPanel) {
     }
   }
 
-  // Helper for handling scene changes
-  function handlePossibleSceneChange(sceneNumber) {
+  // Helper for handling scene changes. With a `slot` (a pad of another
+  // scene was pressed), the bank lands on that slot, else on the first one.
+  function handlePossibleSceneChange(sceneNumber, slot) {
     if (sceneNumber >= 0 && sceneNumber <= 3) {
       console.log(`Scene change detected: ${sceneNumber + 1}`);
 
@@ -324,7 +341,14 @@ export function createMidiManager(slotsPanel) {
 
       // Switch bank to match scene
       if (slotsPanel && slotsPanel.switchBank) {
-        slotsPanel.switchBank(sceneNumber);
+        if (slot === undefined) {
+          slotsPanel.switchBank(sceneNumber);
+        } else if (slotsPanel.getBank?.() === sceneNumber) {
+          // The bank was picked in the slots panel already
+          slotsPanel.setActiveSlot(slot);
+        } else {
+          slotsPanel.switchBank(sceneNumber, slot);
+        }
       }
 
       // Update MIDI status with highlighted text
@@ -488,19 +512,26 @@ export function createMidiManager(slotsPanel) {
   function handleNanoPadNote(note) {
     console.log(`nanoPAD2 pad: ${note}`);
 
-    // Look up the slot from the mapping based on current scene
-    const mappings = midiMapping[currentScene];
-
-    // Find the mapping entry for this note
-    const mapping = mappings.find((m) => m.note === note);
-
-    // If a mapping was found, select the corresponding slot
-    if (mapping && slotsPanel) {
-      console.debug(`MIDI note ${note} maps to slot ${mapping.slot}`);
-      slotsPanel.setActiveSlot(mapping.slot);
-    } else {
+    // The scene the pad belongs to: the current one, unless the nanoPAD2
+    // moved to another scene without its scene button's message reaching us
+    // (it is SysEx, which doesn't always arrive, in the desktop app say)
+    const scene = sceneForNote(midiMapping, currentScene, note);
+    if (scene < 0 || !slotsPanel) {
       console.debug(`No mapping found for MIDI note ${note} in bank ${currentScene}`);
+      return;
     }
+    const mapping = midiMapping[scene].find((m) => m.note === note);
+    if (scene !== currentScene) {
+      console.info(
+        `nanoPAD2: pad ${note} is on scene ${scene + 1}; following it there ` +
+          "(the scene button's message didn't arrive)",
+      );
+      handlePossibleSceneChange(scene, mapping.slot);
+      return;
+    }
+
+    console.debug(`MIDI note ${note} maps to slot ${mapping.slot}`);
+    slotsPanel.setActiveSlot(mapping.slot);
   }
 
   // Handle generic MIDI notes for other controllers
