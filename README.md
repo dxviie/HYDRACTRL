@@ -225,7 +225,9 @@ you are running. Changes are listed in the [changelog](./CHANGELOG.md), and
 [RELEASING.md](./RELEASING.md) describes how a release is cut: pushing a
 `v1.2.3` tag builds the desktop app for macOS and Windows and publishes it on
 the [releases page](https://github.com/dxviie/HYDRACTRL/releases), which the
-website's download buttons point at.
+website's download buttons point at. Work in progress is there too:
+every branch has an experimental pre-release, signed but not finished,
+for trying what's coming before it's released.
 
 ## Credits & License
 

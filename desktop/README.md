@@ -223,10 +223,13 @@ entitlements in `resources/` already allow JIT for Electron and the Bun
 server, library validation for the ad-hoc case, and microphone and camera
 access.
 
-The `Desktop app` GitHub Actions workflow builds all three targets for pull
-requests that touch the app and on demand, and uploads the DMGs and the
-installer as artifacts. The `Release` workflow runs it for version tags and
-publishes the result as a GitHub release; see [RELEASING.md](../RELEASING.md).
+The `Desktop app` GitHub Actions workflow builds all three targets on demand
+and for pull requests from forks that touch the app, and uploads the DMGs and
+the installer as artifacts. The `Release` workflow runs it for version tags
+and publishes the result as a GitHub release, and the `Experimental build`
+workflow runs it, signed, for every push to a branch of this repository and
+publishes the result as that branch's pre-release; see
+[RELEASING.md](../RELEASING.md).
 
 ## Roadmap
 

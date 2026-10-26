@@ -14,10 +14,24 @@
  *                                          versions such as 1.0.0 and 1.1.0)
  *   bun scripts/release.js assets dist     check that every download the
  *                                          landing page links to was built
+ *
+ * Experimental builds (.github/workflows/experimental.yml):
+ *
+ *   bun scripts/release.js experimental <branch> <run>
+ *                                          print the build's version and tag,
+ *                                          as GitHub Actions outputs
+ *   bun scripts/release.js experimental-tag <branch>...
+ *                                          print each branch's tag
+ *   bun scripts/release.js experimental-notes <branch> <sha> <run>
+ *     [--pull-request <url>] [--mac-signed] [--windows-signed]
+ *                                          print its release notes
+ *   bun scripts/release.js set-version 1.2.2-exp.7
+ *                                          stamp both package.json files
+ *                                          (only in a build, never committed)
  */
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { HOSTED_APP_URL, REPOSITORY_URL } from "../src/project.js";
+import { HOSTED_APP_URL, RELEASES_URL, REPOSITORY_URL } from "../src/project.js";
 import { DOWNLOADS } from "../src/site/downloads.js";
 
 const ROOT = join(import.meta.dir, "..");
@@ -151,6 +165,11 @@ export function missingDownloads(files) {
   return DOWNLOADS.map((download) => download.file).filter((file) => !files.includes(file));
 }
 
+/** Changelog notes for GitHub: unwrapped, relative links pointing into the repository at `ref`. */
+function notesAt(notes, ref) {
+  return unwrapMarkdown(notes).replace(/\]\(\.\/([^)]+)\)/g, `](${REPOSITORY_URL}/blob/${ref}/$1)`);
+}
+
 /** The GitHub release body: the changelog section plus downloads and first-launch hints. */
 export function releaseNotes({
   changelog,
@@ -162,15 +181,17 @@ export function releaseNotes({
   const notes = changelogSection(changelog, version);
   if (!notes) throw new Error(`CHANGELOG.md has no notes under "## [${version}]"`);
   const tag = `v${version}`;
-  // Relative links in the changelog point into the repository at this tag
-  const section = unwrapMarkdown(notes).replace(
-    /\]\(\.\/([^)]+)\)/g,
-    `](${REPOSITORY_URL}/blob/${tag}/$1)`,
-  );
+  const section = notesAt(notes, tag);
   if (!downloads) return `${section}\n`;
+  return `${[section, "", ...downloadLines(tag, { macSigned, windowsSigned })].join("\n")}\n`;
+}
+
+/**
+ * The downloads table of the release at `tag`, with a first-launch hint for
+ * each unsigned platform, and the browser version unless that runs other code.
+ */
+function downloadLines(tag, { macSigned, windowsSigned, browser = true }) {
   const lines = [
-    section,
-    "",
     "## Downloads",
     "",
     "| Platform | File |",
@@ -179,9 +200,13 @@ export function releaseNotes({
       (download) =>
         `| ${download.label}, ${download.detail} | [${download.file}](${REPOSITORY_URL}/releases/download/${tag}/${download.file}) |`,
     ),
-    "",
-    `The browser version needs no download: [hydractrl.d17e.dev/app](${HOSTED_APP_URL}).`,
   ];
+  if (browser) {
+    lines.push(
+      "",
+      `The browser version needs no download: [hydractrl.d17e.dev/app](${HOSTED_APP_URL}).`,
+    );
+  }
   const macHint =
     "open the app once, then click *Open Anyway* in System Settings → Privacy & Security";
   const windowsHint = "choose *More info* → *Run anyway* when SmartScreen warns";
@@ -196,6 +221,67 @@ export function releaseNotes({
     lines.push("", `The Windows installer is not code-signed yet: ${windowsHint}.`);
   }
   lines.push("", "SHA-256 checksums for every file are in `SHA256SUMS.txt`.");
+  return lines;
+}
+
+/**
+ * An experimental build's version: after the current one (the next patch,
+ * or the same version when that is a pre-release already), marked with the
+ * workflow run that built it: 1.2.1 -> 1.2.2-exp.42.
+ */
+export function experimentalVersion(version, run) {
+  if (!isSemver(version)) throw new Error(`"${version}" is not a semantic version`);
+  if (!/^[1-9]\d*$/.test(String(run))) throw new Error(`"${run}" is not a run number`);
+  const [major, minor, patch] = version.split(/[-+]/)[0].split(".").map(Number);
+  const base = isPrerelease(version)
+    ? `${major}.${minor}.${patch}`
+    : `${major}.${minor}.${patch + 1}`;
+  return `${base}-exp.${run}`;
+}
+
+/** The tag of a branch's experimental release: experimental-<branch, as letters, digits, dots and dashes>. */
+export function experimentalTag(branch) {
+  const slug = String(branch ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9.-]+/g, "-")
+    .replace(/-{2,}/g, "-")
+    .replace(/^[-.]+|[-.]+$/g, "");
+  if (!slug) throw new Error(`"${branch}" makes no tag`);
+  return `experimental-${slug}`;
+}
+
+/** The body of a branch's experimental release: what it is, what's unreleased, downloads. */
+export function experimentalNotes({
+  changelog,
+  version,
+  branch,
+  sha,
+  run,
+  pullRequest = "",
+  macSigned = false,
+  windowsSigned = false,
+}) {
+  const short = sha.slice(0, 7);
+  const changes =
+    branch === "main"
+      ? `[Changes since ${version}](${REPOSITORY_URL}/compare/v${version}...${sha})`
+      : `[Changes against main](${REPOSITORY_URL}/compare/main...${sha})`;
+  const lines = [
+    `**Experimental build ${experimentalVersion(version, run)}** of [\`${branch}\`](${REPOSITORY_URL}/tree/${branch}) at [\`${short}\`](${REPOSITORY_URL}/commit/${sha}). Not a release: this is work in progress, built on every push to the branch, and it may be broken. For a show, take the [latest release](${RELEASES_URL}/latest).`,
+    "",
+    [pullRequest && `[Pull request](${pullRequest})`, changes].filter(Boolean).join(" · "),
+    "",
+    "## Not released yet",
+    "",
+    notesAt(changelogSection(changelog, "Unreleased") || "Nothing in the changelog yet.", sha),
+    "",
+    // The hosted browser version runs main, not this build
+    ...downloadLines(experimentalTag(branch), { macSigned, windowsSigned, browser: false }),
+    "",
+    "## Feedback",
+    "",
+    `Tell us what works and what doesn't: *Send feedback* in the app's About panel fills in this build's version for you. Or [open an issue](${REPOSITORY_URL}/issues/new).`,
+  ];
   return `${lines.join("\n")}\n`;
 }
 
@@ -268,8 +354,51 @@ function main(argv) {
     return;
   }
 
+  if (command === "experimental") {
+    const [run] = flags;
+    const version = experimentalVersion(readJson(FILES.rootPackage).version, run);
+    console.log(`version=${version}\ntag=${experimentalTag(argument)}`);
+    return;
+  }
+
+  if (command === "experimental-tag") {
+    // One per branch, a line each
+    for (const branch of [argument, ...flags]) console.log(experimentalTag(branch));
+    return;
+  }
+
+  if (command === "experimental-notes") {
+    const [sha, run, ...options] = flags;
+    const pullRequest = options.includes("--pull-request")
+      ? options[options.indexOf("--pull-request") + 1]
+      : "";
+    process.stdout.write(
+      experimentalNotes({
+        changelog: changelog(),
+        version: readJson(FILES.rootPackage).version,
+        branch: argument,
+        sha,
+        run,
+        pullRequest,
+        macSigned: options.includes("--mac-signed"),
+        windowsSigned: options.includes("--windows-signed"),
+      }),
+    );
+    return;
+  }
+
+  if (command === "set-version") {
+    if (!isSemver(argument)) throw new Error(`"${argument}" is not a semantic version`);
+    setPackageVersion(FILES.rootPackage, argument);
+    setPackageVersion(FILES.desktopPackage, argument);
+    console.log(`Both packages are at ${argument}`);
+    return;
+  }
+
   console.error(
-    "usage: bun scripts/release.js prepare <version> | check <tag> | notes <version> | assets <dir>",
+    "usage: bun scripts/release.js prepare <version> | check <tag> | notes <version> | assets <dir>" +
+      " | experimental <branch> <run> | experimental-tag <branch>..." +
+      " | experimental-notes <branch> <sha> <run> | set-version <version>",
   );
   process.exit(1);
 }

@@ -5,6 +5,9 @@ import {
   changelogSection,
   checkRelease,
   compareVersions,
+  experimentalNotes,
+  experimentalTag,
+  experimentalVersion,
   isPrerelease,
   isSemver,
   missingDownloads,
@@ -154,6 +157,61 @@ describe("releaseNotes", () => {
   });
 });
 
+describe("experimental builds", () => {
+  test("come after the current version, marked with their run", () => {
+    expect(experimentalVersion("1.2.1", 42)).toBe("1.2.2-exp.42");
+    expect(experimentalVersion("1.3.0-beta.1", "7")).toBe("1.3.0-exp.7");
+    expect(isPrerelease(experimentalVersion("1.2.1", 42))).toBe(true);
+    expect(compareVersions(experimentalVersion("1.2.1", 42), "1.2.1")).toBe(1);
+    expect(() => experimentalVersion("1.2", 42)).toThrow();
+    expect(() => experimentalVersion("1.2.1", "")).toThrow();
+  });
+
+  test("get a tag named after their branch", () => {
+    expect(experimentalTag("claude/code-overlay-styling-0b54nq")).toBe(
+      "experimental-claude-code-overlay-styling-0b54nq",
+    );
+    expect(experimentalTag("main")).toBe("experimental-main");
+    expect(experimentalTag("Feature/MIDI learn!")).toBe("experimental-feature-midi-learn");
+    expect(() => experimentalTag("///")).toThrow();
+  });
+
+  test("notes say what the build is, what's unreleased and where to download it", () => {
+    const sha = "a74e4b3d55e0df8cb7ed46a9171a1b0a5fe5a7af";
+    const notes = experimentalNotes({
+      changelog: CHANGELOG,
+      version: "1.1.0",
+      branch: "feature/x",
+      sha,
+      run: 9,
+      pullRequest: "https://github.com/dxviie/HYDRACTRL/pull/30",
+    });
+    expect(notes).toStartWith("**Experimental build 1.1.1-exp.9** of [`feature/x`](");
+    expect(notes).toContain("[`a74e4b3`](https://github.com/dxviie/HYDRACTRL/commit/" + sha);
+    expect(notes).toContain("[Pull request](https://github.com/dxviie/HYDRACTRL/pull/30) · ");
+    expect(notes).toContain(`compare/main...${sha}`);
+    expect(notes).toContain("## Not released yet\n\n### Added\n\n- A new thing.");
+    expect(notes).toContain(
+      "https://github.com/dxviie/HYDRACTRL/releases/download/experimental-feature-x/HYDRACTRL-mac-arm64.dmg",
+    );
+    // The hosted browser version runs main, not this build
+    expect(notes).not.toContain("hydractrl.d17e.dev/app");
+    expect(notes).toContain("## Feedback");
+
+    const main = experimentalNotes({
+      changelog: CHANGELOG,
+      version: "1.1.0",
+      branch: "main",
+      sha,
+      run: 9,
+    });
+    expect(main).not.toContain("Pull request");
+    expect(main).toContain(
+      `[Changes since 1.1.0](https://github.com/dxviie/HYDRACTRL/compare/v1.1.0...${sha})`,
+    );
+  });
+});
+
 describe("unwrapMarkdown", () => {
   test("joins wrapped lines but keeps headings, lists and paragraphs apart", () => {
     const wrapped = [
@@ -195,6 +253,16 @@ describe("this repository", () => {
     const root = readJson("package.json").version;
     expect(isSemver(root)).toBe(true);
     expect(readJson("desktop/package.json").version).toBe(root);
+  });
+
+  test("experimental builds start for the same changes as pull request builds", () => {
+    const workflow = (name) =>
+      Bun.YAML.parse(readFileSync(join(ROOT, ".github", "workflows", name), "utf8"));
+    const desktop = workflow("desktop.yml").on.pull_request.paths;
+    const experimental = workflow("experimental.yml").on.push.paths;
+    const own = (file) => file.endsWith("/experimental.yml");
+    expect(experimental.filter((file) => !own(file))).toEqual(desktop);
+    expect(experimental.some(own)).toBe(true);
   });
 
   test("CHANGELOG.md has notes for the current version", () => {

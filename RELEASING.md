@@ -96,8 +96,8 @@ which is enough for Apple Silicon to run them once people click *Open
 Anyway* in System Settings → Privacy & Security.
 
 Signing credentials go in repository secrets (Settings → Secrets and
-variables → Actions). Release builds and *Desktop app* runs with *Sign*
-checked use them; pull request builds never do. The release notes add a
+variables → Actions). Release builds, experimental builds and *Desktop app*
+runs with *Sign* checked use them; pull request builds never do. The release notes add a
 first-launch hint for each platform whose secrets are missing. When that
 changes, update the *Opening the app for the first time* notes on the
 landing page (`public/index.html`) and the desktop README as well.
@@ -184,12 +184,57 @@ which the Package step in `.github/workflows/desktop.yml` doesn't set up yet.
 | `WINDOWS_CERTIFICATE_P12_BASE64` | A Windows code-signing certificate (`.pfx`), base64-encoded |
 | `WINDOWS_CERTIFICATE_PASSWORD` | The password of that `.pfx` |
 
+## Experimental builds
+
+Every push to a branch of this repository that touches the app (the same
+paths as before: `desktop/`, `src/`, `public/`, `scripts/`, `package.json`,
+`bun.lock`) runs the **Experimental build** workflow. It builds the desktop
+app for all three platforms, signed and notarized like a release, and
+publishes it as a GitHub **pre-release** for that branch, so anyone can
+download it without a GitHub account and try it on real hardware, Syphon and
+Spout included:
+
+- **Where**: the [releases page](https://github.com/dxviie/HYDRACTRL/releases),
+  as *Experimental: <branch> (<version>)*, tagged `experimental-<branch>` (the
+  branch name in lower case, with `/` and anything else that isn't a letter,
+  digit, dot or dash turned into `-`). Each file also has a link that
+  stays the same for the branch:
+  `https://github.com/dxviie/HYDRACTRL/releases/download/experimental-<branch>/HYDRACTRL-mac-arm64.dmg`.
+  `main` has one too, `experimental-main`: what is merged but not released
+  yet.
+- **Version**: the build calls itself `1.2.2-exp.<run>` (the version after
+  the one in `package.json`, and the workflow run that built it), in the app,
+  its About panel and the feedback form, so feedback says which build it is
+  about. Only the build is stamped (`bun scripts/release.js set-version`);
+  nothing is committed.
+- **Notes**: the branch and commit, its pull request, the `[Unreleased]`
+  changelog notes as of that commit, the downloads and where to send
+  feedback (`bun scripts/release.js experimental-notes`).
+- **Later pushes** replace the release's files and notes and move its tag to
+  the new commit. Only the first build of a branch notifies people who watch
+  the repository's releases; a newer push cancels a build still running.
+- **Never latest**: a pre-release doesn't become the latest release, so the
+  landing page's download buttons and the README's badge stay on the real
+  one.
+- **Cleanup**: the **Experimental cleanup** workflow deletes a branch's
+  pre-release and tag when its pull request is merged or closed, or the
+  branch is deleted. Running it from the Actions tab removes every
+  experimental build whose branch is gone. A branch that gets pushed again
+  after that gets a new one.
+
+Experimental builds use the signing secrets below, like releases. Pushes to
+`dependabot/` branches don't build (they get no secrets), and neither do pull
+requests from forks: those get the unsigned **Desktop app** build below,
+uploaded as workflow artifacts, which need a GitHub login to download.
+
 ## Testing a desktop build before a release
 
 The **Desktop app** workflow builds all three installers for pull requests
-that touch the app, and on demand (Actions → Desktop app → Run workflow). The
-installers end up as workflow artifacts, so you can try a build on real
-hardware, Syphon and Spout included, before tagging.
+from forks that touch the app, and on demand (Actions → Desktop app → Run
+workflow, with *Sign* for a signed build). The installers end up as workflow
+artifacts. Branches of this repository have their builds on the releases
+page already (see *Experimental builds* above), and the Experimental build
+and Release workflows run this one for their builds.
 
 Every build is also started on its own platform before it counts. On macOS
 the workflow first verifies the app's signature, since a broken one makes

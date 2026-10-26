@@ -2,12 +2,13 @@ name: Desktop app
 
 # Builds the packaged desktop app for macOS (Apple Silicon and Intel) and
 # Windows and checks that each build starts, and smoke-tests a Linux directory
-# build. Runs for pull requests that touch the app, on demand, and from the
-# Release workflow, which asks for signed builds. A build is signed (and on
-# macOS notarized) only when it asks to be, through the Release workflow or
-# the Sign option of a manual run, and the credentials are in the repository
-# secrets; otherwise it is unsigned (ad-hoc signed on macOS). Pull request
-# builds never sign. See RELEASING.md.
+# build. Runs on demand, from the Release workflow and the Experimental build
+# workflow (every push to a branch of this repository), which ask for signed
+# builds, and for pull requests from forks, which that workflow doesn't
+# cover. A build is signed (and on macOS notarized) only when it asks to be,
+# through those workflows or the Sign option of a manual run, and the
+# credentials are in the repository secrets; otherwise it is unsigned
+# (ad-hoc signed on macOS). Pull request builds never sign. See RELEASING.md.
 on:
   workflow_dispatch:
     inputs:
@@ -20,6 +21,12 @@ on:
       sign:
         type: boolean
         default: false
+      # Build as this version instead of the one in package.json (an
+      # experimental build's, 1.2.2-exp.42): the app, its About panel and its
+      # feedback form report it
+      version:
+        type: string
+        default: ""
   pull_request:
     paths:
       - "desktop/**"
@@ -40,6 +47,9 @@ concurrency:
 jobs:
   build:
     name: ${{ matrix.name }}
+    # A pull request from a branch of this repository has its build already:
+    # the push to the branch started a signed experimental one
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -79,6 +89,16 @@ jobs:
       - name: Run desktop tests
         run: bun test src scripts
         working-directory: desktop
+
+      # Only in the build: the client bundles, the server and the app all
+      # pick the version up from the two package.json files
+      - name: Stamp the version
+        if: inputs.version
+        # Not PowerShell, Windows' default, where $VERSION isn't the variable
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: bun scripts/release.js set-version "$VERSION"
 
       - name: Package
         shell: bash
@@ -178,6 +198,7 @@ jobs:
 
   smoke:
     name: Linux smoke test (packaged app)
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
