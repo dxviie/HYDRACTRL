@@ -12,11 +12,13 @@ import { savePanelPosition } from "../utils/PanelStorage.js";
 import { createEventBus } from "./core/EventBus.js";
 import { createPluginHost } from "./core/PluginHost.js";
 import { createSafeStorage } from "./core/Storage.js";
+import { createAudioInputs } from "./core/audioInput.js";
 import { createEditorTabs } from "./core/editorTabs.js";
 import { notify, notifyError } from "./core/notify.js";
 import { createRenderLoop } from "./core/renderLoop.js";
 import { executeSketch } from "./core/sketchRunner.js";
 import { nextUiAction } from "./core/uiCycle.js";
+import { createAudioInputPlugin } from "./plugins/AudioInputPlugin.js";
 import { createAudioWatchdogPlugin } from "./plugins/AudioWatchdogPlugin.js";
 import { createAutoRunPlugin } from "./plugins/AutoRunPlugin.js";
 import { createBreakoutPlugin } from "./plugins/BreakoutPlugin.js";
@@ -40,6 +42,13 @@ const storage = createSafeStorage({
   },
 });
 const events = createEventBus();
+
+// The audio input a.fft listens to, for every hydra instance on this page
+// (the breakout window's too); the outputs follow through `audio:input`
+const audioInputs = createAudioInputs({
+  storage,
+  onChange: (state) => events.emit("audio:input", state),
+});
 
 // Helper function to debounce events
 function debounce(func, wait) {
@@ -240,16 +249,19 @@ async function initHydra() {
     // Thumbnails are always included in exports (small enough to fit)
     // We now use tiny 32x32 thumbnails with low quality compression
 
-    return new HydraSynth({
-      canvas: canvas,
-      // Driven by our own render loop, which can be stopped (see core/renderLoop.js)
-      autoLoop: false,
-      detectAudio: true, // Enable audio reactivity for a.fft[]
-      enableStreamCapture: false,
-      numBins: 6, // Set bins for a.fft[0], a.fft[1], etc.
-      numSources: 4, // Limit sources for better performance
-      precision: "mediump", // Better performance
-    });
+    return audioInputs.attach(
+      () =>
+        new HydraSynth({
+          canvas: canvas,
+          // Driven by our own render loop, which can be stopped (see core/renderLoop.js)
+          autoLoop: false,
+          detectAudio: true, // Enable audio reactivity for a.fft[]
+          enableStreamCapture: false,
+          numBins: 6, // Set bins for a.fft[0], a.fft[1], etc.
+          numSources: 4, // Limit sources for better performance
+          precision: "mediump", // Better performance
+        }),
+    );
   } catch (error) {
     console.error("Error initializing Hydra:", error);
     throw error; // Re-throw to handle in the calling function
@@ -873,6 +885,9 @@ async function init() {
       setUiCycleStep: (step) => {
         hiddenUiStep = typeof step === "function" ? step : null;
       },
+      // The audio input a.fft listens to: list(), choose(input), getState(),
+      // and attach(create) for another hydra instance (see core/audioInput.js)
+      audioInputs,
       events,
       storage,
       notify,
@@ -888,6 +903,7 @@ async function init() {
     const pluginHost = createPluginHost(pluginContext);
     pluginHost.register(createUrlSharePlugin());
     pluginHost.register(createAudioWatchdogPlugin());
+    pluginHost.register(createAudioInputPlugin());
     pluginHost.register(createInfoPanelPlugin());
     pluginHost.register(createFeedbackPlugin());
     pluginHost.register(createAutoRunPlugin());

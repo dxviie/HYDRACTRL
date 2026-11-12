@@ -115,14 +115,19 @@ export function createBreakoutPlugin() {
         const hydraModule = await import("hydra-synth");
         const HydraSynth = hydraModule.default || hydraModule;
 
-        const breakoutHydra = new HydraSynth({
-          canvas: canvas,
-          detectAudio: true, // Enable audio reactivity for a.fft[]
-          enableStreamCapture: false,
-          numBins: 6, // Set bins for a.fft[0], a.fft[1], etc.
-          numSources: 4, // Limit sources for better performance
-          precision: "mediump", // Better performance
-        });
+        const createHydra = () =>
+          new HydraSynth({
+            canvas: canvas,
+            detectAudio: true, // Enable audio reactivity for a.fft[]
+            enableStreamCapture: false,
+            numBins: 6, // Set bins for a.fft[0], a.fft[1], etc.
+            numSources: 4, // Limit sources for better performance
+            precision: "mediump", // Better performance
+          });
+        // Its a.fft listens to the audio input chosen in the system panel. The
+        // instance becomes hydra's global `a`, so it keeps listening when
+        // the window closes.
+        const breakoutHydra = ctx.audioInputs ? ctx.audioInputs.attach(createHydra) : createHydra();
 
         // Define loadScript function in breakout window
         breakoutWindow.loadScript = (url) =>

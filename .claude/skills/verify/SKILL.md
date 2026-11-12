@@ -85,6 +85,15 @@ const browser = await chromium.launch({
   `.hco-flash` for 160ms, and `.hco-slots` shows the scenes and slots. Keep
   the interface page in front while typing (`page.bringToFront()`): Chromium
   runs a background tab's timers once a second, which slows the updates.
+- Audio input: launch Chromium with `--use-fake-device-for-media-stream
+  --use-fake-ui-for-media-stream` and grant `microphone`; the system
+  panel's `.audio-input-select` then lists "Fake Audio Input 1" and 2 after
+  the default. Picking one moves `window.a.stream` (check its audio track's
+  label) and every open `/output` page (`window.hydractrlOutput.audioInput()`),
+  keeps `hydractrl-audio-input` and leaves `a.fft` moving (the fake inputs
+  beep). An input kept there that doesn't exist shows as "(not connected)"
+  with a line in `.audio-input-status`. Device ids differ per page in
+  Playwright's contexts, so outputs find the input by its label.
 - MIDI without a device: in `addInitScript`, replace
   `navigator.requestMIDIAccess` with one resolving to
   `{ inputs: new Map([[id, input]]), outputs: new Map() }`, where `input` is

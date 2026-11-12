@@ -8,6 +8,17 @@ version and the desktop app share one version number; see
 
 ## [Unreleased]
 
+### Added
+
+- **Audio input**: choose what `a.fft` listens to, under AUDIO INPUT in the
+  system panel: the system default or any input your computer has, such as
+  an audio interface or a loopback device. The desktop app had no way to
+  pick one. The outputs listen to the same input (the desktop app's
+  Syphon/Spout output, `/output` pages, the breakout window), and switching
+  doesn't interrupt the visuals. Your choice is remembered. While the chosen
+  input isn't connected, `a.fft` listens to the system default and goes back
+  to it when it returns.
+
 ### Changed
 
 - **Code overlay**: a quieter, squarer look. The code is set in Fira Code

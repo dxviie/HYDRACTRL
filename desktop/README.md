@@ -28,7 +28,8 @@ The app is an Electron shell around the regular HYDRACTRL server:
   the result over the server's WebSocket, so errors still show in the
   editor. A sketch with an error never reaches the output: it keeps playing
   the last sketch that worked. Slot changes and XY-pad moves follow the same
-  way, and audio reactivity (`a.fft`) uses the app's own microphone input.
+  way, and audio reactivity (`a.fft`) listens to the audio input chosen
+  under AUDIO INPUT in the interface's system panel.
 - When the output is stopped or restarting, or its frames stop coming, the
   interface renders on its own again with the last sketch that worked, and
   switches back once the output runs.
@@ -62,7 +63,10 @@ panel, and it matches the browser version's: see the
 [changelog](../CHANGELOG.md).
 
 On first launch macOS asks for microphone access. Allow it, or audio-reactive
-sketches stay silent. The output starts automatically and a source called
+sketches stay silent. `a.fft` listens to the system's default input until you
+pick another under AUDIO INPUT in the system panel (expand it with the arrow
+in its title bar): an audio interface, or a loopback device such as BlackHole
+to react to what the computer plays. The output starts automatically and a source called
 `HYDRACTRL` appears in your VJ software. The stats panel in the interface
 shows the output state and live frame rate, with a Start/Stop button and a
 shortcut to the settings.

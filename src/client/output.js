@@ -3,9 +3,9 @@
  *
  * Runs one full-window hydra instance and mirrors whatever the HYDRACTRL UI
  * plays, received over the server's output socket: the sketch on every run,
- * the XY-pad values, and the code overlay, which draws the editor's code
- * over the visuals as it is being typed, with the scenes and slots, when the
- * interface turns it on.
+ * the XY-pad values, the audio input chosen for a.fft, and the code overlay,
+ * which draws the editor's code over the visuals as it is being typed, with
+ * the scenes and slots, when the interface turns it on.
  * Meant to be captured by the companion output app (Syphon/Spout/NDI), an
  * OBS browser source, a TouchDesigner Web Render TOP, or simply opened on a
  * second screen.
@@ -19,6 +19,8 @@
  * last sketch that worked on screen when one fails (see core/primaryRunner.js).
  */
 import { createReconnectingSocket } from "./core/ReconnectingSocket.js";
+import { createSafeStorage } from "./core/Storage.js";
+import { createAudioInputs } from "./core/audioInput.js";
 import { createCodeOverlayView, normalizeCodeOverlay } from "./core/codeOverlay.js";
 import {
   normalizeEditorSnapshot,
@@ -48,6 +50,10 @@ const HYDRA_OPTIONS = {
   precision: "mediump",
 };
 
+// a.fft listens to the input the interface chose. The last one is kept, so
+// the page starts on it before the interface says so again.
+const audioInputs = createAudioInputs({ storage: createSafeStorage() });
+
 const statusElement = () => document.getElementById("output-status");
 
 function setStatus(text) {
@@ -72,7 +78,7 @@ async function initHydra() {
 
   const hydraModule = await import("hydra-synth");
   const HydraSynth = hydraModule.default || hydraModule;
-  const hydra = new HydraSynth({ canvas, ...HYDRA_OPTIONS });
+  const hydra = audioInputs.attach(() => new HydraSynth({ canvas, ...HYDRA_OPTIONS }));
 
   window.addEventListener("resize", () => {
     hydra.setResolution(window.innerWidth, window.innerHeight);
@@ -183,6 +189,8 @@ async function init() {
           codeOverlay.setSlots(normalizeSlotsState(message));
         } else if (message.type === "flash") {
           codeOverlay.flash();
+        } else if (message.type === "audio") {
+          audioInputs.choose(message);
         }
       },
       onClose: () => {
@@ -198,6 +206,7 @@ async function init() {
       primary,
       lastSketch: () => primaryRunner?.getLastGood() ?? null,
       codeOverlay: () => ({ ...overlaySettings, shown: codeOverlay.isShown() }),
+      audioInput: () => audioInputs.getState(),
     };
 
     if (await detectOutputServer()) {

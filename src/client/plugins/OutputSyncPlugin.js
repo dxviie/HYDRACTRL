@@ -6,7 +6,9 @@
  * (`nanoX`/`nanoY`) whenever they change, and what the code overlay plugin
  * has for the outputs: its settings (`overlay:changed`), the editor as you
  * type (`overlay:editor`), the scenes and slots (`overlay:slots`) and the
- * flash of a run (`overlay:flash`). Render heads load `/output` and
+ * flash of a run (`overlay:flash`). The audio input chosen for a.fft goes
+ * out too (`audio:input`), so the outputs listen to the same one. Render
+ * heads load `/output` and
  * mirror whatever is played here: the companion output app (Syphon/Spout/NDI),
  * an OBS browser source, a TouchDesigner Web Render TOP, another browser...
  *
@@ -61,6 +63,8 @@ export function createOutputSyncPlugin(options = {}) {
       let overlay = null;
       let editorSnapshot = null;
       let slots = null;
+      // undefined where the page has no say in the audio input
+      let audioInput = ctx.audioInputs?.getChoice?.();
       let pollMs = STATE_POLL_MS;
       let disposed = false;
 
@@ -107,6 +111,15 @@ export function createOutputSyncPlugin(options = {}) {
         return socket.send({ type: "slots", ...slots });
       }
 
+      function pushAudioInput() {
+        if (!socket || audioInput === undefined) return false;
+        return socket.send({
+          type: "audio",
+          deviceId: audioInput?.deviceId || "",
+          label: audioInput?.label || "",
+        });
+      }
+
       function handleMessage(message) {
         if (message.type === "outputs") {
           const count = Number(message.count) || 0;
@@ -151,6 +164,11 @@ export function createOutputSyncPlugin(options = {}) {
         socket?.send({ type: "flash" });
       });
 
+      const offAudioInput = ctx.events.on("audio:input", (state) => {
+        audioInput = state?.choice ?? null;
+        pushAudioInput();
+      });
+
       function schedulePoll() {
         if (pollTimer !== null) clearInterval(pollTimer);
         pollTimer = setInterval(() => pushState(false), pollMs);
@@ -172,6 +190,7 @@ export function createOutputSyncPlugin(options = {}) {
             pushOverlay();
             pushEditor();
             pushSlots();
+            pushAudioInput();
           },
           onMessage: handleMessage,
           onClose: () => {
@@ -203,6 +222,7 @@ export function createOutputSyncPlugin(options = {}) {
           offEditor();
           offSlots();
           offFlash();
+          offAudioInput();
           offMirror();
           if (pollTimer !== null) clearInterval(pollTimer);
           pollTimer = null;

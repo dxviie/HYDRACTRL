@@ -248,6 +248,41 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   midiSection.appendChild(midiButtonsContainer);
   if (midi) midiSection.appendChild(midiMappingDisplay);
 
+  // Audio input section: the AudioInputPlugin fills and wires these controls
+  const audioInputSection = document.createElement("div");
+  audioInputSection.className = "stats-audio-input";
+  audioInputSection.style.marginTop = "6px";
+  audioInputSection.style.paddingTop = "6px";
+  audioInputSection.style.borderTop = "1px solid var(--color-bg-tertiary)";
+  audioInputSection.style.display = "none"; // Initially hidden
+  audioInputSection.style.flexDirection = "column";
+  audioInputSection.style.gap = "4px";
+
+  const audioInputTitle = document.createElement("div");
+  audioInputTitle.style.fontSize = "11px";
+  audioInputTitle.style.color = "var(--color-text-secondary)";
+  audioInputTitle.style.fontWeight = "600";
+  audioInputTitle.style.letterSpacing = "0.08em";
+  audioInputTitle.textContent = "AUDIO INPUT";
+
+  const audioInputSelect = document.createElement("select");
+  audioInputSelect.className = "audio-input-select";
+  audioInputSelect.title = "What a.fft listens to";
+  // As wide as the panel, whatever the inputs are called
+  audioInputSelect.style.width = "0";
+  audioInputSelect.style.minWidth = "100%";
+
+  // Says so when a.fft isn't listening to the chosen input
+  const audioInputStatus = document.createElement("div");
+  audioInputStatus.className = "audio-input-status";
+  audioInputStatus.style.fontSize = "11px";
+  audioInputStatus.style.color = "var(--color-text-secondary)";
+  audioInputStatus.style.display = "none";
+
+  audioInputSection.appendChild(audioInputTitle);
+  audioInputSection.appendChild(audioInputSelect);
+  audioInputSection.appendChild(audioInputStatus);
+
   // Create a theme settings section
   const themeSection = document.createElement("div");
   themeSection.className = "stats-theme";
@@ -932,6 +967,7 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
   content.appendChild(details);
   content.appendChild(themeSection);
   content.appendChild(midiSection);
+  content.appendChild(audioInputSection);
   if (breakout) content.appendChild(displaySection);
   content.appendChild(codeOverlaySection);
   content.appendChild(slotsSection);
@@ -1005,6 +1041,7 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
     details.style.display = isExpanded ? "flex" : "none";
     themeSection.style.display = isExpanded ? "flex" : "none";
     midiSection.style.display = isExpanded ? "flex" : "none";
+    audioInputSection.style.display = isExpanded ? "flex" : "none";
     displaySection.style.display = isExpanded ? "flex" : "none";
     codeOverlaySection.style.display = isExpanded ? "flex" : "none";
     slotsSection.style.display = isExpanded ? "flex" : "none";
@@ -1102,6 +1139,11 @@ export function createStatsPanel({ midi = true, breakout = true } = {}) {
           sizeSelect: sizeSelect,
         }
       : undefined,
+    audioInput: {
+      section: audioInputSection,
+      select: audioInputSelect,
+      status: audioInputStatus,
+    },
     codeOverlay: {
       section: codeOverlaySection,
       checkbox: codeOverlayCheckbox,
