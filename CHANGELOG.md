@@ -26,6 +26,10 @@ version and the desktop app share one version number; see
   dialog of its own, where it used the browser's prompt, which the desktop
   app can't show. Clearing only the thumbnails now clears all of them, and a
   cleared scene's slots no longer keep the outline of the code they held.
+- Picking a slot while the Setup tab is open no longer replaces your setup
+  code with the slot's: the editor shows the Sketch tab with the slot's code
+  and your setup code stays as you left it. Saving and sharing a link from
+  the Setup tab now take the sketch too, where they took the setup code.
 
 ## [1.2.1] - 2026-10-22
 

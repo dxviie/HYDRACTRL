@@ -505,18 +505,9 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   // Function to save current code to active slot
   async function saveToActiveSlot() {
     try {
-      // Get main code only - setup code is saved separately as user setting
-      let codeToSave;
-      if (editor.getCurrentTab && editor.getCurrentTab() === "main") {
-        // Save current main tab content
-        codeToSave = editor.getCode();
-      } else if (editor.getTabCode) {
-        // Get main tab content even if not currently active
-        codeToSave = editor.getTabCode("main");
-      } else {
-        // Fallback for direct editor access
-        codeToSave = editor.state.doc.toString();
-      }
+      // The sketch only, whichever tab is open: the setup code is the
+      // performer's own setting and belongs to no slot
+      const codeToSave = editor.state.doc.toString();
 
       // Store the target bank and slot for screenshot capture
       // This ensures the screenshot goes to the correct slot even if we change slots later
@@ -573,16 +564,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     const savedCode = localStorage.getItem(storageKey);
 
     if (savedCode) {
-      // Load main code into editor - setup code persists separately
-      if (editor.getCurrentTab && editor.getCurrentTab() !== "main") {
-        // Switch to main tab first if not already there
-        const mainTabButton = document.querySelector('.editor-tab[data-tab="main"]');
-        if (mainTabButton) {
-          mainTabButton.click();
-        }
-      }
-
-      // Load code into editor (this will be main code only)
+      // The editor shows the Sketch tab with the slot's code; the setup
+      // code stays as it is
       editor.dispatch({
         changes: { from: 0, to: editor.state.doc.length, insert: savedCode },
       });
