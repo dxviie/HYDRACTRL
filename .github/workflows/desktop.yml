@@ -182,13 +182,25 @@ jobs:
           # unsigned one
           if ! codesign --display --verbose=2 "$app" 2>&1 | grep -q "^Signature=adhoc"; then
             spctl --assess --type execute --verbose=4 "$app"
-            # stapler looks the ticket up at Apple: a dropped connection
-            # isn't a bad ticket, so try again before failing the build
+            codesign --display --verbose=2 "$app" 2>&1 | grep -q "^Notarization Ticket=stapled"
+            # stapler checks the ticket with Apple as well. The Intel runners
+            # often can't reach that service ("The network connection was
+            # lost"): with the ticket stapled and Gatekeeper's verdict above,
+            # that only warns. Any other answer fails the build.
+            validated=false
             for attempt in 1 2 3; do
-              if xcrun stapler validate "$app"; then break; fi
-              if [ "$attempt" -eq 3 ]; then exit 1; fi
+              if result=$(xcrun stapler validate "$app" 2>&1); then validated=true; fi
+              echo "$result"
+              if $validated || ! echo "$result" | grep -q "NSURLErrorDomain"; then break; fi
               sleep 20
             done
+            if ! $validated; then
+              if echo "$result" | grep -q "NSURLErrorDomain"; then
+                echo "::warning::stapler could not reach Apple to check the notarization ticket. It is stapled and Gatekeeper accepts the app."
+              else
+                exit 1
+              fi
+            fi
           fi
 
       - uses: actions/setup-node@v6
