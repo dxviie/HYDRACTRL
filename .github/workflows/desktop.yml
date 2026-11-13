@@ -182,7 +182,13 @@ jobs:
           # unsigned one
           if ! codesign --display --verbose=2 "$app" 2>&1 | grep -q "^Signature=adhoc"; then
             spctl --assess --type execute --verbose=4 "$app"
-            xcrun stapler validate "$app"
+            # stapler looks the ticket up at Apple: a dropped connection
+            # isn't a bad ticket, so try again before failing the build
+            for attempt in 1 2 3; do
+              if xcrun stapler validate "$app"; then break; fi
+              if [ "$attempt" -eq 3 ]; then exit 1; fi
+              sleep 20
+            done
           fi
 
       - uses: actions/setup-node@v6
