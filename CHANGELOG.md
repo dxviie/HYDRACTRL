@@ -8,6 +8,11 @@ version and the desktop app share one version number; see
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-11-13
+
+Choose the audio input `a.fft` listens to, a quieter code overlay, and setup
+code that stays put when you change slots.
+
 ### Added
 
 - **Audio input**: choose what `a.fft` listens to, under AUDIO INPUT in the
@@ -244,7 +249,8 @@ The first public version.
 - A standalone executable (`bun run build:exe:full`) that also serves local
   images and videos to sketches.
 
-[Unreleased]: https://github.com/dxviie/HYDRACTRL/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/dxviie/HYDRACTRL/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/dxviie/HYDRACTRL/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/dxviie/HYDRACTRL/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/dxviie/HYDRACTRL/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/dxviie/HYDRACTRL/compare/v1.0.0...v1.1.0

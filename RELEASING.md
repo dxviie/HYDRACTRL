@@ -202,8 +202,8 @@ Spout included:
   `https://github.com/dxviie/HYDRACTRL/releases/download/experimental-<branch>/HYDRACTRL-mac-arm64.dmg`.
   `main` has one too, `experimental-main`: what is merged but not released
   yet.
-- **Version**: the build calls itself `1.2.2-exp.<run>` (the version after
-  the one in `package.json`, and the workflow run that built it), in the app,
+- **Version**: the build calls itself `1.2.3-exp.<run>` while `package.json`
+  says 1.2.2 (the version after it, and the workflow run that built it), in the app,
   its About panel and the feedback form, so feedback says which build it is
   about. Only the build is stamped (`bun scripts/release.js set-version`);
   nothing is committed.
