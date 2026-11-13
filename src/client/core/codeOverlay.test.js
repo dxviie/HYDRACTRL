@@ -9,6 +9,7 @@ import {
   LINE_HEIGHT,
   blendModeLabel,
   fitCodeOverlay,
+  fitSlots,
   measureCode,
   normalizeCodeOverlay,
   sameCodeOverlay,
@@ -82,5 +83,20 @@ describe("fitCodeOverlay", () => {
     expect(wide.fontSize).toBeLessThan(720 * 0.028);
     const huge = fitCodeOverlay({ lines: 400, columns: 400 }, 1920, 1080);
     expect(huge.fontSize).toBeCloseTo(1080 * 0.011, 0);
+  });
+});
+
+describe("fitSlots", () => {
+  test("four blips and their gaps are exactly as tall as two pads and theirs", () => {
+    for (const height of [360, 720, 900, 1080, 1440, 2160]) {
+      const { blip, gap, pad, line } = fitSlots(height);
+      for (const size of [blip, gap, pad, line]) expect(Number.isInteger(size)).toBe(true);
+      expect(4 * blip + 3 * gap).toBe(2 * pad + gap);
+      expect(line).toBeLessThan(blip / 2);
+    }
+  });
+
+  test("in step with the view's height", () => {
+    expect(fitSlots(2160).pad).toBeCloseTo(fitSlots(1080).pad * 2, -1);
   });
 });

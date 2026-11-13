@@ -1,0 +1,151 @@
+name: Experimental build
+
+# Every push to a branch of this repository that touches the app builds the
+# desktop app, signed and notarized like a release, and publishes it as a
+# GitHub pre-release of its own, tagged experimental-<branch>
+# (experimentalTag in scripts/release.js). Anyone can download it without a
+# GitHub account, from the Releases page or at
+# github.com/dxviie/HYDRACTRL/releases/download/experimental-<branch>/<file>.
+# The build calls itself 1.2.2-exp.<run> (the version after the current one),
+# in the app, its About panel and the feedback form.
+#
+# Later pushes to the branch replace the release's files and notes in place,
+# so only a branch's first build notifies people who watch the repository's
+# releases. A pre-release never becomes the latest release, so the landing
+# page's downloads stay on the real one. Experimental cleanup
+# (experimental-cleanup.yml) removes a branch's build when its pull request
+# closes or the branch is deleted. See RELEASING.md.
+on:
+  push:
+    branches-ignore:
+      # No signing secrets there
+      - "dependabot/**"
+    # The same as the Desktop app workflow's pull_request paths (a test keeps
+    # them equal), and this file
+    paths:
+      - "desktop/**"
+      - "src/**"
+      - "public/**"
+      - "scripts/**"
+      - "package.json"
+      - "bun.lock"
+      - ".github/workflows/desktop.yml"
+      - ".github/workflows/experimental.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# The newest push to a branch wins
+concurrency:
+  group: experimental-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    name: Version and tag
+    if: github.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.build.outputs.version }}
+      tag: ${{ steps.build.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Through a variable: a failing command inside echo's arguments would
+      # not fail the step
+      - name: Version and tag
+        id: build
+        env:
+          BRANCH: ${{ github.ref_name }}
+          RUN: ${{ github.run_number }}
+        run: |
+          build=$(bun scripts/release.js experimental "$BRANCH" "$RUN")
+          echo "$build" >> "$GITHUB_OUTPUT"
+          echo "$build"
+
+  desktop:
+    name: Desktop app
+    needs: prepare
+    uses: ./.github/workflows/desktop.yml
+    with:
+      sign: true
+      version: ${{ needs.prepare.outputs.version }}
+    secrets: inherit
+
+  publish:
+    name: Publish the pre-release
+    needs: [prepare, desktop]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: hydractrl-desktop-*
+          path: dist
+          merge-multiple: true
+
+      - name: Check that every download was built
+        run: bun scripts/release.js assets dist
+
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      - name: Release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.ref_name }}
+          RUN: ${{ github.run_number }}
+          MAC_SIGNED: ${{ secrets.MAC_CERTIFICATE_P12_BASE64 != '' && (secrets.APPLE_API_KEY_P8 != '' || secrets.APPLE_ID != '') }}
+          WINDOWS_SIGNED: ${{ secrets.WINDOWS_CERTIFICATE_P12_BASE64 != '' }}
+        run: |
+          flags=""
+          pull_request=$(gh pr list --head "$BRANCH" --state open --json url --jq '.[0].url // empty')
+          if [ -n "$pull_request" ]; then flags="$flags --pull-request $pull_request"; fi
+          if [ "$MAC_SIGNED" = "true" ]; then flags="$flags --mac-signed"; fi
+          if [ "$WINDOWS_SIGNED" = "true" ]; then flags="$flags --windows-signed"; fi
+          bun scripts/release.js experimental-notes "$BRANCH" "$GITHUB_SHA" "$RUN" $flags > notes.md
+          cat notes.md
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.ref_name }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          title="Experimental: $BRANCH ($VERSION)"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            # In place, under the same tag moved to this commit: publishing a
+            # new release would notify everyone who watches releases, on
+            # every push
+            git push --force origin "$GITHUB_SHA:refs/tags/$TAG"
+            gh release upload "$TAG" dist/* --clobber
+            gh release edit "$TAG" \
+              --title "$title" \
+              --notes-file notes.md \
+              --prerelease \
+              --latest=false \
+              --draft=false
+          else
+            gh release create "$TAG" dist/* \
+              --target "$GITHUB_SHA" \
+              --title "$title" \
+              --notes-file notes.md \
+              --prerelease \
+              --latest=false
+          fi
+          echo "https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG"

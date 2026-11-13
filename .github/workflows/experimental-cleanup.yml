@@ -1,0 +1,66 @@
+name: Experimental cleanup
+
+# Removes a branch's experimental build (experimental.yml), its pre-release
+# and its tag, once the branch is done: when its pull request is merged or
+# closed, or the branch is deleted. Merged work is in main's experimental
+# build. Run it from the Actions tab to remove every experimental build whose
+# branch is gone. See RELEASING.md.
+on:
+  pull_request:
+    types: [closed]
+  delete:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    name: Remove experimental builds
+    # Pull requests from forks have no experimental builds here
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # With pipefail: a branch list that fails must not leave every
+      # experimental build looking orphaned
+      - name: Remove
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CLOSED_BRANCH: ${{ github.event.pull_request.head.ref }}
+          DELETED_REF: ${{ github.event.ref }}
+          DELETED_TYPE: ${{ github.event.ref_type }}
+        run: |
+          remove() {
+            if gh release view "$1" > /dev/null 2>&1; then
+              gh release delete "$1" --cleanup-tag --yes
+              echo "Removed $1"
+            else
+              echo "No experimental build at $1"
+            fi
+          }
+          case "$GITHUB_EVENT_NAME" in
+            pull_request)
+              remove "$(bun scripts/release.js experimental-tag "$CLOSED_BRANCH")"
+              ;;
+            delete)
+              if [ "$DELETED_TYPE" = "branch" ]; then
+                remove "$(bun scripts/release.js experimental-tag "$DELETED_REF")"
+              fi
+              ;;
+            workflow_dispatch)
+              keep=$(gh api "repos/$GITHUB_REPOSITORY/branches" --paginate --jq '.[].name' |
+                xargs bun scripts/release.js experimental-tag)
+              tags=$(gh release list --limit 1000 --json tagName --jq '.[].tagName')
+              for tag in $tags; do
+                case "$tag" in experimental-*) ;; *) continue ;; esac
+                if ! printf '%s\n' "$keep" | grep -qxF "$tag"; then remove "$tag"; fi
+              done
+              ;;
+          esac

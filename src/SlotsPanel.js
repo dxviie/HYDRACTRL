@@ -2,6 +2,8 @@
  * Slots Panel Component
  * A draggable panel with 16 slots for saving and loading Hydra programs
  */
+import { showChoiceDialog } from "./client/core/choiceDialog.js";
+import { notify, notifyError } from "./client/core/notify.js";
 import { trackPointerDrag } from "./utils/Draggable.js";
 import { loadPanelPosition, savePanelPosition } from "./utils/PanelStorage.js";
 
@@ -14,6 +16,42 @@ const SLOT_MIN = 40;
 const SLOT_MAX = 100;
 const SLOT_GAP = 3;
 const PANEL_PADDING = 4;
+
+// Local storage key prefix
+const STORAGE_KEY_PREFIX = "hydractrl-slot-";
+
+// Storage key includes bank
+const slotStorageKey = (bank, index) => `${STORAGE_KEY_PREFIX}bank-${bank}-slot-${index}`;
+
+/**
+ * Remove saved slots from `storage` (local storage): the 16 of one scene
+ * ("scene"), those of all four ("all"), or only their thumbnails
+ * ("thumbnails"), which keeps the code. Returns how many slots, or
+ * thumbnails, it removed.
+ */
+export function clearStoredSlots(storage, what, scene = 0) {
+  if (what === "thumbnails") {
+    // Collected first: removing keys while walking them by index skips some
+    const keys = [];
+    for (let i = 0; i < storage.length; i++) {
+      const key = storage.key(i);
+      if (key?.startsWith(STORAGE_KEY_PREFIX) && key.includes("-thumbnail")) keys.push(key);
+    }
+    for (const key of keys) storage.removeItem(key);
+    return keys.filter((key) => key.endsWith("-thumbnail")).length;
+  }
+  let removed = 0;
+  for (const bank of what === "all" ? [0, 1, 2, 3] : [scene]) {
+    for (let slot = 0; slot < 16; slot++) {
+      const key = slotStorageKey(bank, slot);
+      if (storage.getItem(key) !== null) removed++;
+      storage.removeItem(key);
+      storage.removeItem(`${key}-thumbnail`);
+      storage.removeItem(`${key}-thumbnail-timestamp`);
+    }
+  }
+  return removed;
+}
 
 /** The panel width at which the slots are `slotSize` pixels. */
 export function slotsPanelWidth(slotSize) {
@@ -281,15 +319,11 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   slotsGrid.style.gap = `${SLOT_GAP}px`;
   slotsGrid.style.width = "100%";
 
-  // Local storage key prefix
-  const STORAGE_KEY_PREFIX = "hydractrl-slot-";
-
   // Track current bank (0-3) and active slot
   let currentBank = 0; // Default to first bank
   let activeSlotIndex = 0; // Default to first slot
 
-  // Storage key includes bank
-  const getStorageKey = (bank, index) => `${STORAGE_KEY_PREFIX}bank-${bank}-slot-${index}`;
+  const getStorageKey = slotStorageKey;
 
   // Store slot elements for easy access
   const slotElements = [];
@@ -471,18 +505,9 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   // Function to save current code to active slot
   async function saveToActiveSlot() {
     try {
-      // Get main code only - setup code is saved separately as user setting
-      let codeToSave;
-      if (editor.getCurrentTab && editor.getCurrentTab() === "main") {
-        // Save current main tab content
-        codeToSave = editor.getCode();
-      } else if (editor.getTabCode) {
-        // Get main tab content even if not currently active
-        codeToSave = editor.getTabCode("main");
-      } else {
-        // Fallback for direct editor access
-        codeToSave = editor.state.doc.toString();
-      }
+      // The sketch only, whichever tab is open: the setup code is the
+      // performer's own setting and belongs to no slot
+      const codeToSave = editor.state.doc.toString();
 
       // Store the target bank and slot for screenshot capture
       // This ensures the screenshot goes to the correct slot even if we change slots later
@@ -539,16 +564,8 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
     const savedCode = localStorage.getItem(storageKey);
 
     if (savedCode) {
-      // Load main code into editor - setup code persists separately
-      if (editor.getCurrentTab && editor.getCurrentTab() !== "main") {
-        // Switch to main tab first if not already there
-        const mainTabButton = document.querySelector('.editor-tab[data-tab="main"]');
-        if (mainTabButton) {
-          mainTabButton.click();
-        }
-      }
-
-      // Load code into editor (this will be main code only)
+      // The editor shows the Sketch tab with the slot's code; the setup
+      // code stays as it is
       editor.dispatch({
         changes: { from: 0, to: editor.state.doc.length, insert: savedCode },
       });
@@ -773,143 +790,50 @@ export function createSlotsPanel(editor, hydra, runCode, mobilePosition = false,
   handle.appendChild(iconsContainer);
   // handle.appendChild(clearBtn);
 
-  // Function to clear all slots
-  function clearAllSlots() {
-    // Create confirmation options
-    const options = [
-      "Clear Current Bank",
-      "Clear All Banks",
-      "Clear All Thumbnails Only",
-      "Cancel",
-    ];
+  // Ask what to clear, then clear it: a scene, all of them, or the thumbnails
+  async function clearAllSlots() {
+    const scene = currentBank;
+    const choice = await showChoiceDialog({
+      title: "CLEAR SCENES",
+      choices: [
+        {
+          value: "scene",
+          label: `Clear scene ${scene + 1}`,
+          detail: "Removes its 16 slots",
+          danger: true,
+        },
+        {
+          value: "all",
+          label: "Clear all scenes",
+          detail: "Removes every slot of all four scenes",
+          danger: true,
+        },
+        {
+          value: "thumbnails",
+          label: "Clear thumbnails only",
+          detail: "Keeps the code, frees storage space",
+        },
+      ],
+    });
+    if (choice === null) return;
 
-    // Show dialog with options
-    const message =
-      "What would you like to clear?\n\n" +
-      "1. Clear Current Bank - Removes all slots in the current bank\n" +
-      "2. Clear All Banks - Removes all slots in all banks\n" +
-      "3. Clear All Thumbnails Only - Keeps code but removes all thumbnails to save space";
-
-    const choice = prompt(message, "1");
-
-    if (choice === null || choice === "") {
-      return; // User canceled
-    }
-
-    // Process based on user selection
-    if (choice === "3" || choice.toLowerCase() === "thumbnails") {
-      // Clear all thumbnails only (across all banks)
-      let thumbnailCount = 0;
-
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.includes("-thumbnail")) {
-          localStorage.removeItem(key);
-          thumbnailCount++;
-        }
-      }
-
-      // Clear current bank's thumbnail display
-      for (let i = 0; i < 16; i++) {
-        const thumbnailElement = slotElements[i].querySelector(".slot-thumbnail");
-        thumbnailElement.style.backgroundImage = "";
-        thumbnailElement.style.backgroundColor = "";
-
-        // Add colored background for slots that still have code
-        const storageKey = getStorageKey(currentBank, i);
-        const hasCode = localStorage.getItem(storageKey);
-        if (hasCode) {
-          thumbnailElement.style.backgroundColor = "var(--color-syntax-function)";
-          thumbnailElement.style.opacity = "0.3";
-        }
-      }
-
-      // Show notification
-      const clearedNotification = document.createElement("div");
-      clearedNotification.className = "saved-notification";
-      clearedNotification.style.backgroundColor = "var(--color-perf-medium)";
-      clearedNotification.textContent = `Cleared ${thumbnailCount} Thumbnails!`;
-      document.body.appendChild(clearedNotification);
-
-      setTimeout(() => {
-        clearedNotification.classList.add("fade-out");
-        setTimeout(() => {
-          if (clearedNotification.parentNode) {
-            document.body.removeChild(clearedNotification);
-          }
-        }, 500);
-      }, 1500);
-
-      return;
-    }
-
-    // Handle original clear options
-    if (choice === "2" || choice.toLowerCase() === "all") {
-      // Clear all banks
-      for (let bank = 0; bank < 4; bank++) {
-        for (let slot = 0; slot < 16; slot++) {
-          localStorage.removeItem(getStorageKey(bank, slot));
-          localStorage.removeItem(`${getStorageKey(bank, slot)}-thumbnail`);
-          localStorage.removeItem(`${getStorageKey(bank, slot)}-thumbnail-timestamp`);
-        }
-      }
-
-      // Clear current bank's thumbnail display
-      for (let i = 0; i < 16; i++) {
-        const thumbnailElement = slotElements[i].querySelector(".slot-thumbnail");
-        thumbnailElement.style.backgroundImage = "";
-        thumbnailElement.style.backgroundColor = "";
-      }
-
-      // Update bank dots
+    try {
+      const removed = clearStoredSlots(localStorage, choice, scene);
+      // Redraw the scene's slots, keeping the active one marked
+      loadAllSlotsForCurrentBank();
+      setActiveSlot(activeSlotIndex, false);
       updateBankDots();
-
-      // Show notification
-      const clearedNotification = document.createElement("div");
-      clearedNotification.className = "saved-notification";
-      clearedNotification.style.backgroundColor = "var(--color-error)";
-      clearedNotification.textContent = "Cleared All Banks!";
-      document.body.appendChild(clearedNotification);
-
-      setTimeout(() => {
-        clearedNotification.classList.add("fade-out");
-        setTimeout(() => {
-          if (clearedNotification.parentNode) {
-            document.body.removeChild(clearedNotification);
-          }
-        }, 500);
-      }, 1500);
-    } else {
-      // Clear only current bank (default option)
-      for (let i = 0; i < 16; i++) {
-        localStorage.removeItem(getStorageKey(currentBank, i));
-        localStorage.removeItem(`${getStorageKey(currentBank, i)}-thumbnail`);
-        localStorage.removeItem(`${getStorageKey(currentBank, i)}-thumbnail-timestamp`);
-
-        // Clear thumbnail display
-        const thumbnailElement = slotElements[i].querySelector(".slot-thumbnail");
-        thumbnailElement.style.backgroundImage = "";
-        thumbnailElement.style.backgroundColor = "";
+      if (choice === "thumbnails") {
+        notify(`Cleared ${removed} thumbnails`);
+      } else {
+        // Red, as it always was: those slots are gone
+        notify(choice === "all" ? "Cleared all scenes" : `Cleared scene ${scene + 1}`, {
+          type: "error",
+        });
       }
-
-      // Update bank dots
-      updateBankDots();
-
-      // Show notification
-      const clearedNotification = document.createElement("div");
-      clearedNotification.className = "saved-notification";
-      clearedNotification.style.backgroundColor = "var(--color-error)";
-      clearedNotification.textContent = `Cleared Bank ${currentBank + 1}!`;
-      document.body.appendChild(clearedNotification);
-
-      setTimeout(() => {
-        clearedNotification.classList.add("fade-out");
-        setTimeout(() => {
-          if (clearedNotification.parentNode) {
-            document.body.removeChild(clearedNotification);
-          }
-        }, 500);
-      }, 1500);
+    } catch (error) {
+      console.error("Error clearing scenes:", error);
+      notifyError("Could not clear the scenes");
     }
   }
 

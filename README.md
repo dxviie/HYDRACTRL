@@ -33,9 +33,9 @@ for how it works and how to build it.
 - **MIDI integration** — built for the Korg nanoPAD2, including its XY pad with a small physics engine for expressive control (mouse works too)
 - **Advanced code editor** — CodeMirror 6 with Hydra syntax highlighting, code completion, multiple themes and error reporting
 - **Setup code tab** — code that runs before each sketch, for audio settings and globals
-- **Audio reactivity** — Hydra's `a.fft` data out of the box, guarded by an audio watchdog that logs dropouts and auto-resumes suspended audio
+- **Audio reactivity** — Hydra's `a.fft` data out of the box, from the audio input you choose in the system panel (the outputs listen to the same one), guarded by an audio watchdog that logs dropouts and auto-resumes suspended audio
 - **Built-in Hydra documentation** — always at hand while coding
-- **Code overlay** — show your code over the visuals as you type it, on the outputs too (the desktop app's Syphon/Spout output, `/output` pages, the breakout window): with the cursor, a RUNNING/EDITED tag, marks on the lines not run yet, the run flash and the scenes and slots, in its own blend mode and opacity
+- **Code overlay** — show your code over the visuals as you type it, on the outputs too (the desktop app's Syphon/Spout output, `/output` pages, the breakout window): set in Fira Code with ligatures and subtle syntax colors, with the cursor, a mark for running or edited, marks on the lines not run yet, the run flash and the scenes and slots, in its own blend mode and opacity
 - **Breakout view** — send visuals to a second window at a precise size for projections or recordings ([OBS](https://obsproject.com/) and [NDI](https://ndi.video/) work great)
 - **Desktop app with Syphon/Spout output** — share your visuals with Resolume, MadMapper, VDMX, TouchDesigner or OBS as a GPU texture, plus a chrome-less `/output` page for OBS and TouchDesigner browser sources (see below)
 - **Your own images and videos** — drop them on the editor in the desktop app, which copies them into its media folder and writes the line that loads them (see below)
@@ -171,7 +171,9 @@ hydra instance, no panels. It follows the main UI live over a WebSocket: every
 successful run and the XY-pad values (`nanoX`/`nanoY`) are mirrored to every
 connected output, and an output that connects later gets the current sketch
 straight away. Audio reactivity (`a.fft`) comes from the output's own
-microphone input.
+audio input: the one chosen under AUDIO INPUT in the interface's system
+panel when the output has an input of that name, the system default
+otherwise.
 
 Anything that can render a web page can be an output:
 
@@ -225,7 +227,9 @@ you are running. Changes are listed in the [changelog](./CHANGELOG.md), and
 [RELEASING.md](./RELEASING.md) describes how a release is cut: pushing a
 `v1.2.3` tag builds the desktop app for macOS and Windows and publishes it on
 the [releases page](https://github.com/dxviie/HYDRACTRL/releases), which the
-website's download buttons point at.
+website's download buttons point at. Work in progress is there too:
+every branch has an experimental pre-release, signed but not finished,
+for trying what's coming before it's released.
 
 ## Credits & License
 

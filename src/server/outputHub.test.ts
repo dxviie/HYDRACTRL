@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  MAX_AUDIO_INPUT_LENGTH,
   MAX_ERROR_LENGTH,
   MAX_PENDING_RUNS,
   MAX_RUN_ID_LENGTH,
@@ -134,6 +135,21 @@ describe("parseIncomingMessage", () => {
     });
   });
 
+  test("parses the audio input, the system default as two empty strings", () => {
+    const input = { type: "audio", deviceId: "9f2c", label: "USB Interface" };
+    expect(parseIncomingMessage({ ...input, extra: true })).toEqual(input);
+    expect(parseIncomingMessage({ type: "audio" })).toEqual({
+      type: "audio",
+      deviceId: "",
+      label: "",
+    });
+    expect(parseIncomingMessage({ type: "audio", deviceId: 3 })).toBe(null);
+    expect(parseIncomingMessage({ type: "audio", label: ["USB"] })).toBe(null);
+    const long = "x".repeat(MAX_AUDIO_INPUT_LENGTH + 1);
+    expect(parseIncomingMessage({ type: "audio", deviceId: long })).toBe(null);
+    expect(parseIncomingMessage({ type: "audio", label: long })).toBe(null);
+  });
+
   test("parses what the code overlay shows of the editor", () => {
     expect(
       parseIncomingMessage({
@@ -225,6 +241,23 @@ describe("createOutputHub", () => {
     const late = join(hub, "o-late", "output");
     expect(late).toEqual([SKETCH, overlay]);
     expect(hub.getLastOverlay()).toEqual(overlay);
+  });
+
+  test("fans the audio input out to outputs and replays it to a late one", () => {
+    const hub = createOutputHub();
+    join(hub, "c1", "controller");
+    const output = join(hub, "o1", "output");
+    const input = { type: "audio", deviceId: "9f2c", label: "USB Interface" } as const;
+
+    expect(hub.message("c1", input)).toBe(true);
+    expect(output.at(-1)).toEqual(input);
+    expect(hub.message("o1", input)).toBe(false);
+
+    // Back to the system default: a late output hears that, not the old input
+    const standard = { type: "audio", deviceId: "", label: "" } as const;
+    hub.message("c1", standard);
+    expect(join(hub, "o-late", "output")).toEqual([standard]);
+    expect(hub.getLastAudio()).toEqual(standard);
   });
 
   test("fans the editor, the slots and the flash out, and replays all but the flash", () => {

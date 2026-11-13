@@ -8,6 +8,45 @@ version and the desktop app share one version number; see
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-11-13
+
+Choose the audio input `a.fft` listens to, a quieter code overlay, and setup
+code that stays put when you change slots.
+
+### Added
+
+- **Audio input**: choose what `a.fft` listens to, under AUDIO INPUT in the
+  system panel: the system default or any input your computer has, such as
+  an audio interface or a loopback device. The desktop app had no way to
+  pick one. The outputs listen to the same input (the desktop app's
+  Syphon/Spout output, `/output` pages, the breakout window), and switching
+  doesn't interrupt the visuals. Your choice is remembered. While the chosen
+  input isn't connected, `a.fft` listens to the system default and goes back
+  to it when it returns.
+
+### Changed
+
+- **Code overlay**: a quieter, squarer look. The code is set in Fira Code
+  with its ligatures, as in the editor, with subtle colors that set comments,
+  strings and numbers apart. Marks replace the words: a filled square while
+  the code on screen runs, a hollow one once it is edited, and two small tabs
+  while you edit Setup; the cursor is a block. The scenes and slots moved to
+  the top right corner, clear of hydra's audio bins, as one tight grid: the
+  four scenes stand in a column right of the pads, as tall as the two rows
+  of pads. Lines beside them wrap short of them.
+
+### Fixed
+
+- The slots panel's clear button now works in the desktop app: it
+  asks what to clear (this scene, all scenes or only the thumbnails) in a
+  dialog of its own, where it used the browser's prompt, which the desktop
+  app can't show. Clearing only the thumbnails now clears all of them, and a
+  cleared scene's slots no longer keep the outline of the code they held.
+- Picking a slot while the Setup tab is open no longer replaces your setup
+  code with the slot's: the editor shows the Sketch tab with the slot's code
+  and your setup code stays as you left it. Saving and sharing a link from
+  the Setup tab now take the sketch too, where they took the setup code.
+
 ## [1.2.1] - 2026-10-22
 
 Show your code to the audience: a live code overlay on the Syphon and Spout
@@ -210,7 +249,8 @@ The first public version.
 - A standalone executable (`bun run build:exe:full`) that also serves local
   images and videos to sketches.
 
-[Unreleased]: https://github.com/dxviie/HYDRACTRL/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/dxviie/HYDRACTRL/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/dxviie/HYDRACTRL/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/dxviie/HYDRACTRL/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/dxviie/HYDRACTRL/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/dxviie/HYDRACTRL/compare/v1.0.0...v1.1.0

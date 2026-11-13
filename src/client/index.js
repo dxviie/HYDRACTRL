@@ -12,10 +12,13 @@ import { savePanelPosition } from "../utils/PanelStorage.js";
 import { createEventBus } from "./core/EventBus.js";
 import { createPluginHost } from "./core/PluginHost.js";
 import { createSafeStorage } from "./core/Storage.js";
+import { createAudioInputs } from "./core/audioInput.js";
+import { createEditorTabs } from "./core/editorTabs.js";
 import { notify, notifyError } from "./core/notify.js";
 import { createRenderLoop } from "./core/renderLoop.js";
 import { executeSketch } from "./core/sketchRunner.js";
 import { nextUiAction } from "./core/uiCycle.js";
+import { createAudioInputPlugin } from "./plugins/AudioInputPlugin.js";
 import { createAudioWatchdogPlugin } from "./plugins/AudioWatchdogPlugin.js";
 import { createAutoRunPlugin } from "./plugins/AutoRunPlugin.js";
 import { createBreakoutPlugin } from "./plugins/BreakoutPlugin.js";
@@ -39,6 +42,13 @@ const storage = createSafeStorage({
   },
 });
 const events = createEventBus();
+
+// The audio input a.fft listens to, for every hydra instance on this page
+// (the breakout window's too); the outputs follow through `audio:input`
+const audioInputs = createAudioInputs({
+  storage,
+  onChange: (state) => events.emit("audio:input", state),
+});
 
 // Helper function to debounce events
 function debounce(func, wait) {
@@ -89,72 +99,31 @@ function initEditor() {
     localStorage.getItem("hydractrl-setup-code") ||
     "// Setup code runs once before main code\n// Use this for audio settings, global variables, etc.\n// This only persists in your browser and will not be exported to JSON.\n\n";
 
-  const editorTabs = {
-    main: { code: DEFAULT_CODE },
-    setup: { code: savedSetupCode },
-  };
-  let currentTab = "main";
-
   // Create the hydra editor with CodeMirror
-  const editor = createCodeMirrorEditor(editorContent, editorTabs[currentTab].code);
+  const editor = createCodeMirrorEditor(editorContent, DEFAULT_CODE);
 
-  // Add tab switching functionality
+  // The Sketch and Setup tabs. The setup code is saved when its tab is left.
   const tabButtons = document.querySelectorAll(".editor-tab");
+  const tabs = createEditorTabs(editor, {
+    main: DEFAULT_CODE,
+    setup: savedSetupCode,
+    saveSetup: (code) => storage.set("hydractrl-setup-code", code),
+    onShow: (tab) => {
+      tabButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.tab === tab);
+      });
+    },
+  });
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      // Save current editor content
-      editorTabs[currentTab].code = editor.getCode();
-
-      // If leaving setup tab, save to localStorage
-      if (currentTab === "setup") {
-        localStorage.setItem("hydractrl-setup-code", editor.getCode());
-      }
-
-      // Switch to new tab
-      currentTab = button.dataset.tab;
-
-      // Update active tab UI
-      tabButtons.forEach((btn) => btn.classList.remove("active"));
-      button.classList.add("active");
-
-      // Load new tab content
-      editor.setCode(editorTabs[currentTab].code);
+      tabs.show(button.dataset.tab);
       refocusEditor(editor);
     });
   });
-
-  // Add getter for tab content
-  editor.getTabCode = (tab) => {
-    if (tab === currentTab) {
-      return editor.getCode();
-    }
-    return editorTabs[tab]?.code || "";
-  };
-
-  // Add getter for current tab
-  editor.getCurrentTab = () => currentTab;
-
-  // Add method to get both setup and main code
-  editor.getAllCode = () => {
-    // Save current editor content first
-    editorTabs[currentTab].code = editor.getCode();
-
-    // Always return setup + main code, regardless of current tab
-    // This ensures setup always runs with the main sketch
-    return {
-      setup: editorTabs.setup.code,
-      main: editorTabs.main.code,
-    };
-  };
-
-  // Add method to set both setup and main code
-  editor.setAllCode = (setupCode, mainCode) => {
-    editorTabs.setup.code = setupCode || "";
-    editorTabs.main.code = mainCode || "";
-
-    // Update current editor content with the appropriate tab
-    editor.setCode(editorTabs[currentTab].code);
-  };
+  editor.getTabCode = tabs.getTabCode;
+  editor.getCurrentTab = tabs.current;
+  // Both tabs' code, whichever is open: setup always runs with the sketch
+  editor.getAllCode = tabs.getAllCode;
 
   // Make the editor draggable by the handle with position persistence
   makeDraggable(editorContainer, document.getElementById("editor-handle"), "editor-panel");
@@ -203,19 +172,23 @@ function initEditor() {
   // Start observing the editor container
   resizeObserver.observe(editorContainer);
 
-  // Create a simplified API that mimics our previous interface
+  // Create a simplified API that mimics our previous interface. Its document
+  // is the sketch, whichever tab is open: slots, the autosave and shared
+  // links read and replace the sketch, never the setup code.
   return {
     // Match our previous API
     state: {
       doc: {
-        toString: () => editor.getCode(),
-        length: editor.getCode().length,
+        toString: () => tabs.getMainCode(),
+        get length() {
+          return tabs.getMainCode().length;
+        },
       },
     },
     dispatch: ({ changes }) => {
       if (changes && changes.insert) {
-        // For loadCode functionality
-        editor.setCode(changes.insert);
+        // For loadCode functionality: shows the Sketch tab with the new code
+        tabs.setMainCode(changes.insert);
       }
     },
     focus: () => editor.focus(),
@@ -276,16 +249,19 @@ async function initHydra() {
     // Thumbnails are always included in exports (small enough to fit)
     // We now use tiny 32x32 thumbnails with low quality compression
 
-    return new HydraSynth({
-      canvas: canvas,
-      // Driven by our own render loop, which can be stopped (see core/renderLoop.js)
-      autoLoop: false,
-      detectAudio: true, // Enable audio reactivity for a.fft[]
-      enableStreamCapture: false,
-      numBins: 6, // Set bins for a.fft[0], a.fft[1], etc.
-      numSources: 4, // Limit sources for better performance
-      precision: "mediump", // Better performance
-    });
+    return audioInputs.attach(
+      () =>
+        new HydraSynth({
+          canvas: canvas,
+          // Driven by our own render loop, which can be stopped (see core/renderLoop.js)
+          autoLoop: false,
+          detectAudio: true, // Enable audio reactivity for a.fft[]
+          enableStreamCapture: false,
+          numBins: 6, // Set bins for a.fft[0], a.fft[1], etc.
+          numSources: 4, // Limit sources for better performance
+          precision: "mediump", // Better performance
+        }),
+    );
   } catch (error) {
     console.error("Error initializing Hydra:", error);
     throw error; // Re-throw to handle in the calling function
@@ -909,6 +885,9 @@ async function init() {
       setUiCycleStep: (step) => {
         hiddenUiStep = typeof step === "function" ? step : null;
       },
+      // The audio input a.fft listens to: list(), choose(input), getState(),
+      // and attach(create) for another hydra instance (see core/audioInput.js)
+      audioInputs,
       events,
       storage,
       notify,
@@ -924,6 +903,7 @@ async function init() {
     const pluginHost = createPluginHost(pluginContext);
     pluginHost.register(createUrlSharePlugin());
     pluginHost.register(createAudioWatchdogPlugin());
+    pluginHost.register(createAudioInputPlugin());
     pluginHost.register(createInfoPanelPlugin());
     pluginHost.register(createFeedbackPlugin());
     pluginHost.register(createAutoRunPlugin());

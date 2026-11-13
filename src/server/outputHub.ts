@@ -6,9 +6,9 @@
  * The hub is transport-agnostic. The server registers each socket with a send
  * function; the hub owns the roles, validates messages, and remembers the last
  * sketch and XY-pad state so an output that connects late is brought up to
- * date immediately (the code overlay's settings too). Apart from calling the
- * registered send functions it has
- * no side effects, so it is unit tested without a network.
+ * date immediately (the code overlay's settings and the audio input too).
+ * Apart from calling the registered send functions it has no side effects,
+ * so it is unit tested without a network.
  *
  * Protocol (JSON text frames):
  *   client -> hub   { type: "hello", role: "controller" | "output", primary? }
@@ -19,6 +19,7 @@
  *                                                            fan-out to outputs
  *   controller -> hub { type: "slots", scene, slot, scenes, slots } fan-out to outputs
  *   controller -> hub { type: "flash" }                       fan-out to outputs
+ *   controller -> hub { type: "audio", deviceId, label }      fan-out to outputs
  *   controller -> hub { type: "run", id, setup, main }       to primary outputs only
  *   output -> hub   { type: "result", id, success, message? } to the controller that asked
  *   output -> hub   { type: "error", message }               fan-out to controllers
@@ -112,6 +113,16 @@ export interface FlashMessage {
   type: "flash";
 }
 
+/**
+ * The audio input a.fft listens to (see src/client/core/audioInput.js): the
+ * interface's id and label for it, both empty for the system default.
+ */
+export interface AudioMessage {
+  type: "audio";
+  deviceId: string;
+  label: string;
+}
+
 export interface ErrorMessage {
   type: "error";
   message: string;
@@ -125,6 +136,7 @@ export type IncomingMessage =
   | EditorMessage
   | SlotsMessage
   | FlashMessage
+  | AudioMessage
   | RunMessage
   | ResultMessage
   | ErrorMessage;
@@ -154,6 +166,7 @@ export type OutgoingMessage =
   | EditorMessage
   | SlotsMessage
   | FlashMessage
+  | AudioMessage
   | RunMessage
   | ResultMessage
   | NoOutputResultMessage
@@ -188,6 +201,9 @@ function isFiniteNumber(value: unknown): value is number {
 export const MAX_MARKED_LINES = 10_000;
 /** Upper bound for the scenes and the slots of a scene. */
 const MAX_SLOTS = 64;
+
+/** Upper bound for an audio input's id and for its label. */
+export const MAX_AUDIO_INPUT_LENGTH = 512;
 
 /** A CSS blend mode's shape; the output page only applies the ones it knows. */
 const BLEND_MODE_PATTERN = /^[a-z-]{1,32}$/;
@@ -315,6 +331,15 @@ export function parseIncomingMessage(raw: unknown): IncomingMessage | null {
       };
     case "flash":
       return { type: "flash" };
+    case "audio": {
+      const deviceId = message.deviceId ?? "";
+      const label = message.label ?? "";
+      if (typeof deviceId !== "string" || typeof label !== "string") return null;
+      if (deviceId.length > MAX_AUDIO_INPUT_LENGTH || label.length > MAX_AUDIO_INPUT_LENGTH) {
+        return null;
+      }
+      return { type: "audio", deviceId, label };
+    }
     case "error":
       if (typeof message.message !== "string") return null;
       return { type: "error", message: message.message.slice(0, MAX_ERROR_LENGTH) };
@@ -335,6 +360,7 @@ export function createOutputHub({ log = () => {} }: OutputHubOptions = {}) {
   let lastOverlay: OverlayMessage | null = null;
   let lastEditor: EditorMessage | null = null;
   let lastSlots: SlotsMessage | null = null;
+  let lastAudio: AudioMessage | null = null;
   /** Runs sent to the primary outputs: run id -> id of the controller that asked. */
   const pendingRuns = new Map<string, string>();
 
@@ -447,6 +473,7 @@ export function createOutputHub({ log = () => {} }: OutputHubOptions = {}) {
           if (lastOverlay) deliver(client, lastOverlay);
           if (lastEditor) deliver(client, lastEditor);
           if (lastSlots) deliver(client, lastSlots);
+          if (lastAudio) deliver(client, lastAudio);
           announceOutputs();
         } else {
           deliver(client, outputsStatus());
@@ -494,10 +521,12 @@ export function createOutputHub({ log = () => {} }: OutputHubOptions = {}) {
       case "editor":
       case "slots":
       case "flash":
+      case "audio":
         if (client.role !== "controller") return false;
         if (parsed.type === "overlay") lastOverlay = parsed;
         else if (parsed.type === "editor") lastEditor = parsed;
         else if (parsed.type === "slots") lastSlots = parsed;
+        else if (parsed.type === "audio") lastAudio = parsed;
         broadcast("output", parsed);
         return true;
       case "error":
@@ -521,6 +550,7 @@ export function createOutputHub({ log = () => {} }: OutputHubOptions = {}) {
     getLastState: () => lastState,
     getLastOverlay: () => lastOverlay,
     getLastEditor: () => lastEditor,
+    getLastAudio: () => lastAudio,
   };
 }
 

@@ -183,6 +183,40 @@ describe("createOutputSyncPlugin", () => {
     });
   });
 
+  test("sends the audio input on connect and whenever it changes", async () => {
+    const fake = createFakeSocket();
+    const { ctx } = createCtx();
+    const input = { deviceId: "9f2c", label: "USB Interface" };
+    ctx.audioInputs = { getChoice: () => input };
+    plugin = createOutputSyncPlugin({
+      url: "ws://test/ws/output",
+      detect: async () => true,
+      socketFactory: fake.factory,
+    }).setup(ctx);
+    await flush();
+
+    fake.open();
+    expect(fake.sent).toContainEqual({ type: "audio", ...input });
+
+    // Back to the system default
+    ctx.events.emit("audio:input", { choice: null, device: null });
+    expect(fake.sent.at(-1)).toEqual({ type: "audio", deviceId: "", label: "" });
+  });
+
+  test("says nothing of the audio input where the page has no say in it", async () => {
+    const fake = createFakeSocket();
+    const { ctx } = createCtx();
+    plugin = createOutputSyncPlugin({
+      url: "ws://test/ws/output",
+      detect: async () => true,
+      socketFactory: fake.factory,
+    }).setup(ctx);
+    await flush();
+
+    fake.open();
+    expect(fake.sent.some((message) => message.type === "audio")).toBe(false);
+  });
+
   test("sends the code overlay's settings on connect and whenever they change", async () => {
     const fake = createFakeSocket();
     const { ctx } = createCtx();

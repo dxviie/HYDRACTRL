@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   buildEditorSnapshot,
+  codeTokens,
   diffLines,
   lineSegments,
   normalizeEditorSnapshot,
@@ -136,6 +137,74 @@ describe("lineSegments", () => {
   test("an empty line holds just the caret", () => {
     expect(lineSegments("", 5, { anchor: 5, head: 5 })).toEqual([{ caret: true }]);
     expect(lineSegments("", 5, { anchor: 1, head: 1 })).toEqual([]);
+  });
+
+  test("cuts at the tokens and tells their kind, a comment over lines included", () => {
+    const code = "/* a\nb */ osc(1)";
+    const tokens = codeTokens(code);
+    expect(lineSegments("b */ osc(1)", 5, { anchor: 15, head: 15 }, tokens)).toEqual([
+      { text: "b */", selected: false, kind: "comment" },
+      { text: " osc", selected: false },
+      { text: "(", selected: false, kind: "punctuation" },
+      { text: "1", selected: false, kind: "number" },
+      { caret: true },
+      { text: ")", selected: false, kind: "punctuation" },
+    ]);
+  });
+});
+
+describe("codeTokens", () => {
+  const kinds = (code) =>
+    codeTokens(code).map(({ from, to, kind }) => [code.slice(from, to), kind]);
+
+  test("finds comments, strings, numbers, keywords and punctuation", () => {
+    expect(kinds("// spin\nconst n = 0.5 // half")).toEqual([
+      ["// spin", "comment"],
+      ["const", "keyword"],
+      ["=", "punctuation"],
+      ["0.5", "number"],
+      ["// half", "comment"],
+    ]);
+    expect(kinds("src(o0).modulate(noise(.5), () => a.fft[0] * -1e2)")).toEqual([
+      ["(", "punctuation"],
+      [").", "punctuation"],
+      ["(", "punctuation"],
+      ["(", "punctuation"],
+      [".5", "number"],
+      ["),", "punctuation"],
+      ["()", "punctuation"],
+      ["=>", "punctuation"],
+      [".", "punctuation"],
+      ["[", "punctuation"],
+      ["0", "number"],
+      ["]", "punctuation"],
+      ["*", "punctuation"],
+      ["-", "punctuation"],
+      ["1e2", "number"],
+      [")", "punctuation"],
+    ]);
+  });
+
+  test("keeps comment marks inside strings, and strings inside comments", () => {
+    expect(kinds(`s("a // b", 'c', \`d\`) /* "e" */ true`)).toEqual([
+      ["(", "punctuation"],
+      ['"a // b"', "string"],
+      [",", "punctuation"],
+      ["'c'", "string"],
+      [",", "punctuation"],
+      ["`d`", "string"],
+      [")", "punctuation"],
+      ['/* "e" */', "comment"],
+      ["true", "number"],
+    ]);
+  });
+
+  test("an unclosed comment or string runs to the end of the code, or of the line", () => {
+    expect(kinds("osc() /* off\n.out()")).toEqual([
+      ["()", "punctuation"],
+      ["/* off\n.out()", "comment"],
+    ]);
+    expect(kinds('"open\nosc')).toEqual([['"open', "string"]]);
   });
 });
 

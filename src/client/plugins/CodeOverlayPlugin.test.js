@@ -286,7 +286,7 @@ describe("createCodeOverlayPlugin", () => {
     expect(view.editor).toMatchObject({ dirty: false, changed: [] });
   });
 
-  test("says EDITED when nothing ran yet", async () => {
+  test("marks the code edited when nothing ran yet", async () => {
     current = setUp();
     await flush();
     // Stand-in for a page whose first run failed

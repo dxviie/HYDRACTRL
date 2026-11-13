@@ -665,6 +665,71 @@ select option {
   opacity: 0;
 }
 
+/* A few choices to pick from, in place of window.prompt (core/choiceDialog.js) */
+.choice-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.45);
+}
+
+.choice-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(340px, 100%);
+  padding: 12px;
+  border-radius: var(--panel-radius);
+  background-color: var(--color-bg-secondary);
+  backdrop-filter: blur(var(--color-panel-blur));
+  box-shadow: 0 4px 16px var(--color-panel-shadow);
+  color: var(--color-text-primary);
+  font-family: var(--font-ui);
+}
+
+.choice-dialog-title {
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+}
+
+.choice-dialog-option,
+.choice-dialog-cancel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 7px 10px;
+  text-align: left;
+  font-family: inherit;
+}
+
+.choice-dialog-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.choice-dialog-danger .choice-dialog-label {
+  color: var(--color-error);
+}
+
+.choice-dialog-detail {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.choice-dialog-cancel {
+  align-items: center;
+  margin-top: 4px;
+  background-color: transparent;
+}
+
 /* Error notification */
 .error-notification {
   position: fixed;
@@ -950,7 +1015,8 @@ input[type="range"]:active::-moz-range-thumb {
 .theme-light .slots-panel,
 .theme-light .xy-pad-panel,
 .theme-light .doc-panel,
-.theme-light .info-panel {
+.theme-light .info-panel,
+.theme-light .choice-dialog {
   outline: 1px solid rgba(28, 20, 60, 0.12);
 }
 
@@ -960,7 +1026,8 @@ input[type="range"]:active::-moz-range-thumb {
 .theme-nineties-pop .slots-panel,
 .theme-nineties-pop .xy-pad-panel,
 .theme-nineties-pop .doc-panel,
-.theme-nineties-pop .info-panel {
+.theme-nineties-pop .info-panel,
+.theme-nineties-pop .choice-dialog {
   outline: 2px solid var(--pop-ink);
   box-shadow: 6px 6px 0 var(--pop-ink) !important;
 }

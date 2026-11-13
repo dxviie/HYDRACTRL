@@ -9,13 +9,14 @@ implementations:
 | --- | --- | --- |
 | `UrlSharePlugin` | `url-share` | Copy the sketch as a shareable URL (Alt/⌥+U), load sketches from `#sketch=` links. |
 | `AudioWatchdogPlugin` | `audio-watchdog` | Detects `a.fft` dropouts, logs diagnostics, auto-resumes the AudioContext. |
+| `AudioInputPlugin` | `audio-input` | The system panel's AUDIO INPUT list: chooses what `a.fft` listens to, on every output too. |
 | `InfoPanelPlugin` | `info-panel` | The About panel with keyboard shortcuts and the "show on startup" preference. |
 | `FeedbackPlugin` | `feedback` | The feedback panel: the site's contact form (Tally) in a sandboxed frame, with the version, app, OS and browser as hidden fields. |
 | `AutoRunPlugin` | `auto-run` | Re-runs the sketch after typing pauses; Ctrl/⌘+Y toggle and toolbar checkbox. |
 | `SlotAdvancePlugin` | `slot-advance` | "Move to next slot on save" behavior, wrapping across banks. |
 | `CodeOverlayPlugin` | `code-overlay` | The editor's code over the visuals as you type, with a RUNNING/EDITED tag, marks on the lines not run yet, the run flash and the scenes and slots: on every output, here while the UI is hidden, switched by the second Ctrl/⌘+` press and set in the system panel. |
 | `BreakoutPlugin` | `breakout-view` | Opens the visualization in a separate window at a chosen resolution. |
-| `OutputSyncPlugin` | `output-sync` | Mirrors every run and the XY-pad values to external outputs (`/output` pages) over the server's WebSocket. |
+| `OutputSyncPlugin` | `output-sync` | Mirrors every run, the XY-pad values and the audio input chosen to external outputs (`/output` pages) over the server's WebSocket. |
 | `DesktopOutputPlugin` | `desktop-output` | Inside the desktop app: Syphon/Spout output status, Start/Stop and a settings shortcut in the stats panel. No-op in a browser. |
 | `DesktopMirrorPlugin` | `desktop-mirror` | Inside the desktop app: shows the Syphon/Spout output's own frames instead of rendering every sketch a second time, and runs sketches on that output. No-op in a browser. |
 | `DesktopMediaPlugin` | `desktop-media` | Inside the desktop app: images and videos dropped on the editor go to the media folder, and the editor gets a line that loads each one into a free source. No-op in a browser. |
@@ -68,6 +69,7 @@ export function createMyPlugin() {
 | `getRunningSketch()` | The last sketch that ran on the main instance, `{ setup, main }`, or `null`. |
 | `setUiCycleStep(step)` | Add a step to Ctrl/⌘+` while the UI is hidden: the first press after hiding calls `step()` instead of bringing the UI back (the code overlay plugin switches the code with it). `null` removes it. |
 | `setSketchRunner(runner)` | Run the main instance's sketches somewhere else: `runner({ setup, main })` resolves to `{ success, message?, runId? }`. `null` runs them on the main instance again. The desktop mirror plugin uses it. |
+| `audioInputs` | The audio input `a.fft` listens to (see `src/client/core/audioInput.js`): `list()` resolves to `{ inputs: [{ deviceId, label }], defaultLabel }`, `choose(input)` listens to one (`null` for the system default) and resolves to `getState()`, which is `{ choice, device, missing, listening, error }`. `attach(create)` creates another hydra instance that follows the choice. |
 | `events` | App-wide event bus: `on(event, fn)`, `once`, `off`, `emit(event, payload)`. |
 | `storage` | Quota-safe localStorage wrapper: `get`, `set`, `remove`, `getJSON`, `setJSON`, `keys(prefix)`. Never throws. |
 | `notify(msg, {type, duration})` | Toast notifications (`type`: `"info"`, `"success"`, `"error"`). |
@@ -91,6 +93,7 @@ export function createMyPlugin() {
 | `sketch:shared` | `{ url }` | A sketch link was copied (URL share plugin). |
 | `sketch:loaded-from-url` | `{}` | A sketch was loaded from a `#sketch=` URL. |
 | `audio:suspended` / `audio:flatline` / `audio:recovered` | `{ at }` | Audio watchdog state changes. |
+| `audio:input` | `{ choice, device, missing, listening, error }` | The audio input chosen for `a.fft`, the one in use or the inputs connected changed. `choice` and `device` are `{ deviceId, label }`, or `null` for the system default; `missing` says the chosen input isn't connected (the output sync plugin sends the choice to the outputs). |
 | `autorun:changed` | `{ enabled }` | Auto-run was toggled (checkbox or Ctrl/⌘+Y). |
 | `slots:advanced` | `{ bank, slot }` | The active slot moved after a save (slot advance plugin). |
 | `breakout:opened` / `breakout:closed` | `{ width, height }` / `{}` | Breakout window lifecycle. |
