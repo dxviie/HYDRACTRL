@@ -63,6 +63,8 @@ export function createMyPlugin() {
 | --- | --- |
 | `hydra` | The main hydra-synth instance. |
 | `editor` | The editor proxy (`editor.state.doc.toString()` reads the code, `editor.dispatch({changes: {insert}})` replaces it, `editor.focus()`). |
+| `editor.addExtension(extension)` | Installs a CodeMirror 6 extension and returns an idempotent disposer. Use from a bundled plugin so the extension shares the editor’s CodeMirror modules. |
+| `editor.getCurrentTab()`, `editor.getTabCode(tab)` | Read the active tab ID (`main` or `setup`) and either tab’s current text, including unsaved edits. |
 | `runCode()` | Run the current editor code on the main and breakout instances. |
 | `runCodeOn(instance)` | Run the current editor code on one specific hydra instance only. |
 | `renderLoop` | The main instance's animation loop: `stop()`, `start()`, `isRunning()`. |
