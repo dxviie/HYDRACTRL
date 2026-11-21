@@ -200,6 +200,17 @@ try {
   if (process.env.SIGNATURE_CUSTOM_SCREENSHOT) {
     await page.screenshot({ path: process.env.SIGNATURE_CUSTOM_SCREENSHOT });
   }
+  // A hint can be created in the DOM but hidden offscreen if CodeMirror's
+  // scroller and the editor panel disagree about the visible lines.
+  await replace(`${"// Earlier code\n".repeat(35)}clamp(0.5,`);
+  await expectParameter("min", "clamp(value, min, max)");
+  await page.waitForFunction(() => {
+    const scroller = document.querySelector(".cm-scroller");
+    const hint = document.querySelector(".cm-signature-assist")?.getBoundingClientRect();
+    return scroller.scrollTop > 0 && hint && hint.top >= 0 && hint.bottom <= innerHeight;
+  });
+
+  await replace("clamp(0.5,");
   await page.keyboard.insertText(" 0,");
   await expectParameter("max", "clamp(value, min, max)");
   assert.equal(await parameterDoc.textContent(), "Upper bound.");
@@ -340,7 +351,7 @@ try {
 
   assert.deepEqual(errors, []);
   console.log(
-    "Passed native and custom signatures, JSDoc and unsaved edits, nesting, autocomplete, tab undo and redo, slot, visibility, disposal and auto-run checks.",
+    "Passed native and custom signatures, JSDoc and unsaved edits, nesting, autocomplete, scrolling, tab undo and redo, slot, visibility, disposal and auto-run checks.",
   );
 } finally {
   await browser.close();

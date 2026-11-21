@@ -377,7 +377,8 @@ textarea {
 }
 
 .editor-content {
-  overflow: auto;
+  /* CodeMirror owns scrolling so its cursor and tooltips share one viewport. */
+  overflow: hidden;
   flex-grow: 1;
 }
 
@@ -453,7 +454,6 @@ textarea {
 
 .cm-editor .cm-scroller {
   background-color: transparent !important;
-  overflow: visible !important;
 }
 
 .cm-editor .cm-content {
