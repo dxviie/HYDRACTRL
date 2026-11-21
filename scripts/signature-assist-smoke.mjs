@@ -39,6 +39,36 @@ try {
     await page.keyboard.insertText(code);
   }
 
+  const setupTab = page.locator('[data-tab="setup"]');
+  const sketchTab = page.locator('[data-tab="main"]');
+  await setupTab.click();
+  const originalSetup = await editor.innerText();
+  await replace("// setup edit");
+  await sketchTab.click();
+  await replace("osc().out()");
+  await page.waitForTimeout(600);
+  await page.keyboard.insertText(")");
+  await editor.press("Control+Enter");
+  const error = page.locator(".error-notification");
+  await error.waitFor({ state: "visible" });
+  await error.click();
+  await setupTab.click();
+  assert.equal(await editor.innerText(), "// setup edit");
+  await editor.press("Control+z");
+  assert.equal(await editor.innerText(), originalSetup);
+  await editor.press("Control+y");
+  assert.equal(await editor.innerText(), "// setup edit");
+  await editor.press("Control+z");
+  await sketchTab.click();
+  assert.equal(await editor.innerText(), "osc().out())");
+  await editor.press("Control+z");
+  assert.equal(await editor.innerText(), "osc().out()");
+  await setupTab.click();
+  assert.equal(await editor.innerText(), originalSetup);
+  await sketchTab.click();
+  await editor.press("Control+y");
+  assert.equal(await editor.innerText(), "osc().out())");
+
   const oscillator = "osc(frequency = 60, sync = 0.1, offset = 0)";
   async function expectParameter(label, signature = oscillator) {
     await tip.waitFor({ state: "visible" });
@@ -138,8 +168,6 @@ try {
   await page.locator("body").press("Escape");
   await page.locator("body.ui-hidden").waitFor({ state: "detached" });
 
-  const setupTab = page.locator('[data-tab="setup"]');
-  const sketchTab = page.locator('[data-tab="main"]');
   const clampDoc = [
     "/**",
     " * Restricts a value to a specified range.",
@@ -312,7 +340,7 @@ try {
 
   assert.deepEqual(errors, []);
   console.log(
-    "Passed native and custom signatures, JSDoc and unsaved edits, nesting, autocomplete, tab, slot, visibility, disposal and auto-run checks.",
+    "Passed native and custom signatures, JSDoc and unsaved edits, nesting, autocomplete, tab undo and redo, slot, visibility, disposal and auto-run checks.",
   );
 } finally {
   await browser.close();
