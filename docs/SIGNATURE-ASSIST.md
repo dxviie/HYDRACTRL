@@ -9,7 +9,7 @@ The native resolver uses the 76 function records in [the app’s Hydra catalog](
 | Coverage | Recognized form |
 | --- | --- |
 | Seven generators | Direct `noise`, `voronoi`, `osc`, `shape`, `gradient`, `solid`, and `src` calls. |
-| Texture transforms, color, composition and modulation | Catalog texture methods on a recognized generator call or a chain of those methods. `out` is terminal. Combine methods keep the catalog’s leading `texture` parameter, which Hydra adds to the shader input list. |
+| Texture transforms, color, composition and modulation | Catalog texture methods on a recognized generator or texture helper call, including chains of those methods. `out` is terminal. Combine methods keep the catalog’s leading `texture` parameter, which Hydra adds to the shader input list. |
 | Four helpers | Direct `render`, `hush`, `setResolution`, and `setFunction` calls. |
 | Five source methods | `init`, `initCam`, `initScreen`, `initVideo`, and `initImage` on `s0` through `s3`. |
 | Five audio methods | `setSmooth`, `setCutoff`, `setScale`, `setBins`, and `show` on `a`. |
@@ -20,7 +20,7 @@ The native resolver uses the 76 function records in [the app’s Hydra catalog](
 - Audio setter values in the catalog describe initial settings. The setters take arguments without call-site defaults. The tooltip omits those defaults. Array `smooth` uses the runtime parameter name and `ease` displays the string default `"linear"`.
 - Source methods include the runtime’s second `params` parameter for texture options. Image and video URL defaults are empty strings. Omitted camera index lets the browser select a device. Hydra accepts a screen index but its browser implementation ignores it, so the hint displays the parameter without a default.
 - `initStream` appears in the catalog’s category navigation but has no signature record. Its backing stream provider is also unavailable in HYDRACTRL's Hydra initialization. Other runtime-only APIs, such as `prev`, `shift`, `sum`, and texture `.a()`, are outside catalog coverage.
-- Static matching does not resolve aliases, local shadowing, computed or optional access, parenthesized receivers, custom functions, or runtime `setFunction` replacements. The hint stays hidden inside an unknown inner call or when a syntax error or spread before the cursor makes the parameter position uncertain. Extra arguments display the known signature without a highlight.
+- Static matching does not resolve aliases, local shadowing, computed or optional access, parenthesized receivers, or runtime `setFunction` replacements. The hint stays hidden inside an unknown inner call or when a syntax error or spread before the cursor makes the parameter position uncertain. Extra arguments display the known signature without a highlight.
 
 ## Reproduce in Chromium
 
@@ -34,6 +34,7 @@ Signature Assist supports top-level `function` declarations and arrow functions 
 - The runtime concatenates Setup before Sketch in one function body. The index treats function declarations as hoisted across both tabs. A variable-bound signature is offered after its initializer in the current tab, or in Sketch if its initializer is in Setup. Write each tab as self-contained JavaScript and use explicit statement terminators when leading Sketch syntax could continue a Setup expression. The index does not follow code that spans the tab boundary or infer when callbacks run.
 - A single supported declaration wins over the native catalog. Duplicate or non-function bindings, malformed declarations, and visible assignments suppress hints for that name. A matching nested binding suppresses lookup within its enclosing function, without resolving narrower block scopes. Nested bindings outside a function and visible writes are treated conservatively across the whole script. These rules can suppress some valid hints. Dynamic writes such as `globalThis[name] = ...`, Unicode-escaped identifiers, aliases, and factory-generated functions are outside static discovery.
 - A binding that shadows a native generator, source, or audio object also suppresses its native receiver-chain hints. A normal native call remains available when no matching binding is found.
+- Texture-method hints work on helpers such as `const carrier = () => osc(40);` when a synchronous helper directly returns a known native generator or texture chain. Use an expression-bodied arrow or a body with a single `return` statement. The index checks for shadows at the returned generator call and skips dynamic return values.
 
 For manual verification, paste this into Setup and switch to Sketch without pressing Run or Save.
 

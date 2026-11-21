@@ -124,6 +124,10 @@ try {
     await replace(code);
     await tip.waitFor({ state: "hidden" });
   }
+  await replace("var carrier = () => osc(40, 0.02, 0);\ncarrier().diff(");
+  await expectParameter("texture", "diff(texture)");
+  await replace("var carrier = () => osc(40, 0.02, 0);\ncarrier().diff(osc()).rotate(0,");
+  await expectParameter("speed = 0", "rotate(angle = 10, speed = 0)");
   await replace("osc(60, 1, 0,");
   await tip.waitFor({ state: "visible" });
   assert.equal(await active.count(), 0);

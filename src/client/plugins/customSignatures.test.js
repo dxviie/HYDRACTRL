@@ -192,6 +192,51 @@ test("custom names take precedence over Hydra while shadowed receiver chains are
   expect(session.lookup("noise(|").params[0].name).toBe("scale");
 });
 
+test("recognizes chained texture methods on helpers from either tab", () => {
+  const session = fixture({ setup: "function field(n) { return osc(n).rotate(1); }", main: "" });
+  const sketch = "var carrier = () => osc(40, 0.02, 0);\n";
+  expect(session.lookup(`${sketch}carrier().diff(|field(10))`)).toMatchObject({
+    name: "diff",
+    active: 0,
+    params: [{ name: "texture" }],
+  });
+  expect(
+    session.lookup(`${sketch}carrier().diff(field(10)).modulateScale(field(20), 0.2, |1)`),
+  ).toMatchObject({ name: "modulateScale", active: 2 });
+  expect(session.lookup("field(10).scale(1,|")).toMatchObject({ name: "scale", active: 1 });
+  expect(session.lookup(`${sketch}carrier().out().rotate(|`)).toBeNull();
+  expect(session.lookup("carrier().diff(|); " + sketch)).toBeNull();
+  session.code.setup = "function field(n) { return other(n); }";
+  expect(session.lookup("field(10).scale(1,|")).toBeNull();
+});
+
+test.each([
+  "const carrier = () => Math.sin(1);",
+  "const carrier = () => osc().out();",
+  "const carrier = () => osc.rotate(1);",
+  "const carrier = async () => osc();",
+  "function* carrier() { return osc(); }",
+  "function carrier() { if (x) return osc(); }",
+  "function carrier(osc) { return osc(); }",
+  "const carrier = function osc() { return osc(); };",
+  "let carrier = () => osc(); carrier = other;",
+  "const carrier = () => osc(); const osc = other;",
+])("does not infer a texture return from %s", (declaration) => {
+  expect(fixture().lookup(`${declaration}\ncarrier().diff(|`)).toBeNull();
+});
+
+test("checks generator shadows at the helper declaration across tabs", () => {
+  const session = fixture({ setup: "function carrier() { return osc(); }", main: "" });
+  expect(session.lookup("function here(osc) { carrier().diff(|); }")).toMatchObject({
+    name: "diff",
+  });
+  expect(session.lookup("const osc = other; carrier().diff(|")).toBeNull();
+  expect(session.lookup("function here(carrier) { carrier().diff(|); }")).toBeNull();
+  session.code.setup = "function carrier(osc) { return osc(); }";
+  expect(session.lookup("carrier().diff(|")).toBeNull();
+  expect(session.lookup("carrier(|").params[0].name).toBe("osc");
+});
+
 test.each([
   "function f(x) {} function f(y) {} f(|",
   "const f = makeFunction(); f(|",

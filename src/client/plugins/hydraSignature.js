@@ -30,31 +30,40 @@ const corrections = {
   setBins: [{ name: "bins" }],
 };
 
-function memberName(state, member) {
+function memberName(read, member) {
   if (member.name !== "MemberExpression") return null;
   const property = member.lastChild;
   return property?.name === "PropertyName" && property.prevSibling?.name === "."
-    ? state.sliceDoc(property.from, property.to)
+    ? read(property.from, property.to)
     : null;
 }
 
-function chainMatches(state, receiver, methods, rootMatches) {
+function chainRoot(read, receiver, methods) {
   let node = receiver;
   while (node?.name === "CallExpression") {
     const args = node.lastChild;
     const callee = node.firstChild;
     if (args?.name !== "ArgList" || args.lastChild?.name !== ")" || node.getChild("?.")) {
-      return false;
+      return null;
     }
     for (let token = args.firstChild; token; token = token.nextSibling) {
-      if (token.type.isError) return false;
+      if (token.type.isError) return null;
     }
-    if (rootMatches(callee)) return true;
-    const name = memberName(state, callee);
-    if (!methods.has(name) || name === "out") return false;
+    if (callee.name === "VariableName") return callee;
+    const name = memberName(read, callee);
+    if (!methods.has(name) || name === "out") return null;
     node = callee.firstChild;
   }
-  return rootMatches(node);
+  return node?.name === "ArrayExpression" ? node : null;
+}
+
+/** Find the native generator at the start of a directly returned texture expression. */
+export function nativeTextureRoot(source, expression) {
+  const read = (from, to) => source.slice(from, to);
+  const root = chainRoot(read, expression, textures);
+  if (root?.name !== "VariableName") return null;
+  const name = read(root.from, root.to);
+  return generators.has(name) ? { name, pos: root.from } : null;
 }
 
 function callableSignature(state, args, custom) {
@@ -63,11 +72,13 @@ function callableSignature(state, args, custom) {
   if (callee.name === "VariableName") {
     const name = state.sliceDoc(callee.from, callee.to);
     const hint = custom(name, callee.from);
-    if (hint !== undefined) return hint && { name, ...hint };
+    if (hint !== undefined)
+      return hint && { name, params: hint.params, description: hint.description };
     return generators.has(name) || helpers.has(name) ? nativeSignature(name) : null;
   }
 
-  const name = memberName(state, callee);
+  const read = (from, to) => state.sliceDoc(from, to);
+  const name = memberName(read, callee);
   if (!name) return null;
   const receiver = callee.firstChild;
   if (receiver.name === "VariableName") {
@@ -76,20 +87,17 @@ function callableSignature(state, args, custom) {
     if (sources.has(name) && /^s[0-3]$/.test(binding)) return nativeSignature(name);
     if (audio.has(name) && binding === "a") return nativeSignature(name);
   }
-  if (
-    textures.has(name) &&
-    chainMatches(state, receiver, textures, (root) => {
-      if (root?.name !== "VariableName") return false;
-      const binding = state.sliceDoc(root.from, root.to);
-      return generators.has(binding) && custom(binding, root.from) === undefined;
-    }) &&
-    receiver.name === "CallExpression"
-  )
-    return nativeSignature(name);
-  if (
-    arrays.has(name) &&
-    chainMatches(state, receiver, arrays, (root) => root?.name === "ArrayExpression")
-  ) {
+  if (textures.has(name)) {
+    const root = chainRoot(read, receiver, textures);
+    if (root?.name === "VariableName") {
+      const binding = read(root.from, root.to);
+      const hint = custom(binding, root.from);
+      if (hint === undefined ? generators.has(binding) : hint?.returnsTexture) {
+        return nativeSignature(name);
+      }
+    }
+  }
+  if (arrays.has(name) && chainRoot(read, receiver, arrays)?.name === "ArrayExpression") {
     return nativeSignature(name);
   }
   return null;

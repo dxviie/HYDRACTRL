@@ -1,5 +1,6 @@
 import { javascript } from "@codemirror/lang-javascript";
 import { syntaxTree, syntaxTreeAvailable } from "@codemirror/language";
+import { nativeTextureRoot } from "./hydraSignature.js";
 import { readSignatureJsdoc } from "./signatureJsdoc.js";
 
 const parser = javascript().language.parser;
@@ -14,6 +15,18 @@ function nextToken(node) {
   let next = node.nextSibling;
   while (next?.name === "LineComment" || next?.name === "BlockComment") next = next.nextSibling;
   return next;
+}
+
+function returnedTexture(source, fn) {
+  if (fn.getChild("async") || fn.getChild("Star")) return null;
+  const body = fn.lastChild;
+  if (body?.name !== "Block") return nativeTextureRoot(source, body);
+
+  // A single return gives us a direct result without following control flow.
+  const statement = nextToken(body.firstChild);
+  return statement?.name === "ReturnStatement" && nextToken(statement)?.name === "}"
+    ? nativeTextureRoot(source, nextToken(statement.firstChild))
+    : null;
 }
 
 function parameterList(source, fn, docs) {
@@ -90,7 +103,12 @@ function indexCustomSignatures(source, tree) {
     // A declaration-level comment cannot identify one target in a comma-separated list.
     const docs = declaration.getChild(",") ? null : readSignatureJsdoc(source, declaration);
     const params = parameterList(source, fn, docs);
-    return params && { from, hint: { params, description: docs?.description } };
+    if (!params) return null;
+    const hint = { params, description: docs?.description };
+    const textureRoot = returnedTexture(source, fn);
+    return textureRoot
+      ? { from, hint, textureRoot, textureHint: { ...hint, returnsTexture: true } }
+      : { from, hint };
   }
 
   for (let node = tree.topNode.firstChild; node; node = node.nextSibling) {
@@ -176,6 +194,10 @@ function indexCustomSignatures(source, tree) {
   return { bindings, nested };
 }
 
+function isShadowed(index, name, position) {
+  return index.nested.get(name)?.some(({ from, to }) => from <= position && position < to);
+}
+
 /** Return undefined for an unclaimed name, null for a blocked name, or a signature hint. */
 export function createCustomSignatureResolver(editor) {
   const cache = new Map();
@@ -202,18 +224,34 @@ export function createCustomSignatureResolver(editor) {
       cache.set(other, { source, ...indexCustomSignatures(source, parser.parse(source)) });
     }
 
-    const { bindings: current, nested } = cache.get(tab);
-    const inactive = cache.get(other).bindings;
-    return (name, position) => {
-      if (nested.get(name)?.some(({ from, to }) => from <= position && position < to)) return null;
-      if (current.has(name) && inactive.has(name)) return null;
-      if (current.has(name)) {
-        const signature = current.get(name);
-        return signature && signature.from <= position ? signature.hint : null;
+    const current = cache.get(tab);
+    const inactive = cache.get(other);
+
+    function hintFor(signature, owner) {
+      const root = signature.textureRoot;
+      if (
+        root &&
+        !current.bindings.has(root.name) &&
+        !inactive.bindings.has(root.name) &&
+        !isShadowed(owner, root.name, root.pos)
+      ) {
+        return signature.textureHint;
       }
-      const signature = inactive.get(name);
+      return signature.hint;
+    }
+
+    return (name, position) => {
+      if (isShadowed(current, name, position)) return null;
+      if (current.bindings.has(name) && inactive.bindings.has(name)) return null;
+      if (current.bindings.has(name)) {
+        const signature = current.bindings.get(name);
+        return signature && signature.from <= position ? hintFor(signature, current) : null;
+      }
+      const signature = inactive.bindings.get(name);
       if (signature === undefined) return undefined;
-      return signature && (tab === "main" || signature.from === 0) ? signature.hint : null;
+      return signature && (tab === "main" || signature.from === 0)
+        ? hintFor(signature, inactive)
+        : null;
     };
   };
 }
