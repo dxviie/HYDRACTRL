@@ -34,7 +34,7 @@ function parameterLabel(parameter) {
     : parameter.name;
 }
 
-export function signatureExtension(editor) {
+export function signatureExtension(editor, getTransform) {
   const resolve = createCustomSignatureResolver(editor);
   const signature = StateField.define({
     create: () => null,
@@ -50,10 +50,14 @@ export function signatureExtension(editor) {
         }
       }
       let lookup;
-      const call = hydraCallAtCursor(transaction.state, (name, position) => {
-        if (lookup === undefined) lookup = resolve(transaction.state);
-        return lookup ? lookup(name, position) : null;
-      });
+      const call = hydraCallAtCursor(
+        transaction.state,
+        (name, position) => {
+          if (lookup === undefined) lookup = resolve(transaction.state);
+          return lookup ? lookup(name, position) : null;
+        },
+        getTransform,
+      );
       if (!call) return null;
       if (
         call.pos === previous?.pos &&
@@ -121,9 +125,14 @@ export function createSignatureAssistPlugin() {
   return {
     id: "signature-assist",
     name: "Signature Assist",
-    setup({ editor, isMobile }) {
+    setup({ editor, hydra, isMobile }) {
       if (isMobile) return;
-      return editor.addExtension(signatureExtension(editor));
+      return editor.addExtension(
+        signatureExtension(editor, (name) => {
+          const transforms = hydra?.generator?.glslTransforms;
+          return transforms && Object.hasOwn(transforms, name) ? transforms[name] : undefined;
+        }),
+      );
     },
   };
 }

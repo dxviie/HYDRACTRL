@@ -6,6 +6,7 @@ const helpers = new Set(["render", "hush", "setResolution", "setFunction"]);
 const sources = new Set(["init", "initCam", "initScreen", "initVideo", "initImage"]);
 const audio = new Set(["setSmooth", "setCutoff", "setScale", "setBins", "show"]);
 const arrays = new Set(["fast", "smooth", "ease", "offset", "fit"]);
+const transformMethods = new Set(["coord", "color", "combine", "combineCoord"]);
 const textures = new Set(
   Object.entries(hydraData.functions)
     .filter(
@@ -38,7 +39,7 @@ function memberName(read, member) {
     : null;
 }
 
-function chainRoot(read, receiver, methods) {
+function chainRoot(read, receiver, isMethod) {
   let node = receiver;
   while (node?.name === "CallExpression") {
     const args = node.lastChild;
@@ -51,7 +52,7 @@ function chainRoot(read, receiver, methods) {
     }
     if (callee.name === "VariableName") return callee;
     const name = memberName(read, callee);
-    if (!methods.has(name) || name === "out") return null;
+    if (name === "out" || !isMethod(name)) return null;
     node = callee.firstChild;
   }
   return node?.name === "ArrayExpression" ? node : null;
@@ -60,13 +61,26 @@ function chainRoot(read, receiver, methods) {
 /** Find the native generator at the start of a directly returned texture expression. */
 export function nativeTextureRoot(source, expression) {
   const read = (from, to) => source.slice(from, to);
-  const root = chainRoot(read, expression, textures);
+  const root = chainRoot(read, expression, (name) => textures.has(name));
   if (root?.name !== "VariableName") return null;
   const name = read(root.from, root.to);
   return generators.has(name) ? { name, pos: root.from } : null;
 }
 
-function callableSignature(state, args, custom) {
+function transformSignature(name, transform) {
+  const combinesTextures = transform.type === "combine" || transform.type === "combineCoord";
+  const params = transform.inputs.map((input, index) => {
+    if (combinesTextures && index === 0) return { name: "texture" };
+    const parameter = { name: input.name };
+    if (typeof input.default === "number" || typeof input.default === "string") {
+      parameter.default = JSON.stringify(input.default);
+    }
+    return parameter;
+  });
+  return { name, params };
+}
+
+function callableSignature(state, args, custom, getTransform) {
   const callee = args.parent.firstChild;
   if (args.parent.getChild("?.")) return null;
   if (callee.name === "VariableName") {
@@ -74,7 +88,9 @@ function callableSignature(state, args, custom) {
     const hint = custom(name, callee.from);
     if (hint !== undefined)
       return hint && { name, params: hint.params, description: hint.description };
-    return generators.has(name) || helpers.has(name) ? nativeSignature(name) : null;
+    if (generators.has(name) || helpers.has(name)) return nativeSignature(name);
+    const transform = getTransform(name);
+    return transform?.type === "src" ? transformSignature(name, transform) : null;
   }
 
   const read = (from, to) => state.sliceDoc(from, to);
@@ -87,17 +103,24 @@ function callableSignature(state, args, custom) {
     if (sources.has(name) && /^s[0-3]$/.test(binding)) return nativeSignature(name);
     if (audio.has(name) && binding === "a") return nativeSignature(name);
   }
-  if (textures.has(name)) {
-    const root = chainRoot(read, receiver, textures);
+  const registered = textures.has(name) ? undefined : getTransform(name);
+  const isTextureMethod = (method) =>
+    textures.has(method) || (method !== null && transformMethods.has(getTransform(method)?.type));
+  if (textures.has(name) || transformMethods.has(registered?.type)) {
+    const root = chainRoot(read, receiver, isTextureMethod);
     if (root?.name === "VariableName") {
       const binding = read(root.from, root.to);
       const hint = custom(binding, root.from);
-      if (hint === undefined ? generators.has(binding) : hint?.returnsTexture) {
-        return nativeSignature(name);
+      const isGenerator = generators.has(binding) || getTransform(binding)?.type === "src";
+      if (hint === undefined ? isGenerator : hint?.returnsTexture) {
+        return registered ? transformSignature(name, registered) : nativeSignature(name);
       }
     }
   }
-  if (arrays.has(name) && chainRoot(read, receiver, arrays)?.name === "ArrayExpression") {
+  if (
+    arrays.has(name) &&
+    chainRoot(read, receiver, (method) => arrays.has(method))?.name === "ArrayExpression"
+  ) {
     return nativeSignature(name);
   }
   return null;
@@ -107,7 +130,7 @@ function nativeSignature(name) {
   return { name, params: corrections[name] ?? hydraData.functions[name].params };
 }
 
-export function hydraCallAtCursor(state, custom = () => undefined) {
+export function hydraCallAtCursor(state, custom = () => undefined, getTransform = () => undefined) {
   const { head, empty } = state.selection.main;
   if (!empty || state.selection.ranges.length !== 1 || !syntaxTreeAvailable(state, head))
     return null;
@@ -120,7 +143,7 @@ export function hydraCallAtCursor(state, custom = () => undefined) {
     if (close?.name === ")" && head >= close.to) continue;
     if (node.parent?.name !== "CallExpression" || node.firstChild?.name !== "(") return null;
 
-    const signature = callableSignature(state, node, custom);
+    const signature = callableSignature(state, node, custom, getTransform);
     if (!signature) return null;
 
     let active = 0;

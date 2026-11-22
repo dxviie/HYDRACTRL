@@ -95,3 +95,37 @@ test("uses audited default text and preserves parameter order", () => {
 test("hides the hint when the language tree is unavailable", () => {
   expect(resolve("osc(60,|", [])).toBeNull();
 });
+
+test("shows a registered combineCoord signature in a multiline Hydra chain", () => {
+  const rowStretch = {
+    type: "combineCoord",
+    inputs: [
+      { name: "color", type: "vec4" },
+      { name: "maxWidth", default: 0.5 },
+      { name: "rows", default: 16 },
+    ],
+  };
+  const editor = { getCurrentTab: () => "main", getTabCode: () => "" };
+  let transforms = {};
+  const getTransform = (name) => transforms[name];
+  const extension = signatureExtension(editor, getTransform);
+  const source = "src(o1).contrast(2).rowStretch(\n  noise(),\n  width,\n  rows\n).out(o0)";
+  const state = EditorState.create({
+    doc: source,
+    extensions: [javascript(), extension],
+  });
+  const hintAt = (text) =>
+    state.update({ selection: { anchor: source.indexOf(text) + 1 } }).state.field(extension[0]);
+  expect(hintAt("width")).toBeNull();
+  transforms = { rowStretch };
+  expect(hintAt("width")).toMatchObject({
+    name: "rowStretch",
+    active: 1,
+    params: [
+      { name: "texture" },
+      { name: "maxWidth", default: "0.5" },
+      { name: "rows", default: "16" },
+    ],
+  });
+  expect(hintAt("o0")).toMatchObject({ name: "out", active: 0 });
+});
