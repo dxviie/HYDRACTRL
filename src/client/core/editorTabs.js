@@ -7,7 +7,8 @@
  * through the document itself, which holds the setup code while that tab
  * is open.
  *
- * @param {{ getCode: () => string, setCode: (code: string) => void }} editor
+ * @param {{ getCode: () => string, setCode: (code: string) => void,
+ *   switchTab: (from: "main" | "setup", to: "main" | "setup", code: string) => void }} editor
  * @param {object} [options]
  * @param {string} [options.main] - The sketch to start with (the document's).
  * @param {string} [options.setup] - The setup code to start with.
@@ -29,9 +30,10 @@ export function createEditorTabs(editor, options = {}) {
   function show(tab) {
     if (!Object.hasOwn(code, tab) || tab === current) return;
     keep();
-    if (current === "setup") saveSetup(code.setup);
+    const previous = current;
+    if (previous === "setup") saveSetup(code.setup);
     current = tab;
-    editor.setCode(code[tab]);
+    editor.switchTab(previous, tab, code[tab]);
     onShow(tab);
   }
 

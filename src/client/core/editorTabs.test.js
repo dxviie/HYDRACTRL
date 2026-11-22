@@ -7,11 +7,13 @@ const SETUP = "a.setBins(4)";
 /** An editor with one document, the tabs over it and what they reported. */
 function createTabs() {
   let doc = SKETCH;
+  const setCode = (code) => {
+    doc = code;
+  };
   const editor = {
     getCode: () => doc,
-    setCode: (code) => {
-      doc = code;
-    },
+    setCode,
+    switchTab: (_from, _to, code) => setCode(code),
   };
   const saved = [];
   const shown = [];

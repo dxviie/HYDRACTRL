@@ -4,14 +4,21 @@
  */
 
 import { CompletionContext, autocompletion, startCompletion } from "@codemirror/autocomplete";
-import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
+import {
+  defaultKeymap,
+  history,
+  historyField,
+  historyKeymap,
+  indentWithTab,
+} from "@codemirror/commands";
 import { javascript } from "@codemirror/lang-javascript";
-import { Compartment, EditorState } from "@codemirror/state";
+import { Compartment, EditorState, Transaction } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { EditorView, highlightActiveLineGutter, keymap, lineNumbers } from "@codemirror/view";
 import { monokai } from "@uiw/codemirror-theme-monokai";
 import { solarizedDark } from "@uiw/codemirror-theme-solarized";
 import hydraData from "../data/hydra-functions.json" assert { type: "json" };
+import { createEditorExtensions } from "./editorExtensions.js";
 import { insertLines } from "./editorInsert.js";
 import { lightEditorTheme, popEditorTheme } from "./editorThemes.js";
 import { flashCode, runFlash } from "./runFlash.js";
@@ -320,6 +327,10 @@ export function createCodeMirrorEditor(container, initialCode = "") {
     return themeMapping.default;
   }
 
+  const pluginExtensions = createEditorExtensions((spec) => view.dispatch(spec));
+  const tabHistory = new Map();
+  const historyCompartment = new Compartment();
+
   // Create initial editor state
   const startState = EditorState.create({
     doc: initialCode,
@@ -328,7 +339,8 @@ export function createCodeMirrorEditor(container, initialCode = "") {
       highlightActiveLineGutter(),
       // Our custom Ctrl+Enter keymap comes first for highest priority
       ctrlEnterKeymap,
-      history(), // Add history extension
+      history(),
+      historyCompartment.of([]),
       keymap.of([indentWithTab, ...defaultKeymap, ...historyKeymap]),
       languageCompartment.of(javascript()),
       hydraTheme, // Base editor styling
@@ -337,6 +349,7 @@ export function createCodeMirrorEditor(container, initialCode = "") {
       EditorState.tabSize.of(2),
       runFlash(), // The code lights up for a moment when it runs
       notifyUpdates,
+      pluginExtensions.extension,
       preventCtrlEnterHandler, // Add our custom handler
       // Add autocompletion with custom Hydra completions
       autocompletion({
@@ -354,6 +367,7 @@ export function createCodeMirrorEditor(container, initialCode = "") {
     state: startState,
     parent: container,
   });
+  const emptyHistory = startState.field(historyField);
 
   // Add custom class for additional styling
   view.dom.classList.add("cm-editor");
@@ -382,7 +396,23 @@ export function createCodeMirrorEditor(container, initialCode = "") {
         changes: { from: 0, to: view.state.doc.length, insert: code },
       });
     },
+    switchTab: (from, to, code) => {
+      tabHistory.set(from, view.state.field(historyField));
+      const incomingHistory = tabHistory.get(to) ?? emptyHistory;
+
+      // Load the document before restoring its history so CodeMirror never
+      // maps the incoming tab's undo and redo positions through the swap.
+      const changeDocument = view.state.update({
+        changes: { from: 0, to: view.state.doc.length, insert: code },
+        annotations: Transaction.addToHistory.of(false),
+      });
+      const restoreHistory = changeDocument.state.update({
+        effects: historyCompartment.reconfigure(historyField.init(() => incomingHistory)),
+      });
+      view.dispatch([changeDocument, restoreHistory]);
+    },
     focus: () => view.focus(),
+    addExtension: pluginExtensions.addExtension,
     // The cursor, as offsets into the code: { anchor, head }
     getSelection: () => {
       const { anchor, head } = view.state.selection.main;
