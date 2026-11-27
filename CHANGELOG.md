@@ -8,6 +8,13 @@ version and the desktop app share one version number; see
 
 ## [Unreleased]
 
+### Added
+
+- The landing page points newcomers to
+  [hydraflow](https://hydraflow.d17e.dev/), HYDRACTRL's sibling for playing
+  hydra with boxes and wires instead of code: a good first step for anyone
+  new to hydra or wary of code.
+
 ## [1.2.2] - 2026-11-13
 
 Choose the audio input `a.fft` listens to, a quieter code overlay, and setup

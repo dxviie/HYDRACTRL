@@ -560,6 +560,10 @@
       text-wrap: balance;
     }
 
+    .note + .note {
+      margin-top: 8px;
+    }
+
     /* ── The code panel ─────────────────────────────────────── */
 
     .code {
@@ -1657,6 +1661,72 @@
       display: block;
     }
 
+    /* For anyone the code puts off: the friendlier sibling, in its own colours */
+    .newcomer {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 20px;
+      max-width: 56ch;
+      margin: 32px 0 0;
+      padding: 16px 20px 16px 16px;
+      border: 1px solid var(--violet-line);
+      border-top: 2px solid #ccff99;
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .newcomer:hover {
+      border-color: var(--select);
+      border-top-color: #ccff99;
+      background: rgba(144, 0, 255, 0.18);
+    }
+
+    .newcomer:active {
+      transform: translateY(1px);
+    }
+
+    .newcomer-mark {
+      width: 64px;
+      height: 64px;
+      background: url("/site/hydraflow-logo.svg") center / contain no-repeat;
+    }
+
+    .newcomer strong {
+      display: block;
+      font-weight: 700;
+    }
+
+    .newcomer .fine {
+      display: block;
+      margin-top: 4px;
+    }
+
+    .newcomer .arrow {
+      color: var(--dim);
+      font-family: var(--code);
+    }
+
+    .newcomer:hover .arrow {
+      color: var(--text);
+    }
+
+    @media (max-width: 479px) {
+      .newcomer {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+
+      .newcomer-mark {
+        width: 48px;
+        height: 48px;
+      }
+
+      .newcomer .arrow {
+        display: none;
+      }
+    }
+
     /* ── Tally forms ────────────────────────────────────────── */
 
     .form-box {
@@ -2083,6 +2153,10 @@
             </div>
             <p class="note"><span class="hl">Works right in your browser. The desktop apps for macOS and Windows add Syphon/Spout 
               out.</span></p>
+            <p class="note"><span class="hl">New to hydra, and all this code a bit much? Warm up in <a
+                  href="https://hydraflow.d17e.dev/" data-umami-event="go-hydraflow"
+                  data-umami-event-location="hero">hydraflow</a> first: the same visuals, made with boxes and
+                wires.</span></p>
           </div>
 
           <figure class="code" data-code>
@@ -2508,6 +2582,14 @@
             <div>
               <h2 class="h2"><span class="ln" aria-hidden="true">1</span><span class="pfx pfx-short" aria-hidden="true"># </span>New
                 to hydra?</h2>
+              <a class="newcomer" href="https://hydraflow.d17e.dev/" data-umami-event="go-hydraflow"
+                data-umami-event-location="readme">
+                <span class="newcomer-mark" aria-hidden="true"></span>
+                <span><strong>Start with hydraflow</strong><span class="fine">Feeling a bit lost in all the code?
+                    hydraflow is hydra with boxes and wires: drag the numbers, see what happens, then peek at the
+                    code it writes for you. Come back here when you're ready.</span></span>
+                <span class="arrow" aria-hidden="true">-&gt;</span>
+              </a>
               <ul class="md-list">
                 <li><a href="https://hydra.ojack.xyz/docs/">hydra documentation</a> <span class="fine">The official
                     guide.</span></li>
@@ -2630,6 +2712,7 @@
             <a href="https://github.com/dxviie/HYDRACTRL">GitHub</a>
             <a href="https://github.com/dxviie/HYDRACTRL/releases">Releases</a>
             <a href="https://github.com/dxviie/HYDRACTRL/blob/main/CHANGELOG.md">Changelog</a>
+            <a href="https://hydraflow.d17e.dev/">hydraflow</a>
           </nav>
         </div>
       </div>
